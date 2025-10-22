@@ -39,49 +39,56 @@ export async function addRequest(
 //   }
 // }
 
-// export async function getRequests(isAccepted = null, artisanId = null) {
-//   try {
-//     let query = Request.find().populate("userId");
+export async function getRequests(
+  isAccepted: boolean | null = null,
+  artisanId: string | null = null
+) {
+  try {
+    let query = Request.find().populate("userId");
 
-//     if (artisanId) {
-//       query = query.where({ artisanId, isAccepted: true });
-//     } else if (isAccepted !== null) {
-//       query = query.where({ isAccepted });
-//     }
+    if (artisanId) {
+      query = query.where({ artisanId, isAccepted: true });
+    } else if (isAccepted !== null) {
+      query = query.where({ isAccepted });
+    }
 
-//     const request = await query.exec();
-//     return request;
-//   } catch (e) {
-//     throw new Error("Error in getting requests: " + e.message);
-//   }
-// }
+    const request = await query.exec();
+    return request;
+  } catch (e) {
+    throw new Error("Error in getting requests: " + (e as Error).message);
+  }
+}
 
-// export async function deleteRequest(requestId) {
-//   try {
-//     const request = await Request.findByIdAndDelete(requestId);
-//     if (!request) {
-//       throw new Error("Error request not found!");
-//     }
-//     return { success: true, message: "Request removed successfully!" };
-//   } catch (error) {
-//     throw new Error("Error in deleting the request: " + error.message);
-//   }
-// }
+export async function approveRequest(requestId: string, artisanId: string) {
+  try {
+    const request = await Request.findByIdAndUpdate(
+      requestId,
+      { artisanId, isAccepted: true },
+      { new: true, runValidators: true }
+    );
 
-// export async function approveRequest(requestId, artisanId) {
-//   try {
-//     const request = await Request.findByIdAndUpdate(
-//       requestId,
-//       { artisanId, isAccepted: true },
-//       { new: true, runValidators: true }
-//     );
+    if (!request) {
+      throw new Error("Request not found!");
+    }
 
-//     if (!request) {
-//       throw new Error("Request not found!");
-//     }
+    return { success: true, message: "Request approved successfully!" };
+  } catch (error) {
+    throw new Error(
+      "Error in approving the request: " + (error as Error).message
+    );
+  }
+}
 
-//     return { success: true, message: "Request approved successfully!" };
-//   } catch (error) {
-//     throw new Error("Error in approving the request: " + error.message);
-//   }
-// }
+export async function deleteRequest(requestId: string) {
+  try {
+    const request = await Request.findByIdAndDelete(requestId);
+    if (!request) {
+      throw new Error("Error request not found!");
+    }
+    return { success: true, message: "Request removed successfully!" };
+  } catch (error) {
+    throw new Error(
+      "Error in deleting the request: " + (error as Error).message
+    );
+  }
+}

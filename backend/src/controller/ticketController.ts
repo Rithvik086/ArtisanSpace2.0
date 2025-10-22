@@ -31,10 +31,6 @@ export const submitSuppotTicket = async (req: Request, res: Response) => {
         message: error.issues?.[0]?.message || "Validation error",
       });
     }
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to submit ticket. Please try again later.",
-    });
+    throw new Error("Error submitting ticket: " + (error as Error).message);
   }
 };

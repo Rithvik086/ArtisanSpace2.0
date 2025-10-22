@@ -1,72 +1,85 @@
 import mongoose from "mongoose";
 import Product from "../models/productModel.js";
 
-// export async function addProduct(
-//   userId: string,
-//   uploadedBy: string,
-//   name: string,
-//   category: string,
-//   material: string,
-//   image: string,
-//   oldPrice: number,
-//   quantity: number,
-//   description: string
-// ) {
-//   const session = await mongoose.startSession();
-//   session.startTransaction();
-//   try {
-//     oldPrice = parseFloat(oldPrice).toFixed(2);
-//     quantity = parseInt(quantity);
-//     const newPrice = (oldPrice * 0.9).toFixed(2);
+export async function addProductService(
+  userId: string,
+  uploadedBy: string,
+  name: string,
+  category: string,
+  material: string,
+  image: string,
+  oldPrice: string | number,
+  quantity: string | number,
+  description: string
+) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    // normalize and validate price and quantity
+    const oldPriceNum =
+      typeof oldPrice === "string" ? parseFloat(oldPrice) : oldPrice;
+    if (Number.isNaN(oldPriceNum) || typeof oldPriceNum !== "number") {
+      throw new Error("Invalid oldPrice");
+    }
 
-//     const product = new Product({
-//       userId,
-//       uploadedBy,
-//       name,
-//       category,
-//       material,
-//       image,
-//       oldPrice,
-//       newPrice,
-//       quantity,
-//       description,
-//       status: "pending",
-//     });
+    const quantityNum =
+      typeof quantity === "string" ? parseInt(quantity, 10) : quantity;
+    if (!Number.isInteger(quantityNum) || quantityNum < 0) {
+      throw new Error("Invalid quantity");
+    }
 
-//     await product.save({ session });
-//     await session.commitTransaction();
-//     return { success: true };
-//   } catch (e) {
-//     await session.abortTransaction();
-//     throw new Error("Error adding product: " + e.message);
-//   } finally {
-//     session.endSession();
-//   }
-// }
+    // Round prices to 2 decimals and keep as numbers
+    const oldPriceRounded = Math.round(oldPriceNum * 100) / 100;
+    const newPriceRounded = Math.round(oldPriceRounded * 0.9 * 100) / 100;
 
-// export async function deleteProduct(productId) {
-//   const session = await mongoose.startSession();
-//   session.startTransaction();
-//   try {
-//     if (!mongoose.Types.ObjectId.isValid(productId)) {
-//       throw new Error("Invalid product ID");
-//     }
+    const product = new Product({
+      userId,
+      uploadedBy,
+      name,
+      category,
+      material,
+      image,
+      oldPrice: oldPriceRounded,
+      newPrice: newPriceRounded,
+      quantity: quantityNum,
+      description,
+      status: "pending",
+    });
 
-//     const product = await Product.findById(productId).session(session);
-//     if (!product) {
-//       throw new Error("Product not found");
-//     }
+    await product.save({ session });
+    await session.commitTransaction();
+    return { success: true };
+  } catch (e) {
+    await session.abortTransaction();
+    throw new Error("Error adding product: " + (e as Error).message);
+  } finally {
+    session.endSession();
+  }
+}
 
-//     await product.deleteOne({ session });
-//     await session.commitTransaction();
-//     return { success: true };
-//   } catch (e) {
-//     await session.abortTransaction();
-//     throw new Error("Error deleting product: " + e.message);
-//   } finally {
-//     session.endSession();
-//   }
-// }
+export async function deleteProductService(productId: string) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      throw new Error("Invalid product ID");
+    }
+
+    const product = await Product.findById(productId).session(session);
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    await product.deleteOne({ session });
+    await session.commitTransaction();
+    return { success: true };
+  } catch (e) {
+    await session.abortTransaction();
+    throw new Error("Error deleting product: " + (e as Error).message);
+  } finally {
+    session.endSession();
+  }
+}
 
 // export async function getProduct(productId) {
 //   try {
@@ -354,37 +367,37 @@ export async function decreaseProductQuantity(
   }
 }
 
-// export async function updateProduct(
-//   productId,
-//   name,
-//   oldPrice,
-//   newPrice,
-//   quantity,
-//   description
-// ) {
-//   const session = await mongoose.startSession();
-//   session.startTransaction();
-//   try {
-//     if (!mongoose.Types.ObjectId.isValid(productId)) {
-//       throw new Error("Invalid product ID");
-//     }
+export async function updateProduct(
+  productId: string,
+  name: string,
+  oldPrice: number,
+  newPrice: number,
+  quantity: number,
+  description: string
+) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      throw new Error("Invalid product ID");
+    }
 
-//     const updatedProduct = await Product.findByIdAndUpdate(
-//       productId,
-//       { name, oldPrice, newPrice, quantity, description },
-//       { new: true, runValidators: true, session }
-//     );
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      { name, oldPrice, newPrice, quantity, description },
+      { new: true, runValidators: true, session }
+    );
 
-//     if (!updatedProduct) {
-//       throw new Error("Product not found");
-//     } else {
-//       await session.commitTransaction();
-//       return { success: true, message: "Product updated successfully!" };
-//     }
-//   } catch (e) {
-//     await session.abortTransaction();
-//     throw new Error("Error updating product: " + e.message);
-//   } finally {
-//     session.endSession();
-//   }
-// }
+    if (!updatedProduct) {
+      throw new Error("Product not found");
+    } else {
+      await session.commitTransaction();
+      return { success: true, message: "Product updated successfully!" };
+    }
+  } catch (e) {
+    await session.abortTransaction();
+    throw new Error("Error updating product: " + (e as Error).message);
+  } finally {
+    session.endSession();
+  }
+}

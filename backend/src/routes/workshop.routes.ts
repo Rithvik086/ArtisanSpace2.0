@@ -1,8 +1,16 @@
 import express from "express";
-import { bookUserWorkshop } from "../controller/workshopController.js";
+import {
+  bookUserWorkshop,
+  getWorkshops,
+  handleWorksopAction,
+} from "../controller/workshopController.js";
 
 const router = express.Router();
 
-router.post("/requestWorkshop", bookUserWorkshop);
+router.get("/", getWorkshops);
+
+router.post("/", bookUserWorkshop);
+
+router.put("/:action/:workshopId", handleWorksopAction);
 
 export default router;

@@ -88,7 +88,7 @@ const signup = async (req: Request, res: Response) => {
         .status(400)
         .json({ message: error.issues?.[0]?.message || "Validation error" });
     }
-    res.status(400).json({ message: (error as Error).message });
+    throw new Error("Error signing up: " + (error as Error).message);
   }
 };
 
@@ -146,7 +146,7 @@ const login = async (req: Request, res: Response) => {
         .status(400)
         .json({ message: error.issues?.[0]?.message || "Validation error" });
     }
-    res.status(500).json({ message: "Server error. Please try again later." });
+    throw new Error("Error logging in: " + (error as Error).message);
   }
 };
 
@@ -192,7 +192,7 @@ const verifyEmail = async (req: Request, res: Response) => {
         .status(400)
         .json({ message: error.issues?.[0]?.message || "Validation error" });
     }
-    res.status(500).json({ message: "Server error. Please try again later." });
+    throw new Error("Error verifying email: " + (error as Error).message);
   }
 };
 
@@ -234,7 +234,7 @@ const forgotPassword = async (req: Request, res: Response) => {
         .status(400)
         .json({ message: error.issues?.[0]?.message || "Validation error" });
     }
-    res.status(500).json({ message: "Server error. Please try again later." });
+    throw new Error("Error in forgot password: " + (error as Error).message);
   }
 };
 
@@ -271,7 +271,7 @@ const resetPassword = async (req: Request, res: Response) => {
         .status(400)
         .json({ message: error.issues?.[0]?.message || "Validation error" });
     }
-    res.status(500).json({ message: "Server error. Please try again later." });
+    throw new Error("Error resetting password: " + (error as Error).message);
   }
 };
 
@@ -285,8 +285,7 @@ const deleteAccount = async (req: Request, res: Response) => {
       res.status(500).json({ success: false });
     }
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false });
+    throw new Error("Error deleting account: " + (err as Error).message);
   }
 };
 
@@ -316,8 +315,7 @@ const updatProfile = async (req: Request, res: Response) => {
         message: error.issues?.[0]?.message || "Validation error",
       });
     }
-    console.error(error);
-    res.status(500).json({ success: false });
+    throw new Error("Error updating profile: " + (error as Error).message);
   }
 };
 
