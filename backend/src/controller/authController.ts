@@ -3,6 +3,7 @@ import {
   findUserByName,
   findUserByEmail,
   removeUser,
+  updateUser,
 } from "../services/userServices.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -11,6 +12,12 @@ import type { Request, Response } from "express";
 import crypto from "crypto";
 import User from "../models/userModel.js";
 import { z } from "zod";
+
+const updateProfileSchema = z.object({
+  name: z.string().optional(),
+  mobile_no: z.string().optional(),
+  address: z.string().optional(),
+});
 
 const signupSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -268,4 +275,59 @@ const resetPassword = async (req: Request, res: Response) => {
   }
 };
 
-export { signup, login, logout, verifyEmail, forgotPassword, resetPassword };
+const deleteAccount = async (req: Request, res: Response) => {
+  try {
+    const result = await removeUser(req.user.id);
+
+    if (result.success) {
+      res.status(200).json({ success: true });
+    } else {
+      res.status(500).json({ success: false });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false });
+  }
+};
+
+const updatProfile = async (req: Request, res: Response) => {
+  try {
+    const validated = updateProfileSchema.parse(req.body);
+    const { name, mobile_no, address } = validated;
+
+    const processedAddress = address ? address.toLowerCase() : address;
+    const processedName = name ? name.toLowerCase() : name;
+    const result = await updateUser(
+      req.user.id,
+      processedName,
+      mobile_no,
+      processedAddress
+    );
+
+    if (result.success) {
+      res.status(200).json({ success: true });
+    } else {
+      res.status(500).json({ success: false });
+    }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        message: error.issues?.[0]?.message || "Validation error",
+      });
+    }
+    console.error(error);
+    res.status(500).json({ success: false });
+  }
+};
+
+export {
+  signup,
+  login,
+  logout,
+  verifyEmail,
+  forgotPassword,
+  resetPassword,
+  deleteAccount,
+  updatProfile,
+};

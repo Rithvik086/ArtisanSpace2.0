@@ -1,84 +1,109 @@
 import mongoose from "mongoose";
 import Order from "../models/ordersModel.js";
-// import Cart from "../models/cartmodel.js";
+import { getUserCart } from "./cartServices.js";
+import { decreaseProductQuantity, productCount } from "./productServices.js";
+import Cart from "../models/cartModel.js";
 // import { getCart, removeCart } from "./cartServices.js";
 // import { decreaseProductQuantity, productCount } from "./productServices.js";
 
-// export async function placeOrder(userId) {
-//   const session = await mongoose.startSession();
-//   session.startTransaction();
-//   try {
-//     let cart = await getCart(userId, session);
-//     let amount = 0;
+export async function placeUserOrder(userId: string) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    // Get cart with populated product and user data
+    let cart = await Cart.findOne({ userId })
+      .populate("products.productId")
+      .populate("userId")
+      .session(session);
 
-//     if (!cart || cart.length === 0) {
-//       throw new Error("Cart is empty!");
-//     }
+    if (!cart || cart.products.length === 0) {
+      throw new Error("Cart is empty!");
+    }
 
-//     // Checking if user have products in cart as well as reducing them from inventory
-//     for (const item of cart) {
-//       const count = await productCount(item.productId._id, session);
+    let subtotal = 0;
 
-//       if (count) {
-//         const newStock = count - item.quantity;
+    // Validate stock and calculate subtotal
+    for (const item of cart.products) {
+      const product = item.productId as any;
+      const availableStock = await productCount(product._id, session);
 
-//         if (newStock < 0) {
-//           throw new Error("Stock limit reached");
-//         }
-//         let response;
+      if (availableStock < item.quantity) {
+        throw new Error(`Insufficient stock for product: ${product.name}`);
+      }
 
-//         amount += item.productId.newPrice * item.quantity;
+      subtotal += product.newPrice * item.quantity;
+    }
 
-//         // Decreasing the product quantity
-//         response = await decreaseProductQuantity(
-//           item.productId._id,
-//           newStock,
-//           session
-//         );
+    // Calculate final amount with tax and shipping
+    const tax = Math.round(subtotal * 0.05 * 100) / 100; // 5% tax
+    const shipping = 50; // Fixed shipping fee
+    const totalAmount = parseFloat((subtotal + tax + shipping).toFixed(2));
 
-//         if (!response.success) {
-//           throw new Error("Error changePtoductQuantity failed: ");
-//         }
-//       } else {
-//         throw new Error("Product not found");
-//       }
-//     }
+    // Reduce inventory for each product
+    for (const item of cart.products) {
+      const product = item.productId as any;
+      const newStock = await productCount(product._id, session) - item.quantity;
 
-//     amount = (amount + Math.round(amount * 0.05 * 100) / 100 + 50).toFixed(2); // 5% tax and 50 shipping
+      const response = await decreaseProductQuantity(
+        product._id,
+        newStock,
+        session
+      );
 
-//     cart = await Cart.findOne({ userId }).populate("products.productId");
+      if (!response.success) {
+        throw new Error(`Failed to update inventory for product: ${product.name}`);
+      }
+    }
 
-//     const cartObj = cart.toObject();
+    // Create order object with embedded product data
+    const orderProducts = cart.products.map(item => {
+      const product = item.productId as any;
+      return {
+        productId: {
+          name: product.name,
+          category: product.category,
+          material: product.material,
+          image: product.image,
+          oldPrice: product.oldPrice,
+          newPrice: product.newPrice,
+          quantity: product.quantity,
+          description: product.description,
+        },
+        quantity: item.quantity,
+      };
+    });
 
-//     //adding money and status and timestamp to the order
-//     delete cartObj._id;
-//     cartObj.money = amount;
-//     cartObj.purchasedAt = new Date();
-//     cartObj.status = "pending";
+    const orderData = {
+      userId: cart.userId,
+      products: orderProducts,
+      money: totalAmount,
+      purchasedAt: new Date(),
+      status: "pending",
+    };
 
-//     // Adding order to the order collection
-//     await Order.insertOne(cartObj, {
-//       new: true,
-//       runValidators: true,
-//       upsert: true,
-//       session,
-//     });
+    // Insert order into database
+    await Order.create([orderData], { session });
 
-//     //removeing the cart from the cart collection
-//     const response = await removeCart(userId, session);
+    // Remove cart after successful order placement
+    const cartRemovalResponse = await Cart.findOneAndDelete({ userId }, { session });
+    if (!cartRemovalResponse) {
+      throw new Error("Failed to remove cart after order placement");
+    }
 
-//     if (!response.success) {
-//       throw new Error("Error removeCart failed: ");
-//     }
-//     await session.commitTransaction();
-//     return { success: true, message: "Order placed successfully!" };
-//   } catch (e) {
-//     await session.abortTransaction();
-//     throw new Error("Error placing order: " + e.message);
-//   } finally {
-//     session.endSession();
-//   }
-// }
+    await session.commitTransaction();
+    return {
+      success: true,
+      message: "Order placed successfully!",
+      orderTotal: totalAmount,
+      itemCount: cart.products.length
+    };
+  } catch (error) {
+    await session.abortTransaction();
+    throw new Error("Error placing order: " + (error as Error).message);
+  } finally {
+    session.endSession();
+  }
+}
 
 export async function getOrders() {
   try {
@@ -92,7 +117,7 @@ export async function getOrders() {
   }
 }
 
-// export async function getOrdersById(userId) {
+// export async function getOrdersById(userId: string) {
 //   try {
 //     const orders = await Order.find({ userId });
 //     if (!orders) {
@@ -100,21 +125,21 @@ export async function getOrders() {
 //     }
 //     return orders;
 //   } catch (err) {
-//     throw new Error("Error in getting order by ID: " + err.message);
+//     throw new Error("Error in getting order by ID: " + (err as Error).message);
 //   }
 // }
 
-// export async function getOrderByOrderId(orderId) {
-//   try {
-//     const order = await Order.findById(orderId).populate("userId");
-//     if (!order) {
-//       throw new Error("Order not found!");
-//     }
-//     return order;
-//   } catch (err) {
-//     throw new Error("Error in getting order by ID: " + err.message);
-//   }
-// }
+export async function getOrderByOrderId(orderId: string) {
+  try {
+    const order = await Order.findById(orderId).populate("userId");
+    if (!order) {
+      throw new Error("Order not found!");
+    }
+    return order;
+  } catch (err) {
+    throw new Error("Error in getting order by ID: " + (err as Error).message);
+  }
+}
 
 // export async function changeOrderStatus(orderId, status) {
 //   try {

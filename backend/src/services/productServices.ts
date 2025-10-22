@@ -80,27 +80,33 @@ import Product from "../models/productModel.js";
 //   }
 // }
 
-export async function getProducts(artisanId = null, approved = false) {
+export async function getProducts(
+  artisanId = null,
+  approved = false,
+  limit: number | null = null
+) {
   try {
-    let products;
+    let query;
     if (artisanId) {
       if (approved) {
-        products = await Product.find({
+        query = Product.find({
           userId: artisanId,
           status: "approved",
         }).populate("userId");
       } else {
-        products = await Product.find({ userId: artisanId }).populate("userId");
+        query = Product.find({ userId: artisanId }).populate("userId");
       }
     } else {
       if (approved) {
-        products = await Product.find({ status: "approved" }).populate(
-          "userId"
-        );
+        query = Product.find({ status: "approved" }).populate("userId");
       } else {
-        products = await Product.find().populate("userId");
+        query = Product.find().populate("userId");
       }
     }
+    if (limit !== null) {
+      query = query.limit(limit);
+    }
+    const products = await query;
     return products;
   } catch (e) {
     throw new Error("Error getting products: " + (e as Error).message);
@@ -116,30 +122,30 @@ export async function getProducts(artisanId = null, approved = false) {
 //   }
 // }
 
-// export async function productCount(productId, session = null) {
-//   try {
-//     if (!mongoose.Types.ObjectId.isValid(productId)) {
-//       throw new Error("Invalid product ID");
-//     }
+export async function productCount(productId: string, session: any = null) {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      throw new Error("Invalid product ID");
+    }
 
-//     let product;
-//     if (session && session.inTransaction()) {
-//       product = await Product.findOne({
-//         status: "approved",
-//         _id: productId,
-//       }).session(session);
-//     } else {
-//       product = await Product.findOne({
-//         status: "approved",
-//         _id: productId,
-//       });
-//     }
+    let product;
+    if (session && session.inTransaction()) {
+      product = await Product.findOne({
+        status: "approved",
+        _id: productId,
+      }).session(session);
+    } else {
+      product = await Product.findOne({
+        status: "approved",
+        _id: productId,
+      });
+    }
 
-//     return product ? product.quantity : 0;
-//   } catch (e) {
-//     throw new Error("Error getting product count: " + e.message);
-//   }
-// }
+    return product ? product.quantity : 0;
+  } catch (e) {
+    throw new Error("Error getting product count: " + (e as Error).message);
+  }
+}
 
 // export async function approveProduct(productId) {
 //   const session = await mongoose.startSession();
@@ -197,28 +203,51 @@ export async function getProducts(artisanId = null, approved = false) {
 //   }
 // }
 
-// export async function getApprovedProducts(category = null) {
-//   try {
-//     // if no category is provided, return all approved products
-//     if (!category) {
-//       return await Product.find({ status: "approved" }).populate("userId");
-//     } else {
-//       if (!Array.isArray(category)) {
-//         //checking if category is not a array
-//         return await Product.find({ status: "approved", category }).populate(
-//           "userId"
-//         );
-//       } else {
-//         return await Product.find({
-//           status: "approved",
-//           category: { $in: category },
-//         }).populate("userId");
-//       }
-//     }
-//   } catch (e) {
-//     throw new Error("Error getting approved products: " + e.message);
-//   }
-// }
+export async function getApprovedProducts(
+  category: string | string[] | null = null,
+  page = 1,
+  limit = 10
+) {
+  try {
+    const skip = (page - 1) * limit;
+
+    let query;
+    if (!category) {
+      query = Product.find({ status: "approved" }).populate("userId");
+    } else {
+      if (!Array.isArray(category)) {
+        //checking if category is not a array
+        query = Product.find({ status: "approved", category }).populate(
+          "userId"
+        );
+      } else {
+        query = Product.find({
+          status: "approved",
+          category: { $in: category },
+        }).populate("userId");
+      }
+    }
+
+    // Get total count for pagination metadata
+    const totalCount = await query.clone().countDocuments();
+
+    // Apply pagination
+    const products = await query.skip(skip).limit(limit);
+
+    return {
+      products,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalCount / limit),
+        totalProducts: totalCount,
+        hasNextPage: page * limit < totalCount,
+        hasPrevPage: page > 1,
+      },
+    };
+  } catch (e) {
+    throw new Error("Error getting approved products: " + (e as Error).message);
+  }
+}
 
 // export async function getDisapprovedProducts() {
 //   try {
@@ -264,64 +293,66 @@ export async function getProducts(artisanId = null, approved = false) {
 //   }
 // }
 
-// export async function decreaseProductQuantity(
-//   productId,
-//   quantity,
-//   session = null
-// ) {
-//   let newSession = false;
+export async function decreaseProductQuantity(
+  productId: string,
+  quantity: number,
+  session: any = null
+) {
+  let newSession = false;
 
-//   if (!session) {
-//     session = await mongoose.startSession();
-//     session.startTransaction();
-//     newSession = true;
-//   }
+  if (!session) {
+    session = await mongoose.startSession();
+    session.startTransaction();
+    newSession = true;
+  }
 
-//   try {
-//     if (!mongoose.Types.ObjectId.isValid(productId)) {
-//       throw new Error("Invalid product ID");
-//     }
+  try {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      throw new Error("Invalid product ID");
+    }
 
-//     const count = await productCount(productId, session);
+    const count = await productCount(productId, session);
 
-//     if (count < quantity) {
-//       throw new Error("Not enough stock");
-//     }
-//     if (quantity < 0) {
-//       throw new Error("Quantity cannot be negative");
-//     }
-//     if (quantity === 0) {
-//       throw new Error("Quantity cannot be zero");
-//     }
+    if (count < quantity) {
+      throw new Error("Not enough stock");
+    }
+    if (quantity < 0) {
+      throw new Error("Quantity cannot be negative");
+    }
+    if (quantity === 0) {
+      throw new Error("Quantity cannot be zero");
+    }
 
-//     const updatedProduct = await Product.findByIdAndUpdate(
-//       productId,
-//       { quantity },
-//       { new: true, runValidators: true, session }
-//     );
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      { quantity },
+      { new: true, runValidators: true, session }
+    );
 
-//     if (!updatedProduct) {
-//       throw new Error("Product not found");
-//     } else {
-//       if (newSession) {
-//         await session.commitTransaction();
-//       }
-//       return {
-//         success: true,
-//         message: "Product quantity updated successfully!",
-//       };
-//     }
-//   } catch (e) {
-//     if (newSession) {
-//       await session.abortTransaction();
-//     }
-//     throw new Error("Error decreasing product quantity: " + e.message);
-//   } finally {
-//     if (newSession) {
-//       session.endSession();
-//     }
-//   }
-// }
+    if (!updatedProduct) {
+      throw new Error("Product not found");
+    } else {
+      if (newSession) {
+        await session.commitTransaction();
+      }
+      return {
+        success: true,
+        message: "Product quantity updated successfully!",
+      };
+    }
+  } catch (e) {
+    if (newSession) {
+      await session.abortTransaction();
+    }
+    throw new Error(
+      "Error decreasing product quantity: " + (e as Error).message
+    );
+  } finally {
+    if (newSession) {
+      session.endSession();
+    }
+  }
+}
 
 // export async function updateProduct(
 //   productId,
