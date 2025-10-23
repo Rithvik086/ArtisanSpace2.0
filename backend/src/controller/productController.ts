@@ -1,8 +1,11 @@
 import type { Request, Response } from "express";
 import {
   addProductService,
+  approveProduct,
   deleteProductService,
+  disapproveProduct,
   getApprovedProducts,
+  getProducts as getProductsService,
   updateProduct,
 } from "../services/productServices.js";
 import cloudinary from "../config/cloudinary.js";
@@ -98,5 +101,64 @@ export const addProduct = async (req: Request, res: Response) => {
     res.status(201).json({ message: "Product added successfully" });
   } catch (error) {
     throw new Error("Error adding product: " + (error as Error).message);
+  }
+};
+
+export const productsModeration = async (req: Request, res: Response) => {
+  try {
+    const { action, productId } = req.query;
+    let msg = { success: false };
+
+    if (action === "approve") {
+      msg = await approveProduct(productId as string);
+    } else if (action === "disapprove") {
+      msg = await disapproveProduct(productId as string);
+    } else if (action === "remove") {
+      msg = await deleteProductService(productId as string);
+    } else {
+      return res.status(400).json({ success: false, error: "Invalid action" });
+    }
+    if (msg.success) {
+      res.status(200).json({ success: true });
+    } else {
+      res.status(500).json({ success: false });
+    }
+  } catch (e) {
+    throw new Error("Error in product moderation: " + (e as Error).message);
+  }
+};
+
+export const getAllProducts = async (req: Request, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 12;
+    const result = await getProductsService(null, false, page, limit);
+    res.status(200).json({
+      success: true,
+      products: result.products,
+      pagination: result.pagination,
+    });
+  } catch (error) {
+    throw new Error(
+      "Error fetching all products: " + (error as Error).message
+    );
+  }
+};
+
+export const getUserProducts = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.id;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 12;
+    const result = await getProductsService(userId, false, page, limit);
+    res.status(200).json({
+      success: true,
+      products: result.products,
+      pagination: result.pagination,
+    });
+  } catch (error) {
+    throw new Error(
+      "Error fetching user products: " + (error as Error).message
+    );
   }
 };

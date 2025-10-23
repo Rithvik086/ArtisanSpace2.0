@@ -3,18 +3,52 @@ import {
   addProduct,
   deleteProduct,
   editProduct,
+  getAllProducts,
   getProducts,
+  getUserProducts,
+  productsModeration,
 } from "../controller/productController.js";
 import upload from "../middleware/multer.js";
+import authorizerole from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
 
-router.get("/", getProducts);
+// Public routes - accessible by all authenticated users
+router.get(
+  "/approved",
+  authorizerole("customer", "artisan", "manager", "admin"),
+  getProducts
+);
 
-router.post("/", upload.single("image"), addProduct);
+// Artisan+ routes
+router.get(
+  "/my",
+  authorizerole("artisan", "manager", "admin"),
+  getUserProducts
+);
 
-router.put("/:id", editProduct);
+router.post(
+  "/",
+  authorizerole("artisan", "manager", "admin"),
+  upload.single("image"),
+  addProduct
+);
 
-router.delete("/:id", deleteProduct);
+router.put("/:id", authorizerole("artisan", "manager", "admin"), editProduct);
+
+router.delete(
+  "/:id",
+  authorizerole("artisan", "manager", "admin"),
+  deleteProduct
+);
+
+// Manager+ routes
+router.post(
+  "/moderation",
+  authorizerole("manager", "admin"),
+  productsModeration
+);
+
+router.get("/all", authorizerole("manager", "admin"), getAllProducts);
 
 export default router;

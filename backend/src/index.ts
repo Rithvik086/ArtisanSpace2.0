@@ -26,7 +26,7 @@ app.get("/", (_req: Request, res: Response) => {
   res.send("Health Check OK");
 });
 
-app.use("/api/v1/", authRoutes);
+app.use("/api/v1/auth/", authRoutes);
 app.use("/api/v1/", userRoutes);
 
 app.all("/*splat", (req: Request, res: Response) => {

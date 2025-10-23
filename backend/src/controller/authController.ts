@@ -4,6 +4,7 @@ import {
   findUserByEmail,
   removeUser,
   updateUser,
+  getUserById,
 } from "../services/userServices.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -319,6 +320,45 @@ const updatProfile = async (req: Request, res: Response) => {
   }
 };
 
+const deleteUser = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.userId;
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID is required" });
+    }
+    // Prevent managers from deleting admin or other manager accounts
+    const requesterRole = req.user.role;
+    if (requesterRole === "manager") {
+      const targetUser = await getUserById(userId);
+      if (!targetUser) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+      if (targetUser.role === "admin" || targetUser.role === "manager") {
+        return res.status(403).json({
+          success: false,
+          message: "Managers are not allowed to delete admin or manager accounts",
+        });
+      }
+    }
+
+    const response = await removeUser(userId);
+
+    if (response.success) {
+      res
+        .status(200)
+        .json({ success: true, message: "User deleted successfully" });
+    } else {
+      res
+        .status(500)
+        .json({ success: false, message: "Failed to delete user" });
+    }
+  } catch (e) {
+    throw new Error("Error deleting user: " + (e as Error).message);
+  }
+};
+
 export {
   signup,
   login,
@@ -328,4 +368,5 @@ export {
   resetPassword,
   deleteAccount,
   updatProfile,
+  deleteUser,
 };

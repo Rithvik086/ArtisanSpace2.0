@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 
 const authorizerole = (...allowedRoles: string[]) => {
+  console.log("Allowed Roles:", allowedRoles);
   return (req: Request, res: Response, next: NextFunction) => {
     if (!allowedRoles.includes(req.user.role)) {
       return res

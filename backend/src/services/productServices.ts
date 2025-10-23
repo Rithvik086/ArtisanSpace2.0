@@ -94,11 +94,14 @@ export async function deleteProductService(productId: string) {
 // }
 
 export async function getProducts(
-  artisanId = null,
+  artisanId: string | null = null,
   approved = false,
-  limit: number | null = null
+  page = 1,
+  limit = 10
 ) {
   try {
+    const skip = (page - 1) * limit;
+
     let query;
     if (artisanId) {
       if (approved) {
@@ -116,11 +119,23 @@ export async function getProducts(
         query = Product.find().populate("userId");
       }
     }
-    if (limit !== null) {
-      query = query.limit(limit);
-    }
-    const products = await query;
-    return products;
+
+    // Get total count for pagination
+    const totalCount = await query.clone().countDocuments();
+
+    // Apply pagination
+    const products = await query.skip(skip).limit(limit);
+
+    return {
+      products,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalCount / limit),
+        totalProducts: totalCount,
+        hasNextPage: page * limit < totalCount,
+        hasPrevPage: page > 1,
+      },
+    };
   } catch (e) {
     throw new Error("Error getting products: " + (e as Error).message);
   }
@@ -160,61 +175,61 @@ export async function productCount(productId: string, session: any = null) {
   }
 }
 
-// export async function approveProduct(productId) {
-//   const session = await mongoose.startSession();
-//   session.startTransaction();
-//   try {
-//     if (!mongoose.Types.ObjectId.isValid(productId)) {
-//       throw new Error("Invalid product ID");
-//     }
+export async function approveProduct(productId: string) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      throw new Error("Invalid product ID");
+    }
 
-//     const updatedProduct = await Product.findByIdAndUpdate(
-//       productId,
-//       { status: "approved" },
-//       { new: true, runValidators: true, session }
-//     );
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      { status: "approved" },
+      { new: true, runValidators: true, session }
+    );
 
-//     if (!updatedProduct) {
-//       throw new Error("Product not found");
-//     } else {
-//       await session.commitTransaction();
-//       return { success: true };
-//     }
-//   } catch (e) {
-//     await session.abortTransaction();
-//     throw new Error("Error approving product: " + e.message);
-//   } finally {
-//     session.endSession();
-//   }
-// }
+    if (!updatedProduct) {
+      throw new Error("Product not found");
+    } else {
+      await session.commitTransaction();
+      return { success: true };
+    }
+  } catch (e) {
+    await session.abortTransaction();
+    throw new Error("Error approving product: " + (e as Error).message);
+  } finally {
+    session.endSession();
+  }
+}
 
-// export async function disapproveProduct(productId) {
-//   const session = await mongoose.startSession();
-//   session.startTransaction();
-//   try {
-//     if (!mongoose.Types.ObjectId.isValid(productId)) {
-//       throw new Error("Invalid product ID");
-//     }
+export async function disapproveProduct(productId: string) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      throw new Error("Invalid product ID");
+    }
 
-//     const updatedProduct = await Product.findByIdAndUpdate(
-//       productId,
-//       { status: "disapproved" },
-//       { new: true, runValidators: true, session }
-//     );
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      { status: "disapproved" },
+      { new: true, runValidators: true, session }
+    );
 
-//     if (!updatedProduct) {
-//       throw new Error("Product not found");
-//     } else {
-//       await session.commitTransaction();
-//       return { success: true };
-//     }
-//   } catch (e) {
-//     await session.abortTransaction();
-//     throw new Error("Error approving product: " + e.message);
-//   } finally {
-//     session.endSession();
-//   }
-// }
+    if (!updatedProduct) {
+      throw new Error("Product not found");
+    } else {
+      await session.commitTransaction();
+      return { success: true };
+    }
+  } catch (e) {
+    await session.abortTransaction();
+    throw new Error("Error approving product: " + (e as Error).message);
+  } finally {
+    session.endSession();
+  }
+}
 
 export async function getApprovedProducts(
   category: string | string[] | null = null,
