@@ -22,7 +22,7 @@ export const getOrdersChart = async (req: Request, res: Response) => {
 
 export const getProductsChart = async (req: Request, res: Response) => {
   try {
-    const products = await getProducts();
+    const { products } = await getProducts();
 
     const formatted = products.map((product) => ({
       createdAt: product._id.getTimestamp(),

@@ -6,15 +6,29 @@ import {
   getCustomRequests,
   reqCustomOrder,
 } from "../controller/customRequestController.js";
+import authorizerole from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
 
-router.get("/", getCustomRequests);
+router.get(
+  "/",
+  authorizerole("artisan", "manager", "admin"),
+  getCustomRequests
+);
 
-router.post("/", upload.single("image"), reqCustomOrder);
+router.post(
+  "/",
+  authorizerole("customer", "artisan", "manager", "admin"),
+  upload.single("image"),
+  reqCustomOrder
+);
 
-router.put("/", approveCustomRequest);
+router.put("/", authorizerole("manager", "admin"), approveCustomRequest);
 
-router.delete("/:requestId", deleteCustomRequest);
+router.delete(
+  "/:requestId",
+  authorizerole("manager", "admin"),
+  deleteCustomRequest
+);
 
 export default router;

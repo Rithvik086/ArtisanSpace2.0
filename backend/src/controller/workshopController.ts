@@ -6,6 +6,7 @@ import {
   getAcceptedWorkshops,
   getAvailableWorkshops,
   getWorkshopById,
+  getWorkshopByUserId,
   removeWorkshop,
 } from "../services/workshopServices.js";
 import { sendMail } from "../utils/emailSerice.js";
@@ -22,6 +23,18 @@ export const getWorkshops = async (req: Request, res: Response) => {
     });
   } catch (error) {
     throw new Error("Error fetching workshops: " + (error as Error).message);
+  }
+};
+
+export const getUserWorkshops = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.userId as string;
+    const workshops = await getWorkshopByUserId(userId);
+    res.status(200).json({ success: true, workshops });
+  } catch (error) {
+    throw new Error(
+      "Error fetching user workshops: " + (error as Error).message
+    );
   }
 };
 
@@ -85,7 +98,11 @@ export const handleWorksopAction = async (req: Request, res: Response) => {
         // compose email body safely
         const body = `Hello ${customer.username},<br><br>
 
-          Great news! Your workshop request, <b>"${customerUser.workshopTitle}"</b>, has been accepted by <b>${artisan.username}</b> on <b>${new Date(
+          Great news! Your workshop request, <b>"${
+            customerUser.workshopTitle
+          }"</b>, has been accepted by <b>${
+          artisan.username
+        }</b> on <b>${new Date(
           (customerUser.acceptedAt as any) || Date.now()
         ).toLocaleString()}</b>.<br><br>
 
@@ -101,7 +118,11 @@ export const handleWorksopAction = async (req: Request, res: Response) => {
           <b>The ArtisanSpace Team</b>`;
 
         if (customer.email) {
-          await sendMail(customer.email, "Workshop Accepted - ArtisanSpace", body);
+          await sendMail(
+            customer.email,
+            "Workshop Accepted - ArtisanSpace",
+            body
+          );
         }
 
         res.status(200).json({ success: true });

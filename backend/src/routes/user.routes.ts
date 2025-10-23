@@ -19,6 +19,6 @@ router.use("/tickets", ticketRoutes);
 router.use("/workshop", workshopRoutes);
 router.use("/custom-request", customRequestRoutes);
 
-router.use("/data", dataRoutes);
+router.use("/chart", dataRoutes);
 
 export default router;

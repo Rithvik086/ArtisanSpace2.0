@@ -103,15 +103,17 @@ export async function getAcceptedWorkshops(artisanId: string | null = null) {
   }
 }
 
-// export async function getWorkshopByUserId(userId) {
-//   try {
-//     const workshops = await Workshop.find({ userId });
-//     if (!workshops) {
-//       throw new Error("Workshops not found");
-//     }
+export async function getWorkshopByUserId(userId: string) {
+  try {
+    const workshops = await Workshop.find({ userId });
+    if (!workshops) {
+      throw new Error("Workshops not found");
+    }
 
-//     return workshops;
-//   } catch (e) {
-//     throw new Error("Error getting workshop by user ID: " + e.message);
-//   }
-// }
+    return workshops;
+  } catch (e) {
+    throw new Error(
+      "Error getting workshop by user ID: " + (e as Error).message
+    );
+  }
+}

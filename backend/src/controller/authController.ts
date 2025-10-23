@@ -333,12 +333,15 @@ const deleteUser = async (req: Request, res: Response) => {
     if (requesterRole === "manager") {
       const targetUser = await getUserById(userId);
       if (!targetUser) {
-        return res.status(404).json({ success: false, message: "User not found" });
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
       }
       if (targetUser.role === "admin" || targetUser.role === "manager") {
         return res.status(403).json({
           success: false,
-          message: "Managers are not allowed to delete admin or manager accounts",
+          message:
+            "Managers are not allowed to delete admin or manager accounts",
         });
       }
     }
@@ -359,6 +362,35 @@ const deleteUser = async (req: Request, res: Response) => {
   }
 };
 
+const addUserHandler = async (req: Request, res: Response) => {
+  const { name, username, mobile_no, email, role, pass } = req.body;
+  const hashpass = await bcrypt.hash(pass, 9);
+  try {
+    const result = await addUser(
+      username,
+      name,
+      email,
+      hashpass,
+      mobile_no,
+      role
+    ); // Assuming addUser returns a success status
+
+    if (result.success) {
+      res.status(200).json({
+        success: true,
+        message: "User added successfully",
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: "Failed to add user",
+      });
+    }
+  } catch (error) {
+    throw new Error("Error adding user: " + (error as Error).message);
+  }
+};
+
 export {
   signup,
   login,
@@ -369,4 +401,5 @@ export {
   deleteAccount,
   updatProfile,
   deleteUser,
+  addUserHandler,
 };

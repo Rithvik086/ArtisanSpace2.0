@@ -10,6 +10,7 @@ import {
   deleteAccount,
   updatProfile,
   deleteUser,
+  addUserHandler,
 } from "../controller/authController.js";
 import authorizerole from "../middleware/roleMiddleware.js";
 import { verifytoken } from "../middleware/authMiddleware.js";
@@ -40,5 +41,7 @@ router.post(
 );
 
 router.delete("/user/:userId", authorizerole("manager", "admin"), deleteUser);
+
+router.post("/add-user", authorizerole("admin"), addUserHandler);
 
 export default router;
