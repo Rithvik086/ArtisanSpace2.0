@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import Order from "../models/ordersModel.js";
-import { getUserCart } from "./cartServices.js";
+// import { getUserCart } from "./cartServices.js";
 import { decreaseProductQuantity, productCount } from "./productServices.js";
 import Cart from "../models/cartModel.js";
 // import { getCart, removeCart } from "./cartServices.js";
@@ -42,7 +42,8 @@ export async function placeUserOrder(userId: string) {
     // Reduce inventory for each product
     for (const item of cart.products) {
       const product = item.productId as any;
-      const newStock = await productCount(product._id, session) - item.quantity;
+      const newStock =
+        (await productCount(product._id, session)) - item.quantity;
 
       const response = await decreaseProductQuantity(
         product._id,
@@ -51,12 +52,14 @@ export async function placeUserOrder(userId: string) {
       );
 
       if (!response.success) {
-        throw new Error(`Failed to update inventory for product: ${product.name}`);
+        throw new Error(
+          `Failed to update inventory for product: ${product.name}`
+        );
       }
     }
 
     // Create order object with embedded product data
-    const orderProducts = cart.products.map(item => {
+    const orderProducts = cart.products.map((item) => {
       const product = item.productId as any;
       return {
         productId: {
@@ -85,7 +88,10 @@ export async function placeUserOrder(userId: string) {
     await Order.create([orderData], { session });
 
     // Remove cart after successful order placement
-    const cartRemovalResponse = await Cart.findOneAndDelete({ userId }, { session });
+    const cartRemovalResponse = await Cart.findOneAndDelete(
+      { userId },
+      { session }
+    );
     if (!cartRemovalResponse) {
       throw new Error("Failed to remove cart after order placement");
     }
@@ -95,7 +101,7 @@ export async function placeUserOrder(userId: string) {
       success: true,
       message: "Order placed successfully!",
       orderTotal: totalAmount,
-      itemCount: cart.products.length
+      itemCount: cart.products.length,
     };
   } catch (error) {
     await session.abortTransaction();
@@ -141,19 +147,24 @@ export async function getOrderByOrderId(orderId: string) {
   }
 }
 
-// export async function changeOrderStatus(orderId, status) {
-//   try {
-//     const order = await Order.findById(orderId);
-//     if (!order) {
-//       throw new Error("Order not found!");
-//     }
-//     order.status = status;
-//     await order.save();
-//     return { success: true, message: "Order status updated successfully!" };
-//   } catch (err) {
-//     throw new Error("Error in changing order status: " + err.message);
-//   }
-// }
+export async function changeOrderStatus(
+  orderId: string,
+  status: "pending" | "delivered" | "cancelled"
+) {
+  try {
+    const order = await Order.findById(orderId);
+    if (!order) {
+      throw new Error("Order not found!");
+    }
+    order.status = status;
+    await order.save();
+    return { success: true, message: "Order status updated successfully!" };
+  } catch (err) {
+    throw new Error(
+      "Error in changing order status: " + (err as Error).message
+    );
+  }
+}
 
 // export async function totalOrders() {
 //   try {
@@ -168,15 +179,15 @@ export async function getOrderByOrderId(orderId: string) {
 //   }
 // }
 
-// export async function deleteOrderById(orderId) {
-//   try {
-//     const order = await Order.findById(orderId);
-//     if (!order) {
-//       throw new Error("Order not found!");
-//     }
-//     await Order.deleteOne({ _id: orderId });
-//     return { success: true, message: "Order deleted successfully!" };
-//   } catch (err) {
-//     throw new Error("Error in deleting order: " + err.message);
-//   }
-// }
+export async function deleteOrderById(orderId: string) {
+  try {
+    const order = await Order.findById(orderId);
+    if (!order) {
+      throw new Error("Order not found!");
+    }
+    await Order.deleteOne({ _id: orderId });
+    return { success: true, message: "Order deleted successfully!" };
+  } catch (err) {
+    throw new Error("Error in deleting order: " + (err as Error).message);
+  }
+}
