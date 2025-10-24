@@ -26,6 +26,10 @@ const cartSchema = new mongoose.Schema({
       },
     },
   ],
+  updatedAt: {
+    type: String,
+    default: () => new Date().toISOString(),
+  },
 });
 
 export default mongoose.model("Cart", cartSchema);

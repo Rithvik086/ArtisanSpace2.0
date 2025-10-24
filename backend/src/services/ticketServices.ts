@@ -22,7 +22,7 @@ export async function addTicket(
 
 export async function getTickets() {
   try {
-    const tickets = await Ticket.find().populate(
+    const tickets = await Ticket.find({ isValid: true }).populate(
       "userId",
       "username name email mobile_no role"
     );
@@ -34,7 +34,11 @@ export async function getTickets() {
 
 export async function removeTicket(ticketId: string) {
   try {
-    const ticket = await Ticket.findByIdAndDelete(ticketId);
+    const ticket = await Ticket.findByIdAndUpdate(
+      ticketId,
+      { isValid: false },
+      { new: true }
+    );
     if (!ticket) {
       throw new Error("Ticket not found");
     }
@@ -49,7 +53,7 @@ export async function updateTicketStatus(
   status: "open" | "in-progress" | "closed"
 ) {
   try {
-    const ticket = await Ticket.findById(ticketId);
+    const ticket = await Ticket.findOne({ _id: ticketId, isValid: true });
     if (!ticket) {
       throw new Error("Ticket not found");
     }

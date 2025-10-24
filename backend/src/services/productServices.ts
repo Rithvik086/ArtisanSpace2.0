@@ -65,12 +65,19 @@ export async function deleteProductService(productId: string) {
       throw new Error("Invalid product ID");
     }
 
-    const product = await Product.findById(productId).session(session);
+    const product = await Product.findOne({
+      _id: productId,
+      isValid: true,
+    }).session(session);
     if (!product) {
       throw new Error("Product not found");
     }
 
-    await product.deleteOne({ session });
+    await Product.findOneAndUpdate(
+      { _id: productId, isValid: true },
+      { isValid: false },
+      { new: true, runValidators: true, session }
+    );
     await session.commitTransaction();
     return { success: true };
   } catch (e) {
@@ -108,15 +115,20 @@ export async function getProducts(
         query = Product.find({
           userId: artisanId,
           status: "approved",
+          isValid: true,
         }).populate("userId");
       } else {
-        query = Product.find({ userId: artisanId }).populate("userId");
+        query = Product.find({ userId: artisanId, isValid: true }).populate(
+          "userId"
+        );
       }
     } else {
       if (approved) {
-        query = Product.find({ status: "approved" }).populate("userId");
+        query = Product.find({ status: "approved", isValid: true }).populate(
+          "userId"
+        );
       } else {
-        query = Product.find().populate("userId");
+        query = Product.find({ isValid: true }).populate("userId");
       }
     }
 
@@ -160,11 +172,13 @@ export async function productCount(productId: string, session: any = null) {
     if (session && session.inTransaction()) {
       product = await Product.findOne({
         status: "approved",
+        isValid: true,
         _id: productId,
       }).session(session);
     } else {
       product = await Product.findOne({
         status: "approved",
+        isValid: true,
         _id: productId,
       });
     }
@@ -183,8 +197,8 @@ export async function approveProduct(productId: string) {
       throw new Error("Invalid product ID");
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(
-      productId,
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: productId, isValid: true },
       { status: "approved" },
       { new: true, runValidators: true, session }
     );
@@ -211,8 +225,8 @@ export async function disapproveProduct(productId: string) {
       throw new Error("Invalid product ID");
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(
-      productId,
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: productId, isValid: true },
       { status: "disapproved" },
       { new: true, runValidators: true, session }
     );
@@ -241,16 +255,21 @@ export async function getApprovedProducts(
 
     let query;
     if (!category) {
-      query = Product.find({ status: "approved" }).populate("userId");
+      query = Product.find({ status: "approved", isValid: true }).populate(
+        "userId"
+      );
     } else {
       if (!Array.isArray(category)) {
         //checking if category is not a array
-        query = Product.find({ status: "approved", category }).populate(
-          "userId"
-        );
+        query = Product.find({
+          status: "approved",
+          isValid: true,
+          category,
+        }).populate("userId");
       } else {
         query = Product.find({
           status: "approved",
+          isValid: true,
           category: { $in: category },
         }).populate("userId");
       }
@@ -351,8 +370,8 @@ export async function decreaseProductQuantity(
       throw new Error("Quantity cannot be zero");
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(
-      productId,
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: productId, isValid: true },
       { quantity },
       { new: true, runValidators: true, session }
     );
@@ -397,8 +416,8 @@ export async function updateProduct(
       throw new Error("Invalid product ID");
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(
-      productId,
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: productId, isValid: true },
       { name, oldPrice, newPrice, quantity, description },
       { new: true, runValidators: true, session }
     );
