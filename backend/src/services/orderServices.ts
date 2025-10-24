@@ -113,7 +113,7 @@ export async function placeUserOrder(userId: string) {
 
 export async function getOrders() {
   try {
-    const orders = await Order.find().populate("userId");
+    const orders = await Order.find({ isValid: true }).populate("userId");
     if (!orders || orders.length === 0) {
       throw new Error("No orders found");
     }
@@ -137,7 +137,9 @@ export async function getOrders() {
 
 export async function getOrderByOrderId(orderId: string) {
   try {
-    const order = await Order.findById(orderId).populate("userId");
+    const order = await Order.findOne({ _id: orderId, isValid: true }).populate(
+      "userId"
+    );
     if (!order) {
       throw new Error("Order not found!");
     }
@@ -152,7 +154,7 @@ export async function changeOrderStatus(
   status: "pending" | "delivered" | "cancelled"
 ) {
   try {
-    const order = await Order.findById(orderId);
+    const order = await Order.findOne({ _id: orderId, isValid: true });
     if (!order) {
       throw new Error("Order not found!");
     }
@@ -181,11 +183,14 @@ export async function changeOrderStatus(
 
 export async function deleteOrderById(orderId: string) {
   try {
-    const order = await Order.findById(orderId);
+    const order = await Order.findByIdAndUpdate(
+      orderId,
+      { isValid: false },
+      { new: true }
+    );
     if (!order) {
       throw new Error("Order not found!");
     }
-    await Order.deleteOne({ _id: orderId });
     return { success: true, message: "Order deleted successfully!" };
   } catch (err) {
     throw new Error("Error in deleting order: " + (err as Error).message);

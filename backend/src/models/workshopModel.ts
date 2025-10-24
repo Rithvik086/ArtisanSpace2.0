@@ -35,6 +35,18 @@ const workshopSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  isValid: {
+    type: Boolean,
+    default: true,
+  },
+  createdAt: {
+    type: String,
+    default: () => new Date().toISOString(),
+  },
+  updatedAt: {
+    type: String,
+    default: () => new Date().toISOString(),
+  },
 });
 
 export default mongoose.model("Workshop", workshopSchema);

@@ -44,12 +44,12 @@ export async function getRequests(
   artisanId: string | null = null
 ) {
   try {
-    let query = Request.find().populate("userId");
+    let query = Request.find({ isValid: true }).populate("userId");
 
     if (artisanId) {
-      query = query.where({ artisanId, isAccepted: true });
+      query = query.where({ artisanId, isAccepted: true, isValid: true });
     } else if (isAccepted !== null) {
-      query = query.where({ isAccepted });
+      query = query.where({ isAccepted, isValid: true });
     }
 
     const request = await query.exec();
@@ -81,7 +81,11 @@ export async function approveRequest(requestId: string, artisanId: string) {
 
 export async function deleteRequest(requestId: string) {
   try {
-    const request = await Request.findByIdAndDelete(requestId);
+    const request = await Request.findByIdAndUpdate(
+      requestId,
+      { isValid: false },
+      { new: true, runValidators: true }
+    );
     if (!request) {
       throw new Error("Error request not found!");
     }

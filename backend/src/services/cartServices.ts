@@ -17,7 +17,11 @@ export async function getUserCart(userId: string, session: any = null) {
     if (cart === null) {
       return [];
     }
-    return cart.products;
+    // Filter out products where isValid is false
+    const filteredProducts = cart.products.filter(
+      (item: any) => item.productId && item.productId.isValid
+    );
+    return filteredProducts;
   } catch (e) {
     throw new Error("Error fetching cart: " + (e as Error).message);
   }
@@ -34,18 +38,22 @@ export async function getCartProductQuantity(
       cart = await Cart.findOne(
         { userId, "products.productId": productId },
         { "products.$": 1, _id: 0 }
-      ).session(session);
+      ).populate("products.productId").session(session);
     } else {
       cart = await Cart.findOne(
         { userId, "products.productId": productId },
         { "products.$": 1, _id: 0 }
-      );
+      ).populate("products.productId");
     }
 
     if (!cart || !cart.products || cart.products.length === 0) {
       return 0; // Product not found in cart
     }
-    return cart.products[0]?.quantity || 0;
+    const item = cart.products[0];
+    if (!item || !item.productId || !item.productId.isValid) {
+      return 0; // Product is invalid
+    }
+    return item.quantity || 0;
   } catch (error: any) {
     throw new Error("Error fetching cart: " + (error.message || error));
   }

@@ -48,19 +48,53 @@ const productSchema = new mongoose.Schema({
       message: "{VALUE} is not a valid status",
     },
   },
+  createdAt: {
+    type: String,
+    default: () => new Date().toISOString(),
+  },
+  updatedAt: {
+    type: String,
+    default: () => new Date().toISOString(),
+  },
+  isValid: {
+    type: Boolean,
+    default: true,
+  },
 });
 
-// Use `any` for `this` in mongoose middleware to avoid strict typing issues here
-productSchema.pre(
+(productSchema as any).pre(
   "deleteOne",
-  { document: true, query: true },
-  async function (this: any, next: any) {
+  { query: true },
+  async function (this: any, next: (err?: any) => void) {
+    const productId = this.getFilter()._id;
+    if (!productId) return next();
+
     try {
-      await Promise.all([Cart.deleteMany({ productId: this._id })]);
+      await Cart.updateMany(
+        { "products.productId": productId },
+        { $pull: { products: { productId } } }
+      );
       next();
     } catch (error) {
-      next(error);
+      next(error as any);
     }
+  }
+);
+
+(productSchema as any).pre(
+  "save",
+  async function (this: any, next: (err?: any) => void) {
+    if (this.isValid === false && this.isModified('isValid')) {
+      try {
+        await Cart.updateMany(
+          { "products.productId": this._id },
+          { $pull: { products: { productId: this._id } } }
+        );
+      } catch (error) {
+        return next(error as any);
+      }
+    }
+    next();
   }
 );
 

@@ -39,7 +39,10 @@ export async function bookWorkshop(
 
 export async function getWorkshopById(workshopId: string) {
   try {
-    const workshop = await Workshop.findById(workshopId).populate("userId");
+    const workshop = await Workshop.findOne({
+      _id: workshopId,
+      isValid: true,
+    }).populate("userId");
     if (!workshop) {
       throw new Error("Workshop not found");
     }
@@ -51,9 +54,9 @@ export async function getWorkshopById(workshopId: string) {
 
 export async function acceptWorkshop(workshopId: string, artisanId: string) {
   try {
-    const workshop = await Workshop.findByIdAndUpdate(
-      workshopId,
-      { status: true, artisanId, acceptedAt: new Date() },
+    const workshop = await Workshop.findOneAndUpdate(
+      { _id: workshopId, isValid: true },
+      { status: 1, artisanId, acceptedAt: new Date().toISOString() },
       { new: true, runValidators: true }
     );
     if (!workshop) {
@@ -67,7 +70,11 @@ export async function acceptWorkshop(workshopId: string, artisanId: string) {
 
 export async function removeWorkshop(workshopId: string) {
   try {
-    const workshop = await Workshop.findByIdAndDelete(workshopId);
+    const workshop = await Workshop.findOneAndUpdate(
+      { _id: workshopId, isValid: true },
+      { isValid: false },
+      { new: true }
+    );
     if (!workshop) {
       throw new Error("Workshop not found");
     }
@@ -79,7 +86,10 @@ export async function removeWorkshop(workshopId: string) {
 
 export async function getAvailableWorkshops() {
   try {
-    const workshops = await Workshop.find({ status: 0 }).populate("userId");
+    const workshops = await Workshop.find({
+      status: 0,
+      isValid: true,
+    }).populate("userId");
     return workshops;
   } catch (e) {
     throw new Error(
@@ -90,7 +100,7 @@ export async function getAvailableWorkshops() {
 
 export async function getAcceptedWorkshops(artisanId: string | null = null) {
   try {
-    let query = Workshop.find({ status: 1 }).populate("userId");
+    let query = Workshop.find({ status: 1, isValid: true }).populate("userId");
     if (artisanId) {
       query = query.where({ artisanId });
     }
@@ -105,7 +115,7 @@ export async function getAcceptedWorkshops(artisanId: string | null = null) {
 
 export async function getWorkshopByUserId(userId: string) {
   try {
-    const workshops = await Workshop.find({ userId });
+    const workshops = await Workshop.find({ userId, isValid: true });
     if (!workshops) {
       throw new Error("Workshops not found");
     }
