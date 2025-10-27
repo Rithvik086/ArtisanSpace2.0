@@ -288,13 +288,17 @@ function Footer() {
       <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Link Sections */}
-          {Object.keys(footerLinks).map((category) => (
+          {(
+            Object.entries(footerLinks) as Array<
+              [keyof typeof footerLinks, { name: string; href: string }[]]
+            >
+          ).map(([category, links]) => (
             <div key={category}>
               <h3 className="text-sm font-semibold text-amber-950 tracking-wider uppercase">
                 {category}
               </h3>
               <ul className="mt-4 space-y-4">
-                {footerLinks[category].map((item) => (
+                {links.map((item) => (
                   <li key={item.name}>
                     <a
                       href={item.href}
