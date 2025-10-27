@@ -1,0 +1,129 @@
+import Workshop from "../models/workshopModel.js";
+
+export async function bookWorkshop(
+  userId: string,
+  workshopTitle: string,
+  workshopDescription: string,
+  date: string,
+  time: string
+) {
+  try {
+    const workshop = new Workshop({
+      userId,
+      workshopTitle,
+      workshopDescription,
+      date,
+      time,
+    });
+    await workshop.save();
+    return { success: true, message: "Workshop booked successfully!" };
+  } catch (e) {
+    throw new Error("Error booking workshop: " + (e as Error).message);
+  }
+}
+
+// export async function getWorkshops(isAccepted = null) {
+//   try {
+//     let query = Workshop.find().populate("userId");
+//     if (isAccepted === true) {
+//       query = query.where({ status: true });
+//     } else if (isAccepted === false) {
+//       query = query.where({ status: false });
+//     }
+//     const workshops = await query.exec();
+//     return workshops;
+//   } catch (e) {
+//     throw new Error("Error getting workshops: " + e.message);
+//   }
+// }
+
+export async function getWorkshopById(workshopId: string) {
+  try {
+    const workshop = await Workshop.findOne({
+      _id: workshopId,
+      isValid: true,
+    }).populate("userId");
+    if (!workshop) {
+      throw new Error("Workshop not found");
+    }
+    return workshop;
+  } catch (e) {
+    throw new Error("Error getting workshop by ID: " + (e as Error).message);
+  }
+}
+
+export async function acceptWorkshop(workshopId: string, artisanId: string) {
+  try {
+    const workshop = await Workshop.findOneAndUpdate(
+      { _id: workshopId, isValid: true },
+      { status: 1, artisanId, acceptedAt: new Date().toISOString() },
+      { new: true, runValidators: true }
+    );
+    if (!workshop) {
+      throw new Error("Workshop not found");
+    }
+    return { success: true, message: "Workshop accepted successfully!" };
+  } catch (e) {
+    throw new Error("Error accepting workshop: " + (e as Error).message);
+  }
+}
+
+export async function removeWorkshop(workshopId: string) {
+  try {
+    const workshop = await Workshop.findOneAndUpdate(
+      { _id: workshopId, isValid: true },
+      { isValid: false },
+      { new: true }
+    );
+    if (!workshop) {
+      throw new Error("Workshop not found");
+    }
+    return { success: true, message: "Workshop removed successfully!" };
+  } catch (e) {
+    throw new Error("Error removing workshop: " + (e as Error).message);
+  }
+}
+
+export async function getAvailableWorkshops() {
+  try {
+    const workshops = await Workshop.find({
+      status: 0,
+      isValid: true,
+    }).populate("userId");
+    return workshops;
+  } catch (e) {
+    throw new Error(
+      "Error getting available workshops: " + (e as Error).message
+    );
+  }
+}
+
+export async function getAcceptedWorkshops(artisanId: string | null = null) {
+  try {
+    let query = Workshop.find({ status: 1, isValid: true }).populate("userId");
+    if (artisanId) {
+      query = query.where({ artisanId });
+    }
+    const workshops = await query.exec();
+    return workshops;
+  } catch (e) {
+    throw new Error(
+      "Error getting accepted workshops: " + (e as Error).message
+    );
+  }
+}
+
+export async function getWorkshopByUserId(userId: string) {
+  try {
+    const workshops = await Workshop.find({ userId, isValid: true });
+    if (!workshops) {
+      throw new Error("Workshops not found");
+    }
+
+    return workshops;
+  } catch (e) {
+    throw new Error(
+      "Error getting workshop by user ID: " + (e as Error).message
+    );
+  }
+}
