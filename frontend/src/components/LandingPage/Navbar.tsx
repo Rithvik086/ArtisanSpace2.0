@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 // We'll use lucide-react for modern, clean icons
 // You'll need to install it: npm install lucide-react

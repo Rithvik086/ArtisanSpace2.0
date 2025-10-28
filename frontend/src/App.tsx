@@ -1,19 +1,13 @@
-import React, { useState } from "react";
 // We'll use lucide-react for modern, clean icons
 // You'll need to install it: npm install lucide-react
 // import ScrollStack, { ScrollStackItem } from './components/ScrollStack'
 import CircularGallery from "./components/CircularGallery";
 import {
-  Menu,
-  X,
   ShoppingBag,
   Paintbrush,
   Users,
-  Star,
-  CheckCircle,
   Quote,
   ArrowRight,
-  ChevronRight,
   Facebook,
   Twitter,
   Instagram,
@@ -202,7 +196,7 @@ function TestimonialsSection() {
               key={testimonial.name}
               className="flex flex-col bg-white rounded-xl shadow-lg overflow-hidden"
             >
-              <div className="p-8 flex-grow">
+              <div className="p-8 grow">
                 <Quote className="text-amber-800/30" size={48} />
                 <blockquote className="mt-4 text-lg font-medium text-amber-900">
                   "{testimonial.quote}"
