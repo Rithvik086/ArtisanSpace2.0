@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, MapPin, Bell, CreditCard, Trash2, Save, Home, Briefcase, Plus } from 'lucide-react';
+import { cn, craftStyles } from './styles/theme';
 
 // TypeScript interfaces
 interface FormData {
@@ -65,14 +66,14 @@ interface Tab {
 
 // --- Reusable Input Component ---
 const InputField: React.FC<InputFieldProps> = ({ id, label, type = 'text', value, onChange, placeholder, icon: Icon }) => (
-  <div className="mb-4">
-    <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
+  <div className="mb-6">
+    <label htmlFor={id} className="block text-sm font-semibold text-amber-900 mb-2">
       {label}
     </label>
     <div className="relative rounded-lg shadow-sm">
       {Icon && (
         <div className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
-          <Icon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+          <Icon className="h-5 w-5 text-amber-600" aria-hidden="true" />
         </div>
       )}
       <input
@@ -82,7 +83,11 @@ const InputField: React.FC<InputFieldProps> = ({ id, label, type = 'text', value
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${Icon ? 'pl-10' : ''}`}
+        className={cn(
+          craftStyles.input.default,
+          Icon ? 'pl-10' : '',
+          'focus:ring-amber-500 focus:border-amber-500'
+        )}
       />
     </div>
   </div>
@@ -90,19 +95,17 @@ const InputField: React.FC<InputFieldProps> = ({ id, label, type = 'text', value
 
 // --- Reusable Button Component ---
 const Button: React.FC<ButtonProps> = ({ children, onClick, variant = 'primary', icon: Icon, className = '' }) => {
-  const baseStyle = 'inline-flex items-center justify-center font-semibold py-2 px-4 rounded-lg shadow-sm transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2';
-  
-  const variants = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-400',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+  const craftVariants = {
+    primary: craftStyles.button.primary,
+    secondary: craftStyles.button.secondary,
+    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 border border-red-600 rounded-lg px-4 py-2 font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2',
   };
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`${baseStyle} ${variants[variant]} ${className}`}
+      className={cn(craftVariants[variant], className)}
     >
       {Icon && <Icon className="h-5 w-5 mr-2 -ml-1" />}
       {children}
@@ -113,7 +116,7 @@ const Button: React.FC<ButtonProps> = ({ children, onClick, variant = 'primary',
 // --- Profile Settings Tab ---
 const ProfileSettings: React.FC<ProfileSettingsProps> = ({ formData, handleChange }) => (
   <div className="animate-fadeIn">
-    <h2 className="text-2xl font-semibold text-gray-800 mb-6">Profile Information</h2>
+    <h2 className="text-3xl font-bold text-amber-900 mb-8 font-serif">Profile Information</h2>
     <form>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <InputField
@@ -162,20 +165,28 @@ const AddressSettings: React.FC<AddressSettingsProps> = ({ formData, handleChang
   
   return (
     <div className="animate-fadeIn">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6">Manage Addresses</h2>
+      <h2 className="text-3xl font-bold text-amber-900 mb-8 font-serif">Manage Addresses</h2>
       
       {/* Address Type Toggle */}
-      <div className="flex rounded-lg bg-gray-100 p-1 mb-6 max-w-xs">
+      <div className="flex rounded-lg bg-amber-100 p-1 mb-8 max-w-xs border border-amber-300">
         <button
           onClick={() => setAddressType('home')}
-          className={`w-1/2 py-2 px-4 rounded-lg font-medium transition ${addressType === 'home' ? 'bg-white text-blue-600 shadow' : 'text-gray-600 hover:bg-gray-200'}`}
+          className={`w-1/2 py-3 px-4 rounded-lg font-semibold transition ${
+            addressType === 'home' 
+              ? 'bg-amber-600 text-white shadow-lg' 
+              : 'text-amber-700 hover:bg-amber-200'
+          }`}
         >
           <Home className="h-5 w-5 inline mr-2" />
           Home
         </button>
         <button
           onClick={() => setAddressType('work')}
-          className={`w-1/2 py-2 px-4 rounded-lg font-medium transition ${addressType === 'work' ? 'bg-white text-blue-600 shadow' : 'text-gray-600 hover:bg-gray-200'}`}
+          className={`w-1/2 py-3 px-4 rounded-lg font-semibold transition ${
+            addressType === 'work' 
+              ? 'bg-amber-600 text-white shadow-lg' 
+              : 'text-amber-700 hover:bg-amber-200'
+          }`}
         >
           <Briefcase className="h-5 w-5 inline mr-2" />
           Work
@@ -265,43 +276,43 @@ const AddressSettings: React.FC<AddressSettingsProps> = ({ formData, handleChang
 // --- Notification Settings Tab ---
 const NotificationSettings: React.FC<NotificationSettingsProps> = ({ notifications, handleNotifChange }) => (
   <div className="animate-fadeIn">
-    <h2 className="text-2xl font-semibold text-gray-800 mb-6">Notification Preferences</h2>
-    <p className="text-gray-600 mb-6">Choose how you'd like to be notified.</p>
-    <div className="space-y-4">
-      <div className="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+    <h2 className="text-3xl font-bold text-amber-900 mb-8 font-serif">Notification Preferences</h2>
+    <p className="text-amber-700 mb-8 text-lg">Choose how you'd like to be notified.</p>
+    <div className="space-y-6">
+      <div className={cn(craftStyles.card.default, "flex items-center justify-between p-6 border border-amber-200")}>
         <div>
-          <h3 className="font-medium text-gray-800">Email Notifications</h3>
-          <p className="text-sm text-gray-500">Get order updates and newsletters via email.</p>
+          <h3 className="font-semibold text-amber-900 text-lg">Email Notifications</h3>
+          <p className="text-amber-700 mt-1">Get order updates and newsletters via email.</p>
         </div>
         <input
           type="checkbox"
           checked={notifications.email}
           onChange={() => handleNotifChange('email')}
-          className="h-6 w-6 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+          className="h-6 w-6 text-amber-600 border-amber-300 rounded focus:ring-amber-500 cursor-pointer"
         />
       </div>
-      <div className="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+      <div className={cn(craftStyles.card.default, "flex items-center justify-between p-6 border border-amber-200")}>
         <div>
-          <h3 className="font-medium text-gray-800">SMS Notifications</h3>
-          <p className="text-sm text-gray-500">Receive critical alerts and delivery updates via text.</p>
+          <h3 className="font-semibold text-amber-900 text-lg">SMS Notifications</h3>
+          <p className="text-amber-700 mt-1">Receive critical alerts and delivery updates via text.</p>
         </div>
         <input
           type="checkbox"
           checked={notifications.sms}
           onChange={() => handleNotifChange('sms')}
-          className="h-6 w-6 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+          className="h-6 w-6 text-amber-600 border-amber-300 rounded focus:ring-amber-500 cursor-pointer"
         />
       </div>
-      <div className="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+      <div className={cn(craftStyles.card.default, "flex items-center justify-between p-6 border border-amber-200")}>
         <div>
-          <h3 className="font-medium text-gray-800">Push Notifications</h3>
-          <p className="text-sm text-gray-500">Get app notifications for flash sales and updates.</p>
+          <h3 className="font-semibold text-amber-900 text-lg">Push Notifications</h3>
+          <p className="text-amber-700 mt-1">Get app notifications for flash sales and updates.</p>
         </div>
         <input
           type="checkbox"
           checked={notifications.push}
           onChange={() => handleNotifChange('push')}
-          className="h-6 w-6 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+          className="h-6 w-6 text-amber-600 border-amber-300 rounded focus:ring-amber-500 cursor-pointer"
         />
       </div>
     </div>
@@ -316,30 +327,34 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ notificatio
 // --- Payment Settings Tab ---
 const PaymentSettings: React.FC = () => (
   <div className="animate-fadeIn">
-    <h2 className="text-2xl font-semibold text-gray-800 mb-6">Payment Methods</h2>
-    <div className="space-y-4">
+    <h2 className="text-3xl font-bold text-amber-900 mb-8 font-serif">Payment Methods</h2>
+    <div className="space-y-6">
       {/* Mocked Saved Card */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+      <div className={cn(craftStyles.card.default, "flex items-center justify-between p-6 border border-amber-200")}>
         <div className="flex items-center">
           <img src="https://placehold.co/40x24/blue/white?text=VISA" alt="Visa" className="h-6 w-10 mr-4 rounded" />
           <div>
-            <h3 className="font-medium text-gray-800">Visa ending in 1234</h3>
-            <p className="text-sm text-gray-500">Expires 12/2026</p>
+            <h3 className="font-semibold text-amber-900">Visa ending in 1234</h3>
+            <p className="text-amber-700">Expires 12/2026</p>
           </div>
         </div>
-        <button className="text-sm font-medium text-red-600 hover:text-red-800">Remove</button>
+        <button className="text-red-600 hover:text-red-800 font-medium px-3 py-1 rounded-lg hover:bg-red-50 transition-colors">
+          Remove
+        </button>
       </div>
       
       {/* Mocked Saved Card */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+      <div className={cn(craftStyles.card.default, "flex items-center justify-between p-6 border border-amber-200")}>
         <div className="flex items-center">
           <img src="https://placehold.co/40x24/orange/white?text=MC" alt="Mastercard" className="h-6 w-10 mr-4 rounded" />
           <div>
-            <h3 className="font-medium text-gray-800">Mastercard ending in 5678</h3>
-            <p className="text-sm text-gray-500">Expires 08/2025</p>
+            <h3 className="font-semibold text-amber-900">Mastercard ending in 5678</h3>
+            <p className="text-amber-700">Expires 08/2025</p>
           </div>
         </div>
-        <button className="text-sm font-medium text-red-600 hover:text-red-800">Remove</button>
+        <button className="text-red-600 hover:text-red-800 font-medium px-3 py-1 rounded-lg hover:bg-red-50 transition-colors">
+          Remove
+        </button>
       </div>
     </div>
     <div className="mt-8">
@@ -352,12 +367,12 @@ const PaymentSettings: React.FC = () => (
 
 // --- Delete Account Section ---
 const DeleteAccount: React.FC = () => (
-  <div className="mt-12 p-6 bg-red-50 border-l-4 border-red-500 rounded-lg">
-    <h2 className="text-2xl font-semibold text-red-800 mb-4">Delete Account</h2>
-    <p className="text-red-700 mb-6">
+  <div className="mt-12 p-8 bg-red-50 border-l-4 border-red-500 rounded-xl">
+    <h2 className="text-2xl font-bold text-red-800 mb-4 font-serif">Delete Account</h2>
+    <p className="text-red-700 mb-6 leading-relaxed">
       Once you delete your account, there is no going back. All your data, including order history and saved addresses, will be permanently removed. Please be certain.
     </p>
-    <Button variant="danger" icon={Trash2}>
+    <Button variant="danger" icon={Trash2} className="shadow-lg">
       Delete My Account
     </Button>
   </div>
@@ -444,21 +459,21 @@ export default function App(): React.ReactElement {
   ];
 
   return (
-    <div className="bg-gray-50 min-h-screen p-4 md:p-8 font-inter">
-      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
+    <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 min-h-screen p-4 md:p-8">
+      <div className={cn(craftStyles.card.warm, "max-w-6xl mx-auto rounded-2xl shadow-2xl overflow-hidden border-2 border-amber-200")}>
         <div className="md:flex">
           {/* --- Sidebar Navigation --- */}
-          <div className="w-full md:w-1/4 bg-gray-50 border-b md:border-b-0 md:border-r border-gray-200">
-            <h1 className="text-xl font-bold text-gray-800 p-6 border-b border-gray-200">Settings</h1>
-            <nav className="flex flex-row md:flex-col overflow-x-auto md:overflow-x-visible p-3 md:p-4 space-x-2 md:space-x-0 md:space-y-2">
+          <div className="w-full md:w-1/4 bg-gradient-to-b from-amber-100 to-orange-100 border-b md:border-b-0 md:border-r border-amber-300">
+            <h1 className="text-2xl font-bold text-amber-900 p-6 border-b border-amber-300 font-serif">Settings</h1>
+            <nav className="flex flex-row md:flex-col overflow-x-auto md:overflow-x-visible p-4 md:p-6 space-x-3 md:space-x-0 md:space-y-3">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center w-full min-w-max md:min-w-full space-x-3 p-3 rounded-lg font-medium text-left transition ${
+                  className={`flex items-center w-full min-w-max md:min-w-full space-x-3 p-4 rounded-lg font-semibold text-left transition-all duration-200 ${
                     activeTab === tab.id
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
+                      ? 'bg-amber-600 text-white shadow-lg border border-amber-700'
+                      : 'text-amber-800 hover:bg-amber-200 hover:text-amber-900 border border-transparent'
                   }`}
                 >
                   <tab.icon className="h-5 w-5" />
@@ -469,7 +484,7 @@ export default function App(): React.ReactElement {
           </div>
 
           {/* --- Content Area --- */}
-          <div className="w-full md:w-3/4 p-6 md:p-10">
+          <div className="w-full md:w-3/4 p-8 md:p-12">
             {/* Render the active tab's component */}
             {tabs.find(tab => tab.id === activeTab)?.component}
             
@@ -488,11 +503,8 @@ export default function App(): React.ReactElement {
         .animate-fadeIn {
           animation: fadeIn 0.3s ease-out;
         }
-        .font-inter {
-          font-family: 'Inter', sans-serif;
-        }
-        /* Import Inter font */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
       `}</style>
     </div>
   );

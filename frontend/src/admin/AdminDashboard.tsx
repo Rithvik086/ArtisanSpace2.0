@@ -30,6 +30,7 @@ import {
   AlertCircle,
   Star
 } from 'lucide-react';
+import { cn, craftStyles } from '../styles/theme';
 
 // TypeScript interfaces
 interface User {
@@ -283,21 +284,21 @@ const useAppContext = (): AppContextType => {
  */
 function Header(): React.ReactElement {
   const navLinkClass = ({ isActive }: { isActive: boolean }): string =>
-    `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium ${
+    `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
       isActive
-        ? 'bg-gray-100 text-blue-600'
-        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+        ? 'bg-amber-100 text-amber-900 border border-amber-300 shadow-sm'
+        : 'text-amber-700 hover:bg-amber-50 hover:text-amber-900'
     }`;
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
+    <header className="bg-gradient-to-r from-amber-50 to-orange-50 shadow-lg border-b-2 border-amber-200 sticky top-0 z-30 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0 flex items-center">
-            <h1 className="text-xl font-bold text-blue-600">Admin</h1>
+            <h1 className="text-2xl font-bold text-amber-900 font-serif">ArtisanSpace Admin</h1>
           </div>
           <div className="hidden md:flex md:ml-6">
-            <nav className="flex space-x-4">
+            <nav className="flex space-x-3">
               <NavLink to="/" className={navLinkClass}>
                 <LayoutDashboard size={18} />
                 <span>Dashboard</span>
@@ -329,27 +330,41 @@ function Header(): React.ReactElement {
 function GraphCard({ title, data, dataKey, xKey, icon, unit }: GraphCardProps): React.ReactElement {
   const IconComponent = icon;
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+    <div className={cn(craftStyles.card.warm, "p-6 shadow-lg border border-amber-200")}>
       <div className="flex items-center gap-3 mb-4">
-        <IconComponent className="text-blue-500" size={24} />
-        <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+        <div className="p-2 bg-amber-100 rounded-lg">
+          <IconComponent className="text-amber-700" size={24} />
+        </div>
+        <h3 className="text-xl font-semibold text-amber-900 font-serif">{title}</h3>
       </div>
       <div className="h-[300px] w-full">
         <ResponsiveContainer>
           <LineChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-            <XAxis dataKey={xKey} stroke="#6b7280" fontSize={12} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#f3e8dc" />
+            <XAxis dataKey={xKey} stroke="#92400e" fontSize={12} />
             <YAxis
-              stroke="#6b7280"
+              stroke="#92400e"
               fontSize={12}
               tickFormatter={(value: number) => (unit ? `${unit}${value/1000}k` : value.toString())}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: 'white', borderRadius: '8px', borderColor: '#e0e0e0' }}
+              contentStyle={{ 
+                backgroundColor: '#fef7ed', 
+                borderRadius: '12px', 
+                borderColor: '#f59e0b',
+                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+              }}
               formatter={(value: number) => (unit ? `${unit}${value.toLocaleString()}` : value)}
             />
             <Legend />
-            <Line type="monotone" dataKey={dataKey} stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+            <Line 
+              type="monotone" 
+              dataKey={dataKey} 
+              stroke="#d97518" 
+              strokeWidth={3} 
+              dot={{ r: 5, fill: "#ef8b1f" }} 
+              activeDot={{ r: 7, fill: "#d97518" }} 
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -365,11 +380,14 @@ function Modal({ isOpen, onClose, title, children }: ModalProps): React.ReactEle
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
-        <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-800">
+    <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+      <div className={cn(craftStyles.card.warm, "shadow-2xl w-full max-w-lg border-2 border-amber-300")}>
+        <div className="flex justify-between items-center p-6 border-b border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50">
+          <h2 className="text-2xl font-bold text-amber-900 font-serif">{title}</h2>
+          <button 
+            onClick={onClose} 
+            className="text-amber-600 hover:text-amber-800 hover:bg-amber-100 p-2 rounded-lg transition-colors"
+          >
             <X size={24} />
           </button>
         </div>
@@ -407,17 +425,35 @@ function AddUserModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Add New User">
       <form id="add-user-form" onSubmit={handleSubmit} className="space-y-4">
-        <div className="form-group">
-          <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username</label>
-          <input type="text" id="username" name="username" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+        <div className="mb-4">
+          <label htmlFor="username" className="block text-sm font-semibold text-amber-900 mb-2">Username</label>
+          <input 
+            type="text" 
+            id="username" 
+            name="username" 
+            required 
+            className={cn(craftStyles.input.default, "focus:ring-amber-500 focus:border-amber-500")} 
+          />
         </div>
-        <div className="form-group">
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
-          <input type="text" id="name" name="name" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+        <div className="mb-4">
+          <label htmlFor="name" className="block text-sm font-semibold text-amber-900 mb-2">Name</label>
+          <input 
+            type="text" 
+            id="name" 
+            name="name" 
+            required 
+            className={cn(craftStyles.input.default, "focus:ring-amber-500 focus:border-amber-500")} 
+          />
         </div>
-        <div className="form-group">
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-          <input type="email" id="email" name="email" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+        <div className="mb-4">
+          <label htmlFor="email" className="block text-sm font-semibold text-amber-900 mb-2">Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            required 
+            className={cn(craftStyles.input.default, "focus:ring-amber-500 focus:border-amber-500")} 
+          />
         </div>
         <div className="form-group">
           <label htmlFor="mobile_no" className="block text-sm font-medium text-gray-700">Mobile No</label>
@@ -436,9 +472,20 @@ function AddUserModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
           <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
           <input type="password" id="pass" name="pass" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
         </div>
-        <div className="form-actions flex justify-end gap-4 pt-4">
-          <button type="button" onClick={onClose} className="cancel-btn px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
-          <button type="submit" className="submit-btn px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Add User</button>
+        <div className="flex justify-end gap-4 pt-6 mt-6 border-t border-amber-200">
+          <button 
+            type="button" 
+            onClick={onClose} 
+            className={cn(craftStyles.button.secondary, "px-6 py-3")}
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            className={cn(craftStyles.button.primary, "px-6 py-3")}
+          >
+            Add User
+          </button>
         </div>
       </form>
     </Modal>
@@ -874,7 +921,7 @@ function DashboardPage({ setModalState }: TabProps): React.ReactElement {
     <div className="space-y-8">
       {/* 2x2 Graph Grid */}
       <section>
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6">Dashboard Overview</h2>
+        <h2 className="text-3xl font-bold text-amber-900 mb-8 font-serif">Dashboard Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <GraphCard title="Total Sales" data={salesData} dataKey="sales" xKey="month" icon={DollarSign} unit="₹" />
           <GraphCard title="Monthly Orders" data={ordersData} dataKey="orders" xKey="date" icon={BarChart2} />
@@ -1025,7 +1072,7 @@ function DashboardApp(): React.ReactElement { // Renamed from App
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100 font-sans">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 font-serif">
       <Header />
       <main className="flex-grow p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
