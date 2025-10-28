@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-// @ts-ignore
-import AdminDashboard from './admin/AdminDashboard.jsx';
-// @ts-ignore
-import SettingsPage from './SettingsPage.jsx';
+import AdminDashboard from './admin/AdminDashboard';
+import SettingsPage from './SettingsPage';
+import Dashboardpage from './artisan/Dashboardpage';
+import AddListingPage from './artisan/listingspage';
 
 function App() {
   return (
@@ -10,6 +10,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/admin" replace />} />
         <Route path="/admin/*" element={<AdminDashboard />} />
+        <Route path="/artisan" element={<Dashboardpage />} />
+        <Route path="/artisan/add-listing" element={<AddListingPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Routes>
     </BrowserRouter>

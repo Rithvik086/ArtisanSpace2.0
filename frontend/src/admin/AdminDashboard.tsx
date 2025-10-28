@@ -1,4 +1,4 @@
-import React, { useState, useReducer, createContext, useContext, useEffect } from 'react';
+import React, { useState, useReducer, createContext, useContext } from 'react';
 // Removed Redux imports
 import { Routes, Route, NavLink } from 'react-router-dom';
 import {
@@ -28,17 +28,132 @@ import {
   BarChart2,
   X,
   AlertCircle,
-  Image as LucideImage,
   Star
 } from 'lucide-react';
-import { ClippedAreaChart } from '../components/ui/clipped-area-chart';
 
-// Mock data removed — dashboard will fetch live data from backend endpoints.
+// TypeScript interfaces
+interface User {
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+  name?: string;
+  mobile_no?: string;
+  pass?: string;
+}
+
+interface Product {
+  id: string;
+  image: string;
+  name: string;
+  uploadedBy: string;
+  quantity: number;
+  oldPrice: number;
+  newPrice: number;
+  category: string;
+  status: 'approved' | 'pending' | 'disapproved';
+  description?: string;
+  visible?: boolean;
+}
+
+interface Order {
+  id: string;
+  customer: string;
+  date: string;
+  items: number;
+  total: number;
+  status: string;
+}
+
+interface Feedback {
+  id: string;
+  fullName: string;
+  message: string;
+}
+
+interface SalesDataPoint {
+  month: string;
+  sales: number;
+}
+
+interface OrdersDataPoint {
+  date: string;
+  orders: number;
+}
+
+interface ProductsDataPoint {
+  date: string;
+  products: number;
+}
+
+interface UsersDataPoint {
+  date: string;
+  users: number;
+}
+
+interface AppState {
+  users: User[];
+  products: Product[];
+  orders: Order[];
+  feedback: Feedback[];
+}
+
+interface ModalState {
+  type: string | null;
+  isOpen: boolean;
+  data: any;
+}
+
+type AppAction = 
+  | { type: 'ADD_USER'; payload: User }
+  | { type: 'DELETE_USER'; payload: string }
+  | { type: 'ADD_PRODUCT'; payload: Product }
+  | { type: 'DELETE_PRODUCT'; payload: string }
+  | { type: 'APPROVE_PRODUCT'; payload: string }
+  | { type: 'DISAPPROVE_PRODUCT'; payload: string }
+  | { type: 'DELETE_ORDER'; payload: string };
+
+interface AppContextType {
+  state: AppState;
+  dispatch: React.Dispatch<AppAction>;
+}
+
+interface GraphCardProps {
+  title: string;
+  data: SalesDataPoint[] | OrdersDataPoint[] | ProductsDataPoint[] | UsersDataPoint[];
+  dataKey: string;
+  xKey: string;
+  icon: React.ElementType;
+  unit?: string;
+}
+
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+}
+
+interface DeleteModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  itemType: string;
+}
+
+interface ModerationProductCardProps {
+  product: Product;
+  dispatch: React.Dispatch<AppAction>;
+}
+
+interface TabProps {
+  setModalState: React.Dispatch<React.SetStateAction<ModalState>>;
+}
 
 // --- MOCK DATA ---
 
 // Graph Data
-const salesData = [
+const salesData: SalesDataPoint[] = [
   { month: 'Jan', sales: 40000 },
   { month: 'Feb', sales: 30000 },
   { month: 'Mar', sales: 50000 },
@@ -46,63 +161,64 @@ const salesData = [
   { month: 'May', sales: 60000 },
   { month: 'Jun', sales: 70000 },
 ];
-const ordersData = [
+const ordersData: OrdersDataPoint[] = [
   { date: '01', orders: 20 }, { date: '05', orders: 25 }, { date: '10', orders: 22 },
   { date: '15', orders: 30 }, { date: '20', orders: 28 }, { date: '25', orders: 35 },
 ];
-const productsData = [
+const productsData: ProductsDataPoint[] = [
   { date: '01', products: 120 }, { date: '05', products: 125 }, { date: '10', products: 122 },
   { date: '15', products: 130 }, { date: '20', products: 128 }, { date: '25', products: 135 },
 ];
-const totalUsersData = [
+const totalUsersData: UsersDataPoint[] = [
   { date: '01', users: 500 }, { date: '05', users: 502 }, { date: '10', users: 508 },
   { date: '15', users: 510 }, { date: '20', users: 515 }, { date: '25', users: 520 },
 ];
 
 // Initial State for Slices
-const initialUsers = [
+const initialUsers: User[] = [
   { id: '1', username: 'alice_smith', email: 'alice@example.com', role: 'Admin' },
   { id: '2', username: 'bob_johnson', email: 'bob@example.com', role: 'Artisan' },
   { id: '3', username: 'charlie_lee', email: 'charlie@example.com', role: 'Customer' },
 ];
 
-const initialProducts = [
-  { id: 'p1', image: 'https://placehold.co/60x60/e2e8f0/64748b?text=Pot', name: 'Handmade Clay Pot', uploadedBy: 'bob_johnson', quantity: 15, oldPrice: 600, newPrice: 499, category: 'Pottery' },
-  { id: 'p2', image: 'https://placehold.co/60x60/e2e8f0/64748b?text=Scarf', name: 'Woven Silk Scarf', uploadedBy: 'crafty_carol', quantity: 30, oldPrice: 1200, newPrice: 999, category: 'Textiles' },
-  { id: 'p3', image: 'https://placehold.co/60x60/e2e8f0/64748b?text=Box', name: 'Carved Wooden Box', uploadedBy: 'bob_johnson', quantity: 5, oldPrice: 2500, newPrice: 2200, category: 'Woodcraft' },
+const initialProducts: Product[] = [
+  { id: 'p1', image: 'https://placehold.co/60x60/e2e8f0/64748b?text=Pot', name: 'Handmade Clay Pot', uploadedBy: 'bob_johnson', quantity: 15, oldPrice: 600, newPrice: 499, category: 'Pottery', status: 'approved' },
+  { id: 'p2', image: 'https://placehold.co/60x60/e2e8f0/64748b?text=Scarf', name: 'Woven Silk Scarf', uploadedBy: 'crafty_carol', quantity: 30, oldPrice: 1200, newPrice: 999, category: 'Textiles', status: 'pending' },
+  { id: 'p3', image: 'https://placehold.co/60x60/e2e8f0/64748b?text=Box', name: 'Carved Wooden Box', uploadedBy: 'bob_johnson', quantity: 5, oldPrice: 2500, newPrice: 2200, category: 'Woodcraft', status: 'disapproved' },
 ];
 
-const initialOrders = [
+const initialOrders: Order[] = [
   { id: 'o1', customer: 'charlie_lee', date: '2023-10-25', items: 1, total: 499, status: 'Delivered' },
   { id: 'o2', customer: 'david_brown', date: '2023-10-26', items: 2, total: 3199, status: 'Processing' },
   { id: 'o3', customer: 'emma_white', date: '2023-10-27', items: 1, total: 999, status: 'Shipped' },
   { id: 'o4', customer: 'charlie_lee', date: '2023-10-28', items: 3, total: 5497, status: 'Pending' },
 ];
 
-const initialFeedback = [
+const initialFeedback: Feedback[] = [
   { id: 'f1', fullName: 'Alice Smith', message: 'Absolutely love the pottery! Amazing quality and fast shipping. Will buy again.' },
   { id: 'f2', fullName: 'David Brown', message: 'The wooden box was beautiful, but it arrived with a small scratch. Customer service was helpful though.' },
   { id: 'f3', fullName: 'Charlie Lee', message: 'My new favorite scarf! The colors are even more vibrant in person. 10/10.' },
 ];
 
+
 // --- REACT CONTEXT & REDUCER (Replaces Redux) ---
 
-// 1. Initial State (start empty; we'll populate from backend)
-const initialState = {
-   users: initialUsers,
+// 1. Initial State
+const initialState: AppState = {
+  users: initialUsers,
   products: initialProducts,
   orders: initialOrders,
   feedback: initialFeedback,
 };
 
 // 2. Reducer Function
-function appReducer(state, action) {
+function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     // User Actions
     case 'ADD_USER':
       return {
         ...state,
-        users: [...state.users, { id: crypto.randomUUID(), ...action.payload }],
+        users: [...state.users, { ...action.payload, id: crypto.randomUUID() }],
       };
     case 'DELETE_USER':
       return {
@@ -113,12 +229,27 @@ function appReducer(state, action) {
     case 'ADD_PRODUCT':
       return {
         ...state,
-        products: [...state.products, { id: crypto.randomUUID(), ...action.payload }],
+        products: [...state.products, { ...action.payload, id: crypto.randomUUID(), status: 'pending' }], // Add new products as pending
       };
     case 'DELETE_PRODUCT':
       return {
         ...state,
         products: state.products.filter((product) => product.id !== action.payload),
+      };
+    // Product Moderation Actions
+    case 'APPROVE_PRODUCT':
+      return {
+        ...state,
+        products: state.products.map(p =>
+          p.id === action.payload ? { ...p, status: 'approved' } : p
+        ),
+      };
+    case 'DISAPPROVE_PRODUCT':
+      return {
+        ...state,
+        products: state.products.map(p =>
+          p.id === action.payload ? { ...p, status: 'disapproved' } : p
+        ),
       };
     // Order Actions
     case 'DELETE_ORDER':
@@ -126,27 +257,16 @@ function appReducer(state, action) {
         ...state,
         orders: state.orders.filter((order) => order.id !== action.payload),
       };
-    // Set data from backend
-    case 'SET_USERS':
-      return { ...state, users: action.payload };
-    case 'SET_PRODUCTS':
-      return { ...state, products: action.payload };
-    case 'SET_ORDERS':
-      return { ...state, orders: action.payload };
-    case 'SET_FEEDBACK':
-      return { ...state, feedback: action.payload };
-    case 'SET_SALES':
-      return { ...state, sales: action.payload };
     default:
       return state;
   }
 }
 
 // 3. Create Context
-const AppContext = createContext();
+const AppContext = createContext<AppContextType | undefined>(undefined);
 
 // 4. Custom Hook to use AppContext
-const useAppContext = () => {
+const useAppContext = (): AppContextType => {
   const context = useContext(AppContext);
   if (context === undefined) {
     throw new Error('useAppContext must be used within an AppProvider');
@@ -159,9 +279,89 @@ const useAppContext = () => {
 // --- COMPONENTS ---
 
 /**
+ * Header Component
+ */
+function Header(): React.ReactElement {
+  const navLinkClass = ({ isActive }: { isActive: boolean }): string =>
+    `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium ${
+      isActive
+        ? 'bg-gray-100 text-blue-600'
+        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+    }`;
+
+  return (
+    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex-shrink-0 flex items-center">
+            <h1 className="text-xl font-bold text-blue-600">Admin</h1>
+          </div>
+          <div className="hidden md:flex md:ml-6">
+            <nav className="flex space-x-4">
+              <NavLink to="/" className={navLinkClass}>
+                <LayoutDashboard size={18} />
+                <span>Dashboard</span>
+              </NavLink>
+              <NavLink to="/moderation" className={navLinkClass}>
+                <ShieldCheck size={18} />
+                <span>Content Moderation</span>
+              </NavLink>
+              <NavLink to="/support" className={navLinkClass}>
+                <LifeBuoy size={18} />
+                <span>Support Ticket</span>
+              </NavLink>
+            </nav>
+          </div>
+          <div className="md:hidden flex items-center">
+            <button className="text-gray-600 hover:text-gray-900 p-2 rounded-md">
+              <Menu size={24} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+/**
+ * GraphCard Component
+ */
+function GraphCard({ title, data, dataKey, xKey, icon, unit }: GraphCardProps): React.ReactElement {
+  const IconComponent = icon;
+  return (
+    <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+      <div className="flex items-center gap-3 mb-4">
+        <IconComponent className="text-blue-500" size={24} />
+        <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+      </div>
+      <div className="h-[300px] w-full">
+        <ResponsiveContainer>
+          <LineChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+            <XAxis dataKey={xKey} stroke="#6b7280" fontSize={12} />
+            <YAxis
+              stroke="#6b7280"
+              fontSize={12}
+              tickFormatter={(value: number) => (unit ? `${unit}${value/1000}k` : value.toString())}
+            />
+            <Tooltip
+              contentStyle={{ backgroundColor: 'white', borderRadius: '8px', borderColor: '#e0e0e0' }}
+              formatter={(value: number) => (unit ? `${unit}${value.toLocaleString()}` : value)}
+            />
+            <Legend />
+            <Line type="monotone" dataKey={dataKey} stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+
+/**
  * Reusable Modal Component
  */
-function Modal({ isOpen, onClose, title, children }) {
+function Modal({ isOpen, onClose, title, children }: ModalProps): React.ReactElement | null {
   if (!isOpen) return null;
 
   return (
@@ -184,20 +384,21 @@ function Modal({ isOpen, onClose, title, children }) {
 /**
  * Add User Modal
  */
-function AddUserModal({ isOpen, onClose }) {
+function AddUserModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }): React.ReactElement {
   const { dispatch } = useAppContext(); // Use context
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const newUser = {
-      username: formData.get('username'),
-      email: formData.get('email'),
-      role: formData.get('role'),
+    const formData = new FormData(e.currentTarget);
+    const newUser: User = {
+      id: '', // Will be overridden by reducer
+      username: formData.get('username') as string,
+      email: formData.get('email') as string,
+      role: formData.get('role') as string,
       // EJS had name, mobile, pass - adding them.
-      name: formData.get('name'),
-      mobile_no: formData.get('mobile_no'),
-      pass: formData.get('pass'),
+      name: formData.get('name') as string,
+      mobile_no: formData.get('mobile_no') as string,
+      pass: formData.get('pass') as string,
     };
     dispatch({ type: 'ADD_USER', payload: newUser }); // Dispatch plain action
     onClose();
@@ -247,22 +448,24 @@ function AddUserModal({ isOpen, onClose }) {
 /**
  * Add Product Modal
  */
-function AddProductModal({ isOpen, onClose }) {
+function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }): React.ReactElement {
   const { dispatch } = useAppContext(); // Use context
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const newProduct = {
-      name: formData.get('name'),
-      category: formData.get('category'),
-      newPrice: parseFloat(formData.get('price')),
-      oldPrice: parseFloat(formData.get('price')) * 1.2, // Mock old price
-      quantity: parseInt(formData.get('stock'), 10),
-      image: formData.get('image'),
-      description: formData.get('description'),
+    const formData = new FormData(e.currentTarget);
+    const newProduct: Product = {
+      id: '', // Will be overridden by reducer
+      name: formData.get('name') as string,
+      category: formData.get('category') as string,
+      newPrice: parseFloat(formData.get('price') as string),
+      oldPrice: parseFloat(formData.get('price') as string) * 1.2, // Mock old price
+      quantity: parseInt(formData.get('stock') as string, 10),
+      image: formData.get('image') as string,
+      description: formData.get('description') as string,
       visible: formData.get('visible') === 'true',
       uploadedBy: 'current_admin', // Placeholder
+      status: 'pending', // Will be set by reducer
     };
     dispatch({ type: 'ADD_PRODUCT', payload: newProduct }); // Dispatch plain action
     onClose();
@@ -299,7 +502,7 @@ function AddProductModal({ isOpen, onClose }) {
         </div>
         <div className="form-group">
           <label htmlFor="product-description" className="block text-sm font-medium text-gray-700">Description</label>
-          <textarea id="product-description" name="description" rows="3" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+          <textarea id="product-description" name="description" rows={3} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
         </div>
         <div className="form-group">
           <label htmlFor="product-visible" className="block text-sm font-medium text-gray-700">Visibility</label>
@@ -320,7 +523,7 @@ function AddProductModal({ isOpen, onClose }) {
 /**
  * Delete Confirmation Modal
  */
-function DeleteModal({ isOpen, onClose, onConfirm, itemType }) {
+function DeleteModal({ isOpen, onClose, onConfirm, itemType }: DeleteModalProps): React.ReactElement {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Delete ${itemType}`}>
       <div className="text-center">
@@ -341,79 +544,59 @@ function DeleteModal({ isOpen, onClose, onConfirm, itemType }) {
 
 
 /**
- * Header Component
+ * Product Card for Moderation Page
  */
-function Header() {
-  const navLinkClass = ({ isActive }) =>
-    `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium ${
-      isActive
-        ? 'bg-gray-100 text-blue-600'
-        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-    }`;
+function ModerationProductCard({ product, dispatch }: ModerationProductCardProps): React.ReactElement {
+  const handleApprove = (): void => {
+    dispatch({ type: 'APPROVE_PRODUCT', payload: product.id });
+  };
+
+  const handleDisapprove = (): void => {
+    dispatch({ type: 'DISAPPROVE_PRODUCT', payload: product.id });
+  };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex-shrink-0 flex items-center">
-            <h1 className="text-xl font-bold text-blue-600">Admin</h1>
-          </div>
-          <div className="hidden md:flex md:ml-6">
-            <nav className="flex space-x-4">
-              <NavLink to="/" className={navLinkClass}>
-                <LayoutDashboard size={18} />
-                <span>Dashboard</span>
-              </NavLink>
-              <NavLink to="/moderation" className={navLinkClass}>
-                <ShieldCheck size={18} />
-                <span>Content Moderation</span>
-              </NavLink>
-              <NavLink to="/support" className={navLinkClass}>
-                <LifeBuoy size={18} />
-                <span>Support Ticket</span>
-              </NavLink>
-            </nav>
-          </div>
-          <div className="md:hidden flex items-center">
-            <button className="text-gray-600 hover:text-gray-900 p-2 rounded-md">
-              <Menu size={24} />
-            </button>
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+      <div className="p-4">
+        <div className="flex gap-4">
+          <img 
+            className="h-20 w-20 rounded-md object-cover flex-shrink-0" 
+            src={product.image} 
+            alt={product.name}
+            onError={(e) => { 
+              const target = e.target as HTMLImageElement;
+              target.onerror = null; 
+              target.src = 'https://placehold.co/80x80/f87171/ffffff?text=ERR'; 
+            }}
+          />
+          <div className="flex-grow">
+            <h4 className="text-md font-semibold text-gray-900">{product.name}</h4>
+            <p className="text-sm text-gray-500">by {product.uploadedBy}</p>
+            <p className="text-sm text-gray-500">{product.category}</p>
+            <div className="mt-1">
+              <span className="text-lg font-bold text-gray-900">₹{product.newPrice.toFixed(2)}</span>
+              <s className="text-sm text-gray-400 ml-2">₹{product.oldPrice.toFixed(2)}</s>
+            </div>
           </div>
         </div>
       </div>
-    </header>
-  );
-}
-
-/**
- * GraphCard Component
- */
-function GraphCard({ title, data, dataKey, xKey, icon, unit }) {
-  const IconComponent = icon;
-  return (
-    <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <IconComponent className="text-blue-500" size={24} />
-        <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-      </div>
-      <div className="h-[300px] w-full">
-        <ResponsiveContainer>
-          <LineChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-            <XAxis dataKey={xKey} stroke="#6b7280" fontSize={12} />
-            <YAxis
-              stroke="#6b7280"
-              fontSize={12}
-              tickFormatter={(value) => (unit ? `${unit}${value/1000}k` : value)}
-            />
-            <Tooltip
-              contentStyle={{ backgroundColor: 'white', borderRadius: '8px', borderColor: '#e0e0e0' }}
-              formatter={(value) => (unit ? `${unit}${value.toLocaleString()}` : value)}
-            />
-            <Legend />
-            <Line type="monotone" dataKey={dataKey} stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-          </LineChart>
-        </ResponsiveContainer>
+      <div className="bg-gray-50 px-4 py-3 flex justify-end gap-3">
+        {product.status !== 'approved' && (
+          <button
+            onClick={handleApprove}
+            className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-md shadow-sm"
+          >
+            Approve
+          </button>
+        )}
+        {product.status !== 'disapproved' && (
+          <button
+            onClick={handleDisapprove}
+            className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-md shadow-sm"
+          >
+            Disapprove
+          </button>
+        )}
       </div>
     </div>
   );
@@ -422,13 +605,13 @@ function GraphCard({ title, data, dataKey, xKey, icon, unit }) {
 /**
  * Tab: Users
  */
-function UsersTab({ setModalState }) {
+function UsersTab({ setModalState }: TabProps): React.ReactElement {
   const { state } = useAppContext(); // Use context
   const users = state.users;
 
-  const openAddUserModal = () => setModalState({ type: 'add-user', isOpen: true, data: null });
+  const openAddUserModal = (): void => setModalState({ type: 'add-user', isOpen: true, data: null });
   
-  const openDeleteModal = (id) => setModalState({ type: 'delete-user', isOpen: true, data: { id } });
+  const openDeleteModal = (id: string): void => setModalState({ type: 'delete-user', isOpen: true, data: { id } });
   
   return (
     <div className="bg-white rounded-lg shadow-md">
@@ -484,12 +667,12 @@ function UsersTab({ setModalState }) {
 /**
  * Tab: Products
  */
-function ProductsTab({ setModalState }) {
+function ProductsTab({ setModalState }: TabProps): React.ReactElement {
   const { state } = useAppContext(); // Use context
   const products = state.products;
   
-  const openAddProductModal = () => setModalState({ type: 'add-product', isOpen: true, data: null });
-  const openDeleteModal = (id) => setModalState({ type: 'delete-product', isOpen: true, data: { id } });
+  const openAddProductModal = (): void => setModalState({ type: 'add-product', isOpen: true, data: null });
+  const openDeleteModal = (id: string): void => setModalState({ type: 'delete-product', isOpen: true, data: { id } });
 
   return (
     <div className="bg-white rounded-lg shadow-md">
@@ -520,8 +703,16 @@ function ProductsTab({ setModalState }) {
             {products.map((product) => (
               <tr key={product.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <img className="h-10 w-10 rounded-md object-cover" src={product.image} alt={product.name} 
-                       onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/60x60/f87171/ffffff?text=ERR'; }} />
+                  <img 
+                    className="h-10 w-10 rounded-md object-cover" 
+                    src={product.image} 
+                    alt={product.name} 
+                    onError={(e) => { 
+                      const target = e.target as HTMLImageElement;
+                      target.onerror = null; 
+                      target.src = 'https://placehold.co/60x60/f87171/ffffff?text=ERR'; 
+                    }} 
+                  />
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.uploadedBy}</td>
@@ -550,14 +741,14 @@ function ProductsTab({ setModalState }) {
 /**
  * Tab: Orders
  */
-function OrdersTab({ setModalState }) {
+function OrdersTab({ setModalState }: TabProps): React.ReactElement {
   const { state } = useAppContext(); // Use context
   const orders = state.orders;
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState<string>('all');
   
-  const openDeleteModal = (id) => setModalState({ type: 'delete-order', isOpen: true, data: { id } });
+  const openDeleteModal = (id: string): void => setModalState({ type: 'delete-order', isOpen: true, data: { id } });
 
-  const getStatusClass = (status) => {
+  const getStatusClass = (status: string): string => {
     switch (status.toLowerCase()) {
       case 'delivered': return 'bg-green-100 text-green-800';
       case 'processing': return 'bg-blue-100 text-blue-800';
@@ -632,7 +823,7 @@ function OrdersTab({ setModalState }) {
 /**
  * Tab: Feedback
  */
-function FeedbackTab() {
+function FeedbackTab(): React.ReactElement {
   const { state } = useAppContext(); // Use context
   const feedback = state.feedback;
   
@@ -669,9 +860,8 @@ function FeedbackTab() {
 /**
  * Main Dashboard Page Component
  */
-function DashboardPage({ setModalState }) {
-  const [activeTab, setActiveTab] = useState('Users');
-  const { state } = useAppContext();
+function DashboardPage({ setModalState }: TabProps): React.ReactElement {
+  const [activeTab, setActiveTab] = useState<string>('Users');
 
   const tabs = [
     { name: 'Users', icon: Users, content: <UsersTab setModalState={setModalState} /> },
@@ -686,38 +876,10 @@ function DashboardPage({ setModalState }) {
       <section>
         <h2 className="text-2xl font-semibold text-gray-800 mb-6">Dashboard Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ClippedAreaChart
-            title="Total Sales"
-            description="Sales for each month"
-            data={state.sales || []}
-            dataKey="sales"
-            xKey="month"
-            config={{ sales: { label: 'Sales', color: '#3b82f6' } }}
-          />
-          <ClippedAreaChart
-            title="Monthly Orders"
-            description="Orders per date"
-            data={state.orders || []}
-            dataKey="orders"
-            xKey="date"
-            config={{ orders: { label: 'Orders', color: '#10b981' } }}
-          />
-          <ClippedAreaChart
-            title="Products"
-            description="Products tracked over time"
-            data={state.products || []}
-            dataKey="products"
-            xKey="date"
-            config={{ products: { label: 'Products', color: '#f59e0b' } }}
-          />
-          <ClippedAreaChart
-            title="Total Users"
-            description="User growth"
-            data={state.users || []}
-            dataKey="users"
-            xKey="date"
-            config={{ users: { label: 'Users', color: '#8b5cf6' } }}
-          />
+          <GraphCard title="Total Sales" data={salesData} dataKey="sales" xKey="month" icon={DollarSign} unit="₹" />
+          <GraphCard title="Monthly Orders" data={ordersData} dataKey="orders" xKey="date" icon={BarChart2} />
+          <GraphCard title="Products" data={productsData} dataKey="products" xKey="date" icon={PackageCheck} />
+          <GraphCard title="Total Users" data={totalUsersData} dataKey="users" xKey="date" icon={Users2} />
         </div>
       </section>
 
@@ -754,16 +916,77 @@ function DashboardPage({ setModalState }) {
 
 // --- Placeholder Pages ---
 
-function ContentModerationPage() {
+function ContentModerationPage(): React.ReactElement {
+  const [activeTab, setActiveTab] = useState<string>('pending');
+  const { state, dispatch } = useAppContext();
+  const { products } = state;
+
+  const approvedProducts = products.filter(p => p.status === 'approved');
+  const pendingProducts = products.filter(p => p.status === 'pending');
+  const disapprovedProducts = products.filter(p => p.status === 'disapproved');
+
+  const getTabClass = (tabName: string): string => 
+    `py-3 px-4 font-medium text-center cursor-pointer ${
+      activeTab === tabName
+        ? 'border-b-2 border-blue-500 text-blue-600'
+        : 'text-gray-500 hover:text-gray-700'
+    }`;
+  
+  const getTabContent = (): React.ReactElement => {
+    let productsToShow: Product[] = [];
+    switch (activeTab) {
+      case 'approved':
+        productsToShow = approvedProducts;
+        break;
+      case 'pending':
+        productsToShow = pendingProducts;
+        break;
+      case 'disapproved':
+        productsToShow = disapprovedProducts;
+        break;
+      default:
+        productsToShow = [];
+    }
+
+    if (productsToShow.length === 0) {
+      return <p className="text-gray-500 text-center py-10">No products in this category.</p>;
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {productsToShow.map(product => (
+          <ModerationProductCard key={product.id} product={product} dispatch={dispatch} />
+        ))}
+      </div>
+    );
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h1 className="text-2xl font-semibold text-gray-900">Content Moderation</h1>
-      <p className="mt-4 text-gray-600">This is where content moderation tools and queues would appear.</p>
+    <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+      <h2 className="text-2xl font-semibold text-gray-900 mb-4">Manage Products</h2>
+      
+      <div className="border-b border-gray-200">
+        <div className="flex -mb-px">
+          <div className={getTabClass('approved')} onClick={() => setActiveTab('approved')}>
+            Approved <span className="ml-1 px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-xs font-semibold">{approvedProducts.length}</span>
+          </div>
+          <div className={getTabClass('pending')} onClick={() => setActiveTab('pending')}>
+            Pending <span className="ml-1 px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">{pendingProducts.length}</span>
+          </div>
+          <div className={getTabClass('disapproved')} onClick={() => setActiveTab('disapproved')}>
+            Disapproved <span className="ml-1 px-2 py-0.5 bg-red-100 text-red-800 rounded-full text-xs font-semibold">{disapprovedProducts.length}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="py-6">
+        {getTabContent()}
+      </div>
     </div>
   );
 }
 
-function SupportTicketPage() {
+function SupportTicketPage(): React.ReactElement {
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h1 className="text-2xl font-semibold text-gray-900">Support Tickets</h1>
@@ -774,13 +997,13 @@ function SupportTicketPage() {
 
 // --- Main App Component ---
 
-function DashboardApp() { // Renamed from App
-  const [modalState, setModalState] = useState({ type: null, isOpen: false, data: null });
+function DashboardApp(): React.ReactElement { // Renamed from App
+  const [modalState, setModalState] = useState<ModalState>({ type: null, isOpen: false, data: null });
   const { dispatch } = useAppContext(); // Get dispatch from context
 
-  const closeModal = () => setModalState({ type: null, isOpen: false, data: null });
+  const closeModal = (): void => setModalState({ type: null, isOpen: false, data: null });
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = (): void => {
     const { type, data } = modalState;
     if (type === 'delete-user' && data?.id) {
       dispatch({ type: 'DELETE_USER', payload: data.id });
@@ -794,7 +1017,7 @@ function DashboardApp() { // Renamed from App
     closeModal();
   };
   
-  const getItemType = () => {
+  const getItemType = (): string => {
     if (modalState.type?.includes('user')) return 'user';
     if (modalState.type?.includes('product')) return 'product';
     if (modalState.type?.includes('order')) return 'order';
@@ -802,68 +1025,34 @@ function DashboardApp() { // Renamed from App
   }
 
   return (
-      <>
-        <div className="min-h-screen flex flex-col bg-gray-100 font-sans">
-          <Header />
-          <main className="flex-grow p-4 md:p-8">
-            <div className="max-w-7xl mx-auto">
-              <Routes>
-                <Route path="/" element={<DashboardPage setModalState={setModalState} />} />
-                <Route path="/moderation" element={<ContentModerationPage />} />
-                <Route path="/support" element={<SupportTicketPage />} />
-              </Routes>
-            </div>
-          </main>
+    <div className="min-h-screen flex flex-col bg-gray-100 font-sans">
+      <Header />
+      <main className="flex-grow p-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          <Routes>
+            <Route path="/" element={<DashboardPage setModalState={setModalState} />} />
+            <Route path="/moderation" element={<ContentModerationPage />} />
+            <Route path="/support" element={<SupportTicketPage />} />
+          </Routes>
         </div>
+      </main>
 
-        {/* Modals */}
-        <AddUserModal isOpen={modalState.type === 'add-user'} onClose={closeModal} />
-        <AddProductModal isOpen={modalState.type === 'add-product'} onClose={closeModal} />
-        <DeleteModal 
-          isOpen={modalState.type?.startsWith('delete-')} 
-          onClose={closeModal} 
-          onConfirm={handleConfirmDelete}
-          itemType={getItemType()}
-        />
-
-      </>
+      {/* Modals */}
+      <AddUserModal isOpen={modalState.type === 'add-user'} onClose={closeModal} />
+      <AddProductModal isOpen={modalState.type === 'add-product'} onClose={closeModal} />
+      <DeleteModal 
+        isOpen={modalState.type?.startsWith('delete-') ?? false} 
+        onClose={closeModal} 
+        onConfirm={handleConfirmDelete}
+        itemType={getItemType()}
+      />
+    </div>
   );
 }
 
 // Final wrapper to include Context Provider
-export default function App() {
+export default function App(): React.ReactElement {
   const [state, dispatch] = useReducer(appReducer, initialState);
-
-  // Fetch live data from backend when the admin app mounts.
-  // NOTE: adjust endpoint paths below to match your backend routes.
-  useEffect(() => {
-    let mounted = true;
-    async function loadData() {
-      try {
-        const [uRes, pRes, oRes, fRes, sRes] = await Promise.all([
-          fetch('/api/users'),
-          fetch('/api/products'),
-          fetch('/api/orders'),
-          fetch('/api/feedback'),
-          fetch('/api/sales'),
-        ]);
-
-        if (!mounted) return;
-
-        if (uRes.ok) dispatch({ type: 'SET_USERS', payload: await uRes.json() });
-        if (pRes.ok) dispatch({ type: 'SET_PRODUCTS', payload: await pRes.json() });
-        if (oRes.ok) dispatch({ type: 'SET_ORDERS', payload: await oRes.json() });
-        if (fRes.ok) dispatch({ type: 'SET_FEEDBACK', payload: await fRes.json() });
-        if (sRes.ok) dispatch({ type: 'SET_SALES', payload: await sRes.json() });
-      } catch (err) {
-        // Keep silent here; admin will still load with empty state. Log for debugging.
-        // You can replace with toast/notification as needed.
-        // console.error('Failed to load admin data', err);
-      }
-    }
-    loadData();
-    return () => { mounted = false; };
-  }, [dispatch]);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>
@@ -871,4 +1060,3 @@ export default function App() {
     </AppContext.Provider>
   );
 }
-

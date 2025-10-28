@@ -12,28 +12,33 @@ import type { ChartConfig } from "@/components/ui/chart";
 import { ChartContainer } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
 import { TrendingDown } from "lucide-react";
-import { useRef, useState, useId } from "react";
+import { useRef, useState, useId, useEffect } from "react";
 import { useSpring, useMotionValueEvent } from "motion/react";
 
+// demo dataset used when no `data` prop is provided — more pronounced peaks/valleys for demo
 const chartData = [
-  { month: "January", mobile: 245 },
-  { month: "February", mobile: 654 },
-  { month: "March", mobile: 387 },
-  { month: "April", mobile: 521 },
-  { month: "May", mobile: 412 },
-  { month: "June", mobile: 598 },
-  { month: "July", mobile: 312 },
-  { month: "August", mobile: 743 },
-  { month: "September", mobile: 489 },
-  { month: "October", mobile: 476 },
-  { month: "November", mobile: 687 },
-  { month: "December", mobile: 198 },
+  { month: "January", mobile: 180, evil: 320 },
+  { month: "February", mobile: 420, evil: 640 },
+  { month: "March", mobile: 280, evil: 190 },
+  { month: "April", mobile: 520, evil: 480 },
+  { month: "May", mobile: 360, evil: 720 },
+  { month: "June", mobile: 760, evil: 610 },
+  { month: "July", mobile: 420, evil: 330 },
+  { month: "August", mobile: 920, evil: 980 },
+  { month: "September", mobile: 540, evil: 450 },
+  { month: "October", mobile: 480, evil: 530 },
+  { month: "November", mobile: 880, evil: 760 },
+  { month: "December", mobile: 260, evil: 420 },
 ];
 
 const chartConfig = {
   mobile: {
     label: "Mobile",
     color: "#FCA070",
+  },
+  evil: {
+    label: "Evil",
+    color: "#FF305E",
   },
 } satisfies ChartConfig;
 
@@ -43,6 +48,7 @@ export function ClippedAreaChart(props: {
   data?: Array<Record<string, any>>;
   dataKey?: string;
   xKey?: string;
+  fetchUrl?: string;
   config?: ChartConfig;
 }) {
   const { title, description, data, dataKey, config } = props;
@@ -65,13 +71,45 @@ export function ClippedAreaChart(props: {
     setAxis(latest);
   });
 
-  const usedData = data ?? chartData;
+  const [fetchedData, setFetchedData] = useState<Array<Record<string, any>> | null>(null);
+  const usedData = data ?? fetchedData ?? chartData;
   const usedConfig = config ?? chartConfig;
   const usedDataKey = dataKey ?? "mobile";
   const usedXKey = xKey ?? "month";
   const gradientId = `gradient-${reactId}-${usedDataKey}`;
-  const maskId = `mask-${reactId}-${usedDataKey}`;
-  const color = (usedConfig as any)?.[usedDataKey]?.color ?? "var(--color-mobile)";
+  // prefer configured color, otherwise fall back to an "evil" palette
+  const defaultEvil = "#FF305E"; // ominous red
+  const accentEvil = "#6B21A8"; // deep purple
+  const color = (usedConfig as any)?.[usedDataKey]?.color ?? defaultEvil;
+  const evilPrimary = color || defaultEvil;
+  const evilSecondary = accentEvil;
+  const glowId = `glow-${reactId}-${usedDataKey}`;
+
+  // fetch remote data when no `data` prop is provided
+  useEffect(() => {
+    if (data) return;
+    const url = props.fetchUrl ?? "/api/sales";
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!mounted || !Array.isArray(json)) return;
+        // map backend shape like [{ month, sales }] to the chart shape
+        const mapped = json.map((item: any) => ({
+          [usedXKey]: item.month ?? item.label ?? item.name,
+          [usedDataKey]: item.sales ?? item.value ?? item[usedDataKey],
+        }));
+        if (mapped.length) setFetchedData(mapped);
+      } catch (e) {
+        // silent fail — keep demo data
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [data, props.fetchUrl, usedXKey, usedDataKey]);
 
   return (
     <Card>
@@ -87,7 +125,7 @@ export function ClippedAreaChart(props: {
       <CardContent>
         <ChartContainer
           ref={chartRef}
-          className="h-54 w-full"
+          className="h-54 w-full bg-gradient-to-b from-[#0b0710] to-[#120812] rounded-md"
           config={usedConfig}
         >
           <AreaChart
@@ -111,94 +149,79 @@ export function ClippedAreaChart(props: {
               left: 0,
             }}
           >
-            <CartesianGrid
-              vertical={false}
-              strokeDasharray="3 3"
-              horizontalCoordinatesGenerator={(props) => {
-                const { height } = props;
-                return [0, height - 30];
-              }}
-            />
+            {/* evil chart: hide grid, red-tinted axis ticks, compact labels */}
+            <CartesianGrid vertical={false} horizontal={false} />
             <XAxis
               dataKey={usedXKey}
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={(value) => value.slice(0, 3)}
+              tickFormatter={(value) => String(value).slice(0, 3).toUpperCase()}
+              tick={{ fill: '#ffb4c1', fontSize: 12, fontWeight: 600 }}
             />
+            <defs>
+              <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="6" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+
             <Area
               dataKey={usedDataKey}
               type="monotone"
               fill={`url(#${gradientId})`}
-              fillOpacity={0.4}
-              stroke={color}
+              fillOpacity={0.32}
+              stroke={evilPrimary}
+              strokeWidth={3}
+              strokeOpacity={0.95}
               style={{
                 clipPath: `inset(0 ${
                   Number(chartRef.current?.getBoundingClientRect().width || 0) - axis
                 }px 0 0)`,
+                filter: `url(#${glowId})`,
               }}
             />
+            {/* indicator line + inverted tooltip pill */}
             <line
               x1={axis}
               y1={0}
               x2={axis}
               y2={"85%"}
-              stroke={color}
-              strokeDasharray="3 3"
+              stroke={evilPrimary}
+              strokeDasharray="6 4"
               strokeLinecap="round"
-              strokeOpacity={0.2}
+              strokeOpacity={0.35}
             />
             <rect
-              x={axis - 50}
-              y={0}
-              width={50}
-              height={18}
-              fill={color}
+              x={Math.max(8, axis - 60)}
+              y={6}
+              width={80}
+              height={22}
+              rx={6}
+              fill="#0b0710"
+              stroke={evilPrimary}
+              strokeWidth={1}
+              style={{ mixBlendMode: 'screen', opacity: 0.96 }}
             />
             <text
-              x={axis - 25}
-              fontWeight={600}
-              y={13}
+              x={Math.max(8, axis - 20)}
+              fontWeight={700}
+              y={22}
               textAnchor="middle"
-              fill="var(--primary-foreground)"
+              fill={"#ffeef2"}
             >
               ${springY.get().toFixed(0)}
             </text>
             {/* this is a ghost line behind graph */}
-            <Area
-              dataKey={usedDataKey}
-              type="monotone"
-              fill="none"
-              stroke={color}
-              strokeOpacity={0.1}
-            />
+            <Area dataKey={usedDataKey} type="monotone" fill="none" stroke={evilSecondary} strokeOpacity={0.06} />
             <defs>
-              <linearGradient
-                id={gradientId}
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
-                <stop
-                  offset="5%"
-                  stopColor={color}
-                  stopOpacity={0.2}
-                />
-                <stop
-                  offset="95%"
-                  stopColor={color}
-                  stopOpacity={0}
-                />
-                <mask id={maskId}>
-                  <rect
-                    x={0}
-                    y={0}
-                    width={"50%"}
-                    height={"100%"}
-                    fill="white"
-                  />
-                </mask>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={evilPrimary} stopOpacity={0.42} />
+                <stop offset="50%" stopColor={evilSecondary} stopOpacity={0.12} />
+                <stop offset="95%" stopColor={evilSecondary} stopOpacity={0} />
               </linearGradient>
             </defs>
           </AreaChart>
