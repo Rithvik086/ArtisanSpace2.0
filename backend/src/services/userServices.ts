@@ -59,7 +59,28 @@ export async function addUser(
   }
 }
 
-export async function findUserByName(username: string) {
+export async function findUserByEmailOrUsername(
+  username: string,
+  email: string
+) {
+  try {
+    const user = await User.find({
+      $or: [{ username: username }, { email: email }],
+    });
+
+    if (!user || user.length === 0) {
+      return null;
+    }
+
+    return user;
+  } catch (e) {
+    throw new Error(
+      "Error finding user by email or username: " + (e as Error).message
+    );
+  }
+}
+
+export async function findUserByUserName(username: string) {
   try {
     const user = await User.findOne({ username: username, isValid: true });
 

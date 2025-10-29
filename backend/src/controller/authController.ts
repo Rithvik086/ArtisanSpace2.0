@@ -1,10 +1,11 @@
 import {
   addUser,
-  findUserByName,
+  findUserByUserName,
   findUserByEmail,
   removeUser,
   updateUser,
   getUserById,
+  findUserByEmailOrUsername,
 } from "../services/userServices.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -15,23 +16,39 @@ import User from "../models/userModel.js";
 import { z } from "zod";
 
 const updateProfileSchema = z.object({
-  name: z.string().optional(),
-  mobile_no: z.string().optional(),
+  name: z
+    .string()
+    .min(3, "Name is required with at least 3 characters")
+    .regex(/^[a-zA-Z\s]+$/, "Name can only contain letters and spaces")
+    .optional(),
+  mobile_no: z
+    .string()
+    .min(10, "Mobile number must be at least 10 digits")
+    .optional(),
   address: z.string().optional(),
 });
 
 const signupSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  name: z.string().min(1, "Name is required"),
+  username: z
+    .string()
+    .regex(
+      /^[a-zA-Z0-9_]+$/,
+      "Username can only contain letters, numbers, and underscores"
+    )
+    .min(3, "Username is required with at least 3 characters"),
+  name: z
+    .string()
+    .min(3, "Name is required with at least 3 characters")
+    .regex(/^[a-zA-Z\s]+$/, "Name can only contain letters and spaces"),
   email: z.email("Invalid email format"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   mobile_no: z.string().min(10, "Mobile number must be at least 10 digits"),
-  role: z.enum(["admin", "manager", "artisan", "customer"]),
+  role: z.enum(["artisan", "customer"]),
 });
 
 const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
+  username: z.string(),
+  password: z.string(),
 });
 
 const forgotPasswordSchema = z.object({
@@ -49,8 +66,28 @@ const verifyEmailSchema = z.object({
 
 const signup = async (req: Request, res: Response) => {
   try {
-    const validated = signupSchema.parse(req.body);
+    let validated;
+    try {
+      validated = signupSchema.parse(req.body);
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        return res
+          .status(400)
+          .json({ message: e.issues?.[0]?.message || "Validation error" });
+      }
+    }
+    if (!validated) {
+      throw new Error("Invalid input data");
+    }
+
     const { username, name, email, password, mobile_no, role } = validated;
+
+    const existingUser = await findUserByEmailOrUsername(username, email);
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: "Username or email already exists." });
+    }
 
     const hashpass = await bcrypt.hash(password, 9);
 
@@ -65,6 +102,7 @@ const signup = async (req: Request, res: Response) => {
       verificationToken: token,
       tokenExpiresAt: expiresAt,
     });
+    // TODO: Need to change the frontend URL here later when get the actual frontend URL
     const verificationLink = `${
       process.env.FRONTEND_URL || "http://localhost:3000"
     }/api/v1/verify-email?token=${token}`;
@@ -95,10 +133,23 @@ const signup = async (req: Request, res: Response) => {
 
 const login = async (req: Request, res: Response) => {
   try {
-    const validated = loginSchema.parse(req.body);
+    let validated;
+    try {
+      validated = loginSchema.parse(req.body);
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        return res
+          .status(400)
+          .json({ message: e.issues?.[0]?.message || "Validation error" });
+      }
+    }
+    if (!validated) {
+      throw new Error("Invalid input data");
+    }
+
     const { username, password } = validated;
 
-    const user = await findUserByName(username);
+    const user = await findUserByUserName(username);
     if (!user) {
       return res.status(401).json({ message: "Invalid username or password" });
     }
@@ -290,6 +341,7 @@ const deleteAccount = async (req: Request, res: Response) => {
   }
 };
 
+// TODO: Update profile controller need to changed as i have change the address field in DB
 const updatProfile = async (req: Request, res: Response) => {
   try {
     const validated = updateProfileSchema.parse(req.body);
