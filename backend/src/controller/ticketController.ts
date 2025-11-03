@@ -1,5 +1,9 @@
 import type { Request, Response } from "express";
-import { addTicket } from "../services/ticketServices.js";
+import {
+  addTicket,
+  getTickets,
+  removeTicket,
+} from "../services/ticketServices.js";
 import z from "zod";
 
 const submitTicketSchema = z.object({
@@ -7,6 +11,15 @@ const submitTicketSchema = z.object({
   category: z.string().min(1, "Category is required"),
   description: z.string().min(1, "Description is required"),
 });
+
+export const getSupportTickets = async (req: Request, res: Response) => {
+  try {
+    let tickets = await getTickets();
+    res.json({ success: true, tickets });
+  } catch (error) {
+    throw new Error("Error fetching tickets: " + (error as Error).message);
+  }
+};
 
 export const submitSuppotTicket = async (req: Request, res: Response) => {
   try {
@@ -31,10 +44,18 @@ export const submitSuppotTicket = async (req: Request, res: Response) => {
         message: error.issues?.[0]?.message || "Validation error",
       });
     }
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to submit ticket. Please try again later.",
-    });
+    throw new Error("Error submitting ticket: " + (error as Error).message);
+  }
+};
+
+export const deleteTicket = async (req: Request, res: Response) => {
+  try {
+    if (req.body._method === "DELETE") {
+      const { ticketId } = req.body;
+      await removeTicket(ticketId);
+      res.json({ success: true, message: "Ticket deleted successfully!" });
+    }
+  } catch (error) {
+    throw new Error("Error deleting ticket: " + (error as Error).message);
   }
 };

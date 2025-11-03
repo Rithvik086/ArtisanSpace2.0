@@ -6,7 +6,7 @@ export async function userExists(userId: string) {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return false;
     }
-    const user = await User.findById(userId);
+    const user = await User.findOne({ _id: userId, isValid: true });
     if (user) {
       return true;
     } else {
@@ -30,6 +30,7 @@ export async function addUser(
   try {
     const existingUser = await User.findOne({
       $or: [{ username: username }, { email: email }],
+      isValid: true,
     }).session(session);
 
     if (existingUser) {
@@ -60,7 +61,7 @@ export async function addUser(
 
 export async function findUserByName(username: string) {
   try {
-    const user = await User.findOne({ username: username });
+    const user = await User.findOne({ username: username, isValid: true });
 
     if (!user) {
       return null;
@@ -74,7 +75,7 @@ export async function findUserByName(username: string) {
 
 export async function findUserByEmail(email: string) {
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email, isValid: true });
 
     if (!email) {
       return null;
@@ -90,7 +91,7 @@ export async function getUserById(userId: string) {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return null;
     }
-    const user = await User.findById(userId);
+    const user = await User.findOne({ _id: userId, isValid: true });
 
     return user;
   } catch (e) {
@@ -100,7 +101,7 @@ export async function getUserById(userId: string) {
 
 export async function getUsers() {
   try {
-    return await User.find();
+    return await User.find({ isValid: true });
   } catch (e) {
     throw new Error("Error getting users: " + (e as Error).message);
   }
@@ -111,12 +112,15 @@ export async function getUsersByRole(role: string) {
     if (role === "manager") {
       return await User.find({
         $or: [{ role: "customer" }, { role: "artisan" }],
+        isValid: true,
       });
     } else if (role === "admin") {
-      return await User.find();
+      return await User.find({ isValid: true });
     }
   } catch (e) {
-    throw new Error("Error failed to get users by role: " + (e as Error).message);
+    throw new Error(
+      "Error failed to get users by role: " + (e as Error).message
+    );
   }
 }
 
@@ -124,13 +128,19 @@ export async function removeUser(userId: string) {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const user = await User.findById(userId).session(session);
+    const user = await User.findOne({ _id: userId, isValid: true }).session(
+      session
+    );
     if (!user) {
       throw new Error("User not found.");
     }
 
     if (user) {
-      await User.deleteOne({ _id: userId }, { session });
+      await User.findOneAndUpdate(
+        { _id: userId, isValid: true },
+        { isValid: false },
+        { new: true, session }
+      );
       await session.commitTransaction();
       return { success: true };
     } else {
@@ -144,7 +154,12 @@ export async function removeUser(userId: string) {
   }
 }
 
-export async function updateUser(userId: string, name?: string, mobile_no?: string, address?: string) {
+export async function updateUser(
+  userId: string,
+  name?: string,
+  mobile_no?: string,
+  address?: string
+) {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -158,11 +173,15 @@ export async function updateUser(userId: string, name?: string, mobile_no?: stri
 
     console.log(updateFields);
 
-    const updatedUser = await User.findByIdAndUpdate(userId, updateFields, {
-      new: true,
-      runValidators: true,
-      session,
-    });
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId, isValid: true },
+      updateFields,
+      {
+        new: true,
+        runValidators: true,
+        session,
+      }
+    );
 
     if (!updatedUser) {
       throw new Error("User not found.");
@@ -186,8 +205,8 @@ export async function updateUserPassword(userId: string, password: string) {
       throw new Error("Invalid user ID.");
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId, isValid: true },
       { password: password },
       { new: true, runValidators: true, session }
     );

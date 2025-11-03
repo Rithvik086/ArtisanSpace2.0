@@ -41,6 +41,18 @@ const orderSchema = new mongoose.Schema({
     required: true,
     enum: ["pending", "delivered", "cancelled"],
   },
+  createdAt: {
+    type: String,
+    default: () => new Date().toISOString(),
+  },
+  updatedAt: {
+    type: String,
+    default: () => new Date().toISOString(),
+  },
+  isValid: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 export default mongoose.model("Order", orderSchema);

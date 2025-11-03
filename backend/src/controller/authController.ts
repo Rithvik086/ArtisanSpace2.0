@@ -4,6 +4,7 @@ import {
   findUserByEmail,
   removeUser,
   updateUser,
+  getUserById,
 } from "../services/userServices.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -88,7 +89,7 @@ const signup = async (req: Request, res: Response) => {
         .status(400)
         .json({ message: error.issues?.[0]?.message || "Validation error" });
     }
-    res.status(400).json({ message: (error as Error).message });
+    throw new Error("Error signing up: " + (error as Error).message);
   }
 };
 
@@ -146,7 +147,7 @@ const login = async (req: Request, res: Response) => {
         .status(400)
         .json({ message: error.issues?.[0]?.message || "Validation error" });
     }
-    res.status(500).json({ message: "Server error. Please try again later." });
+    throw new Error("Error logging in: " + (error as Error).message);
   }
 };
 
@@ -192,7 +193,7 @@ const verifyEmail = async (req: Request, res: Response) => {
         .status(400)
         .json({ message: error.issues?.[0]?.message || "Validation error" });
     }
-    res.status(500).json({ message: "Server error. Please try again later." });
+    throw new Error("Error verifying email: " + (error as Error).message);
   }
 };
 
@@ -234,7 +235,7 @@ const forgotPassword = async (req: Request, res: Response) => {
         .status(400)
         .json({ message: error.issues?.[0]?.message || "Validation error" });
     }
-    res.status(500).json({ message: "Server error. Please try again later." });
+    throw new Error("Error in forgot password: " + (error as Error).message);
   }
 };
 
@@ -271,7 +272,7 @@ const resetPassword = async (req: Request, res: Response) => {
         .status(400)
         .json({ message: error.issues?.[0]?.message || "Validation error" });
     }
-    res.status(500).json({ message: "Server error. Please try again later." });
+    throw new Error("Error resetting password: " + (error as Error).message);
   }
 };
 
@@ -285,8 +286,7 @@ const deleteAccount = async (req: Request, res: Response) => {
       res.status(500).json({ success: false });
     }
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false });
+    throw new Error("Error deleting account: " + (err as Error).message);
   }
 };
 
@@ -316,8 +316,78 @@ const updatProfile = async (req: Request, res: Response) => {
         message: error.issues?.[0]?.message || "Validation error",
       });
     }
-    console.error(error);
-    res.status(500).json({ success: false });
+    throw new Error("Error updating profile: " + (error as Error).message);
+  }
+};
+
+const deleteUser = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.userId;
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID is required" });
+    }
+    // Prevent managers from deleting admin or other manager accounts
+    const requesterRole = req.user.role;
+    if (requesterRole === "manager") {
+      const targetUser = await getUserById(userId);
+      if (!targetUser) {
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
+      }
+      if (targetUser.role === "admin" || targetUser.role === "manager") {
+        return res.status(403).json({
+          success: false,
+          message:
+            "Managers are not allowed to delete admin or manager accounts",
+        });
+      }
+    }
+
+    const response = await removeUser(userId);
+
+    if (response.success) {
+      res
+        .status(200)
+        .json({ success: true, message: "User deleted successfully" });
+    } else {
+      res
+        .status(500)
+        .json({ success: false, message: "Failed to delete user" });
+    }
+  } catch (e) {
+    throw new Error("Error deleting user: " + (e as Error).message);
+  }
+};
+
+const addUserHandler = async (req: Request, res: Response) => {
+  const { name, username, mobile_no, email, role, pass } = req.body;
+  const hashpass = await bcrypt.hash(pass, 9);
+  try {
+    const result = await addUser(
+      username,
+      name,
+      email,
+      hashpass,
+      mobile_no,
+      role
+    ); // Assuming addUser returns a success status
+
+    if (result.success) {
+      res.status(200).json({
+        success: true,
+        message: "User added successfully",
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: "Failed to add user",
+      });
+    }
+  } catch (error) {
+    throw new Error("Error adding user: " + (error as Error).message);
   }
 };
 
@@ -330,4 +400,6 @@ export {
   resetPassword,
   deleteAccount,
   updatProfile,
+  deleteUser,
+  addUserHandler,
 };

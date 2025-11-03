@@ -7,6 +7,7 @@ import cartRoutes from "../routes/cart.routes.js";
 import ticketRoutes from "../routes/ticket.routes.js";
 import workshopRoutes from "../routes/workshop.routes.js";
 import customRequestRoutes from "./customRequest.routes.js";
+
 const router = express.Router();
 
 router.use(verifytoken);
@@ -18,6 +19,6 @@ router.use("/tickets", ticketRoutes);
 router.use("/workshop", workshopRoutes);
 router.use("/custom-request", customRequestRoutes);
 
-router.use("/data", dataRoutes);
+router.use("/chart", dataRoutes);
 
 export default router;
