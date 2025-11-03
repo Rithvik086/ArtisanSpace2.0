@@ -1,4 +1,4 @@
-import {
+import React, {
   useState,
   Children,
   useRef,
@@ -12,8 +12,9 @@ import { motion, AnimatePresence, type Variants } from "motion/react";
 interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   initialStep?: number;
+  currentStep?: number;
   onStepChange?: (step: number) => void;
-  onFinalStepCompleted?: () => void;
+  onFinalStepCompleted?: () => Promise<void> | undefined;
   stepCircleContainerClassName?: string;
   stepContainerClassName?: string;
   contentClassName?: string;
@@ -33,8 +34,9 @@ interface StepperProps extends HTMLAttributes<HTMLDivElement> {
 export default function Stepper({
   children,
   initialStep = 1,
+  currentStep: controlledCurrentStep,
   onStepChange = () => {},
-  onFinalStepCompleted = () => {},
+  onFinalStepCompleted = () => undefined,
   stepCircleContainerClassName = "",
   stepContainerClassName = "",
   contentClassName = "",
@@ -47,7 +49,11 @@ export default function Stepper({
   renderStepIndicator,
   ...rest
 }: StepperProps) {
-  const [currentStep, setCurrentStep] = useState<number>(initialStep);
+  const [internalCurrentStep, setInternalCurrentStep] =
+    useState<number>(initialStep);
+  const currentStep = controlledCurrentStep ?? internalCurrentStep;
+  const setCurrentStep =
+    controlledCurrentStep !== undefined ? () => {} : setInternalCurrentStep;
   const [direction, setDirection] = useState<number>(0);
   const stepsArray = Children.toArray(children);
   const totalSteps = stepsArray.length;
@@ -55,7 +61,9 @@ export default function Stepper({
   const isLastStep = currentStep === totalSteps;
 
   const updateStep = (newStep: number) => {
-    setCurrentStep(newStep);
+    if (controlledCurrentStep === undefined) {
+      setInternalCurrentStep(newStep);
+    }
     if (newStep > totalSteps) {
       onFinalStepCompleted();
     } else {
@@ -77,9 +85,18 @@ export default function Stepper({
     }
   };
 
-  const handleComplete = () => {
-    setDirection(1);
-    updateStep(totalSteps + 1);
+  const handleComplete = async () => {
+    const result = onFinalStepCompleted();
+    if (result) {
+      try {
+        await result;
+        setDirection(1);
+        updateStep(totalSteps + 1);
+      } catch (e) {
+        // don't advance on error
+      }
+    }
+    // if no result, validation failed, don't advance
   };
 
   return (
@@ -88,7 +105,7 @@ export default function Stepper({
       {...rest}
     >
       <div
-        className={`mx-auto w-full max-w-3xl md:max-w-4xl rounded-4xl border border-amber-200 bg-white shadow-2xl ${stepCircleContainerClassName}`}
+        className={`mx-auto w-full max-w-3xl md:max-w-4xl rounded-4xl border border-stone-200 bg-white shadow-2xl ${stepCircleContainerClassName}`}
       >
         <div
           className={`${stepContainerClassName} flex w-full items-center gap-2 px-8 pt-8 pb-4`}
@@ -97,7 +114,7 @@ export default function Stepper({
             const stepNumber = index + 1;
             const isNotLastStep = index < totalSteps - 1;
             return (
-              <>
+              <React.Fragment key={stepNumber}>
                 {renderStepIndicator ? (
                   renderStepIndicator({
                     step: stepNumber,
@@ -121,7 +138,7 @@ export default function Stepper({
                 {isNotLastStep && (
                   <StepConnector isComplete={currentStep > stepNumber} />
                 )}
-              </>
+              </React.Fragment>
             );
           })}
         </div>
@@ -157,7 +174,7 @@ export default function Stepper({
               )}
               <button
                 onClick={isLastStep ? handleComplete : handleNext}
-                className="duration-350 flex items-center justify-center rounded-full bg-green-500 py-1.5 px-3.5 font-medium tracking-tight text-white transition hover:bg-green-600 active:bg-green-700 "
+                className="duration-350 flex items-center justify-center rounded-full bg-[#5c4033] py-1.5 px-3.5 font-medium tracking-tight text-white transition hover:bg-[#4b2e2b] active:bg-[#3d251f] "
                 {...nextButtonProps}
               >
                 {isLastStep ? "Complete" : nextButtonText}
@@ -312,7 +329,7 @@ function StepIndicator({
         {status === "complete" ? (
           <CheckIcon className="h-4 w-4 text-white" />
         ) : status === "active" ? (
-          <div className="h-3.5 w-3.5 rounded-full bg-amber-100" />
+          <div className="h-3.5 w-3.5 rounded-full bg-[#e8ded6]" />
         ) : (
           <span className="text-sm">{step}</span>
         )}
@@ -327,12 +344,12 @@ interface StepConnectorProps {
 
 function StepConnector({ isComplete }: StepConnectorProps) {
   const lineVariants: Variants = {
-    incomplete: { width: 0, backgroundColor: "transparent" },
+    incomplete: { width: 0, backgroundColor: "rgba(92, 64, 51, 0)" },
     complete: { width: "100%", backgroundColor: "#5c4033" },
   };
 
   return (
-    <div className="relative mx-2 h-0.5 flex-1 overflow-hidden rounded bg-amber-200">
+    <div className="relative mx-2 h-0.5 flex-1 overflow-hidden rounded bg-stone-200">
       <motion.div
         className="absolute left-0 top-0 h-full"
         variants={lineVariants}
