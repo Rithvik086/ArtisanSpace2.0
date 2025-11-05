@@ -20,9 +20,15 @@ if (process.env.SKIP_DB !== "true") {
 const PORT = process.env.PORT || 3000;
 const app = express();
 
+// Normalize CORS origin so it works whether the env var includes protocol or not
+const rawCors = process.env.CORS_ORIGIN || "http://localhost:5173";
+const corsOrigin = rawCors.startsWith("http://") || rawCors.startsWith("https://")
+  ? rawCors
+  : `http://${rawCors}`;
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    origin: corsOrigin,
     credentials: true,
   })
 );

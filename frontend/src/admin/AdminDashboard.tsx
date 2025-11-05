@@ -112,7 +112,8 @@ type AppAction =
   | { type: 'DELETE_PRODUCT'; payload: string }
   | { type: 'APPROVE_PRODUCT'; payload: string }
   | { type: 'DISAPPROVE_PRODUCT'; payload: string }
-  | { type: 'DELETE_ORDER'; payload: string };
+  | { type: 'DELETE_ORDER'; payload: string }
+  | { type: 'SET_DATA'; payload: AppState };
 
 interface AppContextType {
   state: AppState;
@@ -151,55 +152,12 @@ interface TabProps {
   setModalState: React.Dispatch<React.SetStateAction<ModalState>>;
 }
 
-// --- MOCK DATA ---
-
-// Graph Data
-const salesData: SalesDataPoint[] = [
-  { month: 'Jan', sales: 40000 },
-  { month: 'Feb', sales: 30000 },
-  { month: 'Mar', sales: 50000 },
-  { month: 'Apr', sales: 45000 },
-  { month: 'May', sales: 60000 },
-  { month: 'Jun', sales: 70000 },
-];
-const ordersData: OrdersDataPoint[] = [
-  { date: '01', orders: 20 }, { date: '05', orders: 25 }, { date: '10', orders: 22 },
-  { date: '15', orders: 30 }, { date: '20', orders: 28 }, { date: '25', orders: 35 },
-];
-const productsData: ProductsDataPoint[] = [
-  { date: '01', products: 120 }, { date: '05', products: 125 }, { date: '10', products: 122 },
-  { date: '15', products: 130 }, { date: '20', products: 128 }, { date: '25', products: 135 },
-];
-const totalUsersData: UsersDataPoint[] = [
-  { date: '01', users: 500 }, { date: '05', users: 502 }, { date: '10', users: 508 },
-  { date: '15', users: 510 }, { date: '20', users: 515 }, { date: '25', users: 520 },
-];
-
-// Initial State for Slices
-const initialUsers: User[] = [
-  { id: '1', username: 'alice_smith', email: 'alice@example.com', role: 'Admin' },
-  { id: '2', username: 'bob_johnson', email: 'bob@example.com', role: 'Artisan' },
-  { id: '3', username: 'charlie_lee', email: 'charlie@example.com', role: 'Customer' },
-];
-
-const initialProducts: Product[] = [
-  { id: 'p1', image: 'https://placehold.co/60x60/e2e8f0/64748b?text=Pot', name: 'Handmade Clay Pot', uploadedBy: 'bob_johnson', quantity: 15, oldPrice: 600, newPrice: 499, category: 'Pottery', status: 'approved' },
-  { id: 'p2', image: 'https://placehold.co/60x60/e2e8f0/64748b?text=Scarf', name: 'Woven Silk Scarf', uploadedBy: 'crafty_carol', quantity: 30, oldPrice: 1200, newPrice: 999, category: 'Textiles', status: 'pending' },
-  { id: 'p3', image: 'https://placehold.co/60x60/e2e8f0/64748b?text=Box', name: 'Carved Wooden Box', uploadedBy: 'bob_johnson', quantity: 5, oldPrice: 2500, newPrice: 2200, category: 'Woodcraft', status: 'disapproved' },
-];
-
-const initialOrders: Order[] = [
-  { id: 'o1', customer: 'charlie_lee', date: '2023-10-25', items: 1, total: 499, status: 'Delivered' },
-  { id: 'o2', customer: 'david_brown', date: '2023-10-26', items: 2, total: 3199, status: 'Processing' },
-  { id: 'o3', customer: 'emma_white', date: '2023-10-27', items: 1, total: 999, status: 'Shipped' },
-  { id: 'o4', customer: 'charlie_lee', date: '2023-10-28', items: 3, total: 5497, status: 'Pending' },
-];
-
-const initialFeedback: Feedback[] = [
-  { id: 'f1', fullName: 'Alice Smith', message: 'Absolutely love the pottery! Amazing quality and fast shipping. Will buy again.' },
-  { id: 'f2', fullName: 'David Brown', message: 'The wooden box was beautiful, but it arrived with a small scratch. Customer service was helpful though.' },
-  { id: 'f3', fullName: 'Charlie Lee', message: 'My new favorite scarf! The colors are even more vibrant in person. 10/10.' },
-];
+// --- (Live) Data will be fetched from backend ---
+// Initial State for Slices (start empty; populated from backend)
+const initialUsers: User[] = [];
+const initialProducts: Product[] = [];
+const initialOrders: Order[] = [];
+const initialFeedback: Feedback[] = [];
 
 
 // --- REACT CONTEXT & REDUCER (Replaces Redux) ---
@@ -257,6 +215,15 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         orders: state.orders.filter((order) => order.id !== action.payload),
+      };
+    // Replace slices with backend-provided data
+    case 'SET_DATA':
+      return {
+        ...state,
+        users: Array.isArray(action.payload.users) ? action.payload.users : [],
+        products: Array.isArray(action.payload.products) ? action.payload.products : [],
+        orders: Array.isArray(action.payload.orders) ? action.payload.orders : [],
+        feedback: Array.isArray(action.payload.feedback) ? action.payload.feedback : [],
       };
     default:
       return state;
@@ -910,6 +877,70 @@ function FeedbackTab(): React.ReactElement {
 function DashboardPage({ setModalState }: TabProps): React.ReactElement {
   const [activeTab, setActiveTab] = useState<string>('Users');
 
+  // Live data from global context (populated by App on mount)
+  const { state } = useAppContext();
+  const users = state.users;
+  const products = state.products;
+  const orders = state.orders;
+  const feedback = state.feedback;
+  const [sales, setSales] = useState<Array<{ month: string; sales: number }>>([]);
+
+  const [ordersChart, setOrdersChart] = useState<OrdersDataPoint[]>([]);
+  const [productsChart, setProductsChart] = useState<ProductsDataPoint[]>([]);
+  const [usersChart, setUsersChart] = useState<UsersDataPoint[]>([]);
+  const [loadingData, setLoadingData] = useState<boolean>(true);
+
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  function buildMonthlyCounts<T extends Record<string, any>>(items: T[], dateKey: string, outKey: string) {
+    const map = new Map<string, number>();
+    items.forEach(it => {
+      try {
+        const d = new Date(it[dateKey]);
+        if (isNaN(d.getTime())) return;
+        const m = d.toLocaleString('en-US', { month: 'short' });
+        map.set(m, (map.get(m) || 0) + 1);
+      } catch (e) {
+        // ignore malformed dates
+      }
+    });
+    return MONTHS.map(m => ({ ["date"]: m, [outKey]: map.get(m) || 0 })) as unknown as Array<Record<string, any>>;
+  }
+
+  // Fetch only sales here — other slices come from context populated by App
+  async function fetchSales() {
+    setLoadingData(true);
+    try {
+      const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || `${location.protocol}//${location.hostname}:3000`;
+      const sRes = await fetch(`${API_BASE}/api/sales`, { credentials: 'include' });
+      if (!sRes.ok) {
+        console.warn('/api/sales returned non-OK status');
+      }
+      const sJson = await sRes.json().catch(() => []);
+      setSales(Array.isArray(sJson) ? sJson : []);
+    } catch (e) {
+      console.error('Failed fetching sales data', e);
+    } finally {
+      setLoadingData(false);
+    }
+  }
+
+  // Fetch sales on mount
+  React.useEffect(() => {
+    void fetchSales();
+  }, []);
+
+  // Rebuild charts from context slices whenever lists change
+  React.useEffect(() => {
+    const ordersAgg = buildMonthlyCounts(orders || [], 'purchasedAt', 'orders') as OrdersDataPoint[];
+    const productsAgg = buildMonthlyCounts(products || [], 'createdAt', 'products') as ProductsDataPoint[];
+    const usersAgg = buildMonthlyCounts(users || [], 'createdAt', 'users') as UsersDataPoint[];
+
+    setOrdersChart(ordersAgg);
+    setProductsChart(productsAgg);
+    setUsersChart(usersAgg);
+  }, [orders, products, users]);
+
   const tabs = [
     { name: 'Users', icon: Users, content: <UsersTab setModalState={setModalState} /> },
     { name: 'Products', icon: Package, content: <ProductsTab setModalState={setModalState} /> },
@@ -921,12 +952,33 @@ function DashboardPage({ setModalState }: TabProps): React.ReactElement {
     <div className="space-y-8">
       {/* 2x2 Graph Grid */}
       <section>
-        <h2 className="text-3xl font-bold text-amber-900 mb-8 font-serif">Dashboard Overview</h2>
+        <h2 className="text-3xl font-bold text-amber-900 mb-4 font-serif">Dashboard Overview</h2>
+
+        {/* Quick stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+          <div className={cn(craftStyles.card.default, 'p-4')}> 
+            <div className="text-sm font-medium text-amber-900">Users</div>
+            <div className="text-2xl font-bold text-amber-800">{loadingData ? '—' : users.length}</div>
+          </div>
+          <div className={cn(craftStyles.card.default, 'p-4')}> 
+            <div className="text-sm font-medium text-amber-900">Products</div>
+            <div className="text-2xl font-bold text-amber-800">{loadingData ? '—' : products.length}</div>
+          </div>
+          <div className={cn(craftStyles.card.default, 'p-4')}> 
+            <div className="text-sm font-medium text-amber-900">Orders</div>
+            <div className="text-2xl font-bold text-amber-800">{loadingData ? '—' : orders.length}</div>
+          </div>
+          <div className={cn(craftStyles.card.default, 'p-4')}> 
+            <div className="text-sm font-medium text-amber-900">Feedback</div>
+            <div className="text-2xl font-bold text-amber-800">{loadingData ? '—' : feedback.length}</div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <GraphCard title="Total Sales" data={salesData} dataKey="sales" xKey="month" icon={DollarSign} unit="₹" />
-          <GraphCard title="Monthly Orders" data={ordersData} dataKey="orders" xKey="date" icon={BarChart2} />
-          <GraphCard title="Products" data={productsData} dataKey="products" xKey="date" icon={PackageCheck} />
-          <GraphCard title="Total Users" data={totalUsersData} dataKey="users" xKey="date" icon={Users2} />
+          <GraphCard title="Total Sales" data={sales} dataKey="sales" xKey="month" icon={DollarSign} unit="₹" />
+          <GraphCard title="Monthly Orders" data={ordersChart} dataKey="orders" xKey="date" icon={BarChart2} />
+          <GraphCard title="Products" data={productsChart} dataKey="products" xKey="date" icon={PackageCheck} />
+          <GraphCard title="Total Users" data={usersChart} dataKey="users" xKey="date" icon={Users2} />
         </div>
       </section>
 
@@ -1100,6 +1152,41 @@ function DashboardApp(): React.ReactElement { // Renamed from App
 // Final wrapper to include Context Provider
 export default function App(): React.ReactElement {
   const [state, dispatch] = useReducer(appReducer, initialState);
+
+  // On app mount, populate context by fetching from backend
+  React.useEffect(() => {
+    const fetchInitial = async () => {
+      try {
+        const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || `${location.protocol}//${location.hostname}:3000`;
+
+        const [uRes, pRes, oRes, fRes] = await Promise.all([
+          fetch(`${API_BASE}/api/users`, { credentials: 'include' }),
+          fetch(`${API_BASE}/api/products`, { credentials: 'include' }),
+          fetch(`${API_BASE}/api/orders`, { credentials: 'include' }),
+          fetch(`${API_BASE}/api/feedback`, { credentials: 'include' }),
+        ]);
+
+        const [uJson, pJson, oJson, fJson] = await Promise.all([
+          uRes.json().catch(() => []),
+          pRes.json().catch(() => []),
+          oRes.json().catch(() => []),
+          fRes.json().catch(() => []),
+        ]);
+
+        dispatch({ type: 'SET_DATA', payload: {
+          users: Array.isArray(uJson) ? uJson : [],
+          products: Array.isArray(pJson) ? pJson : [],
+          orders: Array.isArray(oJson) ? oJson : [],
+          feedback: Array.isArray(fJson) ? fJson : [],
+        } });
+      } catch (e) {
+        // keep default empty state if fetch fails
+        console.error('Failed to fetch initial app data', e);
+      }
+    };
+
+    void fetchInitial();
+  }, [dispatch]);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>
