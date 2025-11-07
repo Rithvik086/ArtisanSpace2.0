@@ -1,170 +1,53 @@
 import type { Request, Response } from "express";
-// import { getUsers } from "../services/userServices.js";
-// import { getProducts as getProductsService } from "../services/productServices.js";
-// import { getOrders } from "../services/orderServices.js";
-// import { getTickets } from "../services/ticketServices.js";
+import User from "../models/userModel.js";
+import Product from "../models/productModel.js";
+import Order from "../models/ordersModel.js";
+import Ticket from "../models/supportTicketModel.js";
 
 function monthName(date: Date) {
   return date.toLocaleString("en-US", { month: "short" });
 }
 
-// Hardcoded data for demo purposes
-const hardcodedUsers = [
-  {
-    _id: "1",
-    name: "John Doe",
-    email: "john@example.com",
-    phone: "+1-555-123-4567",
-    role: "customer",
-    createdAt: "2024-01-15T08:30:00Z"
-  },
-  {
-    _id: "2", 
-    name: "Jane Smith",
-    email: "jane@example.com",
-    phone: "+1-555-987-6543",
-    role: "customer",
-    createdAt: "2024-02-20T14:15:00Z"
-  },
-  {
-    _id: "3",
-    name: "Bob Wilson",
-    email: "bob@example.com", 
-    phone: "+1-555-456-7890",
-    role: "artisan",
-    createdAt: "2024-03-10T10:45:00Z"
-  },
-  {
-    _id: "4",
-    name: "Alice Johnson",
-    email: "alice@example.com",
-    phone: "+1-555-321-0987",
-    role: "customer", 
-    createdAt: "2024-04-05T16:20:00Z"
-  }
-];
-
 export const getUsersList = async (_req: Request, res: Response) => {
   try {
-    // Return hardcoded users instead of fetching from database
-    res.json(hardcodedUsers);
+    // Fetch users from database and exclude sensitive fields
+    const users = await User.find({}).select('-password -verificationToken -resetToken -tokenExpiresAt -resetTokenExpiresAt').lean();
+    const mapped = (Array.isArray(users) ? users : []).map((u: any) => ({
+      id: String(u._id),
+      username: u.username,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      mobile_no: u.mobile_no,
+      createdAt: u.createdAt,
+    }));
+    res.json(mapped);
   } catch (error) {
     res.status(500).json({ success: false, message: (error as Error).message });
   }
 };
 
-const hardcodedProducts = [
-  {
-    _id: "p1",
-    name: "Handmade Ceramic Vase",
-    price: 45.99,
-    category: "Home Decor",
-    stock: 12,
-    artisan: "John Artisan",
-    createdAt: "2024-01-10T09:00:00Z"
-  },
-  {
-    _id: "p2", 
-    name: "Wooden Coffee Table",
-    price: 299.99,
-    category: "Furniture",
-    stock: 5,
-    artisan: "Wood Master",
-    createdAt: "2024-02-15T11:30:00Z"
-  },
-  {
-    _id: "p3",
-    name: "Hand-knitted Scarf",
-    price: 29.99,
-    category: "Accessories",
-    stock: 25,
-    artisan: "Yarn Queen",
-    createdAt: "2024-03-20T14:45:00Z"
-  },
-  {
-    _id: "p4",
-    name: "Leather Wallet",
-    price: 89.99,
-    category: "Accessories", 
-    stock: 8,
-    artisan: "Leather Smith",
-    createdAt: "2024-04-12T16:15:00Z"
-  }
-];
-
-const hardcodedOrders = [
-  {
-    _id: "o1",
-    userId: "1",
-    productId: "p1", 
-    quantity: 2,
-    money: 91.98,
-    status: "delivered",
-    purchasedAt: "2024-01-25T10:30:00Z"
-  },
-  {
-    _id: "o2",
-    userId: "2",
-    productId: "p2",
-    quantity: 1, 
-    money: 299.99,
-    status: "shipped",
-    purchasedAt: "2024-02-28T15:45:00Z"
-  },
-  {
-    _id: "o3", 
-    userId: "3",
-    productId: "p3",
-    quantity: 3,
-    money: 89.97,
-    status: "processing",
-    purchasedAt: "2024-03-15T12:20:00Z"
-  },
-  {
-    _id: "o4",
-    userId: "4", 
-    productId: "p4",
-    quantity: 1,
-    money: 89.99,
-    status: "delivered",
-    purchasedAt: "2024-04-20T08:15:00Z"
-  }
-];
-
-const hardcodedTickets = [
-  {
-    _id: "t1",
-    userId: "1",
-    subject: "Product Quality Issue",
-    message: "The ceramic vase arrived with a small crack",
-    status: "open",
-    priority: "medium",
-    createdAt: "2024-01-30T14:20:00Z"
-  },
-  {
-    _id: "t2",
-    userId: "2", 
-    subject: "Shipping Delay",
-    message: "My order is taking longer than expected",
-    status: "resolved",
-    priority: "low",
-    createdAt: "2024-03-05T09:15:00Z"
-  },
-  {
-    _id: "t3",
-    userId: "3",
-    subject: "Return Request", 
-    message: "Would like to return the scarf, wrong color",
-    status: "in-progress",
-    priority: "high",
-    createdAt: "2024-04-10T11:30:00Z"
-  }
-];
+// Removed legacy hardcoded demo arrays so endpoints always return DB data.
 
 export const getProductsList = async (_req: Request, res: Response) => {
   try {
-    // Return hardcoded products instead of fetching from database
-    res.json(hardcodedProducts);
+    // Fetch products from database and map to frontend-friendly shape
+    const products = await Product.find({}).lean();
+    const mapped = (Array.isArray(products) ? products : []).map((p: any) => ({
+      id: String(p._id),
+      image: p.image,
+      name: p.name,
+      uploadedBy: p.uploadedBy,
+      quantity: p.quantity ?? p.number ?? 0,
+      oldPrice: p.oldPrice ?? p.price ?? 0,
+      newPrice: p.newPrice ?? p.price ?? 0,
+      category: p.category,
+      status: p.status,
+      description: p.description,
+      createdAt: p.createdAt,
+      isValid: p.isValid,
+    }));
+    res.json(mapped);
   } catch (error) {
     res.status(500).json({ success: false, message: (error as Error).message });
   }
@@ -172,8 +55,21 @@ export const getProductsList = async (_req: Request, res: Response) => {
 
 export const getOrdersList = async (_req: Request, res: Response) => {
   try {
-    // Return hardcoded orders instead of fetching from database  
-    res.json(hardcodedOrders);
+    // Fetch orders, populate user info, and map to frontend shape
+    const orders = await Order.find({}).populate('userId', 'name email').lean();
+    const mapped = (Array.isArray(orders) ? orders : []).map((o: any) => {
+      const items = Array.isArray(o.products) ? o.products.reduce((sum: number, it: any) => sum + (it.quantity || 0), 0) : 0;
+      return {
+        id: String(o._id),
+        customer: o.userId ? (o.userId.name || o.userId.email) : undefined,
+        date: o.purchasedAt ? new Date(o.purchasedAt).toISOString() : (o.createdAt || new Date().toISOString()),
+        items,
+        total: o.money ?? 0,
+        status: o.status,
+        raw: o,
+      };
+    });
+    res.json(mapped);
   } catch (error) {
     res.status(500).json({ success: false, message: (error as Error).message });
   }
@@ -181,8 +77,16 @@ export const getOrdersList = async (_req: Request, res: Response) => {
 
 export const getFeedbackList = async (_req: Request, res: Response) => {
   try {
-    // Return hardcoded tickets instead of fetching from database
-    res.json(hardcodedTickets);
+    // Fetch tickets and populate user name, map to simple feedback objects
+    const tickets = await Ticket.find({}).populate('userId', 'name').lean();
+    const mapped = (Array.isArray(tickets) ? tickets : []).map((t: any) => ({
+      id: String(t._id),
+      fullName: t.userId ? (t.userId.name || '') : 'Anonymous',
+      message: t.description || t.subject || '',
+      createdAt: t.createdAt,
+    }));
+    // Return tickets from DB (may be empty array if none)
+    res.json(mapped);
   } catch (error) {
     res.status(500).json({ success: false, message: (error as Error).message });
   }
@@ -190,22 +94,34 @@ export const getFeedbackList = async (_req: Request, res: Response) => {
 
 export const getSalesData = async (_req: Request, res: Response) => {
   try {
-    // Generate hardcoded sales data by month
-    const salesData = [
-      { month: "Jan", sales: 150.50 },
-      { month: "Feb", sales: 320.75 },
-      { month: "Mar", sales: 275.25 },
-      { month: "Apr", sales: 410.90 },
-      { month: "May", sales: 380.40 },
-      { month: "Jun", sales: 520.60 },
-      { month: "Jul", sales: 445.30 },
-      { month: "Aug", sales: 390.80 },
-      { month: "Sep", sales: 465.50 },
-      { month: "Oct", sales: 510.20 },
-      { month: "Nov", sales: 0 },
-      { month: "Dec", sales: 0 }
-    ];
+    // Aggregate sales (sum of `money`) by month from orders collection
+    const agg = await Order.aggregate([
+      {
+        $addFields: {
+          _date: {
+            $cond: [
+              { $ifNull: ["$purchasedAt", false] },
+              "$purchasedAt",
+              { $toDate: "$createdAt" }
+            ]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: { $month: "$_date" },
+          total: { $sum: { $ifNull: ["$money", 0] } }
+        }
+      }
+    ]).exec();
 
+    const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const totals = new Array(12).fill(0);
+    (agg || []).forEach((row: any) => {
+      const m = Number(row._id);
+      if (!Number.isNaN(m) && m >= 1 && m <= 12) totals[m - 1] = Number(row.total || 0);
+    });
+    const salesData = MONTHS.map((month, idx) => ({ month, sales: totals[idx] }));
     res.json(salesData);
   } catch (error) {
     res.status(500).json({ success: false, message: (error as Error).message });

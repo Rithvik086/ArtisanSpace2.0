@@ -18,10 +18,6 @@ const ticketSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
   status: {
     type: String,
     enum: {
@@ -29,6 +25,18 @@ const ticketSchema = new mongoose.Schema({
       message: "{VALUE} is not a valid status",
     },
     default: "open",
+  },
+  isValid: {
+    type: Boolean,
+    default: true,
+  },
+  createdAt: {
+    type: String,
+    default: () => new Date().toISOString(),
+  },
+  updatedAt: {
+    type: String,
+    default: () => new Date().toISOString(),
   },
 });
 

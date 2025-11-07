@@ -39,6 +39,18 @@ const customRequestSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  createdAt: {
+    type: String,
+    default: () => new Date().toISOString(),
+  },
+  updatedAt: {
+    type: String,
+    default: () => new Date().toISOString(),
+  },
+  isValid: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 export default mongoose.model("Request", customRequestSchema);

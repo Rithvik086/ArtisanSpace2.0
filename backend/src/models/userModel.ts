@@ -63,6 +63,10 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+  isValid: {
+    type: Boolean,
+    default: true,
+  },
   createdAt: {
     type: String,
     default: () => new Date().toISOString(),
@@ -74,32 +78,27 @@ const userSchema = new mongoose.Schema({
 });
 
 (userSchema as any).pre(
-  "deleteOne",
-  { query: true },
+  "save",
   async function (this: any, next: (err?: any) => void) {
-    const userId = this.getFilter()._id;
-    if (!userId) return next();
-
-    try {
-      await Promise.all([
-        Product.deleteMany({ userId }),
-        Cart.deleteMany({ userId }),
-        Ticket.deleteMany({ userId }),
-        Workshop.deleteMany({ userId }),
-        Workshop.updateMany(
-          { artisanId: userId },
-          { $set: { artisanId: null, status: 0 } }
-        ),
-        Request.deleteMany({ userId }),
-        Request.updateMany(
-          { artisanId: userId },
-          { $set: { artisanId: null, isAccepted: false } }
-        ),
-      ]);
-      next();
-    } catch (error) {
-      next(error as any);
+    if (this.isValid === false && this.isModified("isValid")) {
+      try {
+        await Promise.all([
+          Product.deleteMany({ userId: this._id }),
+          Cart.deleteMany({ userId: this._id }),
+          Ticket.deleteMany({ userId: this._id }),
+          Workshop.deleteMany({ userId: this._id, status: 0 }),
+          Workshop.updateMany({ artisanId: this._id }, { $set: { status: 0 } }),
+          Request.deleteMany({ userId: this._id }),
+          Request.updateMany(
+            { artisanId: this._id },
+            { $set: { isAccepted: false } }
+          ),
+        ]);
+      } catch (error) {
+        return next(error as any);
+      }
     }
+    next();
   }
 );
 
