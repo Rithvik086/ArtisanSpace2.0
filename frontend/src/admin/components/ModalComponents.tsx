@@ -16,7 +16,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps): React.R
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
       <div className={cn('shadow-2xl w-full max-w-lg border-2 border-amber-300', 'bg-white rounded-md')}>
-        <div className="flex justify-between items-center p-6 border-b border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50">
+        <div className="flex justify-between items-center p-6 border-b border-amber-200 bg-linear-to-r from-amber-50 to-orange-50">
           <h2 className="text-2xl font-bold text-amber-900 font-serif">{title}</h2>
           <button onClick={onClose} className="text-amber-600 hover:text-amber-800 hover:bg-amber-100 p-2 rounded-lg transition-colors">
             <X size={24} />

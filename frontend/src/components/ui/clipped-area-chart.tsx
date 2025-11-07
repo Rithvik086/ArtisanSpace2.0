@@ -125,7 +125,7 @@ export function ClippedAreaChart(props: {
       <CardContent>
         <ChartContainer
           ref={chartRef}
-          className="h-54 w-full bg-gradient-to-b from-[#0b0710] to-[#120812] rounded-md"
+          className="h-54 w-full bg-linear-to-b from-[#0b0710] to-[#120812] rounded-md"
           config={usedConfig}
         >
           <AreaChart

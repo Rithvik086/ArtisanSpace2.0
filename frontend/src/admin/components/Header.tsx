@@ -11,10 +11,10 @@ export default function Header(): React.ReactElement {
     }`;
 
   return (
-    <header className="bg-gradient-to-r from-amber-50 to-orange-50 shadow-lg border-b-2 border-amber-200 sticky top-0 z-30 backdrop-blur-sm">
+    <header className="bg-linear-to-r from-amber-50 to-orange-50 shadow-lg border-b-2 border-amber-200 sticky top-0 z-30 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex-shrink-0 flex items-center">
+          <div className="shrink-0 flex items-center">
             <h1 className="text-2xl font-bold text-amber-900 font-serif">ArtisanSpace Admin</h1>
           </div>
           <div className="hidden md:flex md:ml-6">

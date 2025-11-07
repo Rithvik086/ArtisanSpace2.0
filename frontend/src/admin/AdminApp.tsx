@@ -29,9 +29,9 @@ export default function AdminApp(): React.ReactElement {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 font-serif">
+    <div className="min-h-screen flex flex-col bg-linear-to-br from-amber-50 via-orange-50 to-amber-100 font-serif">
       <Header />
-      <main className="flex-grow p-4 md:p-8">
+      <main className="grow p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
           <Routes>
             <Route path="/" element={<DashboardPage setModalState={setModalState} />} />

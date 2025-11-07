@@ -23,8 +23,8 @@ export default function ModerationProductCard({ product }: { product: Product })
     <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
       <div className="p-4">
         <div className="flex gap-4">
-          <img className="h-20 w-20 rounded-md object-cover flex-shrink-0" src={product.image} alt={product.name} />
-          <div className="flex-grow">
+          <img className="h-20 w-20 rounded-md object-cover shrink-0" src={product.image} alt={product.name} />
+          <div className="grow">
             <h4 className="text-md font-semibold text-gray-900">{product.name}</h4>
             <p className="text-sm text-gray-500">by {product.uploadedBy}</p>
             <p className="text-sm text-gray-500">{product.category}</p>
