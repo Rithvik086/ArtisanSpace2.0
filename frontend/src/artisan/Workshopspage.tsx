@@ -118,7 +118,7 @@ export default function WorkshopsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 p-8">
+      <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-amber-100 p-8">
         <div className="container mx-auto text-center">
           <div className="bg-white/80 backdrop-blur-sm rounded-xl p-8 shadow-lg border border-amber-200">
             <div className="animate-pulse">
@@ -132,7 +132,7 @@ export default function WorkshopsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
+    <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-amber-100">
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-amber-200 p-6">
         <div className="container mx-auto">
