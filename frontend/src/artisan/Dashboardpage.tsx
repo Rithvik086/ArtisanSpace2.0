@@ -23,42 +23,7 @@ interface Product {
   description: string;
 }
 
-// Mock data to simulate fetching
-const mockProducts: Product[] = [
-  {
-    _id: "60d5f1b4e6b3c1a2b8d0c8f7",
-    category: "Pottery",
-    image: "https://via.placeholder.com/60",
-    name: "Ceramic Vase",
-    oldPrice: 1200,
-    newPrice: 999,
-    quantity: 25,
-    status: "active",
-    description: "Handcrafted ceramic vase, perfect for home decor. Made with high-quality clay and a smooth glaze finish."
-  },
-  {
-    _id: "60d5f1b4e6b3c1a2b8d0c8f8",
-    category: "Textiles",
-    image: "https://via.placeholder.com/60",
-    name: "Handwoven Scarf",
-    oldPrice: 800,
-    newPrice: 650,
-    quantity: 40,
-    status: "active",
-    description: "A beautiful handwoven scarf made from 100% pure cotton. Soft, lightweight, and stylish."
-  },
-  {
-    _id: "60d5f1b4e6b3c1a2b8d0c8f9",
-    category: "Woodwork",
-    image: "https://via.placeholder.com/60",
-    name: "Wooden Bowl",
-    oldPrice: 500,
-    newPrice: 500,
-    quantity: 15,
-    status: "pending",
-    description: "A hand-carved wooden bowl, ideal for salads or as a decorative piece. Finished with food-safe oil."
-  },
-];
+// We'll load products from the backend (remove previous mock data)
 
 export default function ArtisanDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -67,13 +32,44 @@ export default function ArtisanDashboard() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productToDeleteId, setProductToDeleteId] = useState<string | null>(null);
 
-  // Simulate fetching products on mount
+  // Fetch artisan products from backend on mount
   useEffect(() => {
-    // In a real app, you'd fetch this from an API
-    // fetch('/api/artisan/products')
-    //   .then(res => res.json())
-    //   .then(data => setProducts(data));
-    setProducts(mockProducts);
+    const fetchProducts = async () => {
+      try {
+        const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || `${location.protocol}//${location.hostname}:3000`;
+        // Try to fetch the artisan's products (requires auth)
+        let res = await fetch(`${API_BASE}/api/v1/products/my`, { credentials: 'include' });
+
+        // If not authorized, fall back to public approved listing
+        if (!res.ok) {
+          if (res.status === 401 || res.status === 403) {
+            res = await fetch(`${API_BASE}/api/v1/products/approved`);
+          }
+        }
+
+        const json = await res.json().catch(() => []);
+        const list = Array.isArray(json) ? json : (json?.products ?? json?.data ?? []);
+
+        const normalized = (list as any[]).map((p: any) => ({
+          _id: String(p._id ?? p.id ?? crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`),
+          category: p.category ?? p.type ?? '',
+          image: p.image ?? (Array.isArray(p.images) ? p.images[0] : p.thumbnail) ?? '',
+          name: p.name ?? p.title ?? 'Untitled',
+          oldPrice: Number(p.oldPrice ?? p.price ?? 0),
+          newPrice: Number(p.newPrice ?? p.price ?? 0),
+          quantity: Number(p.quantity ?? p.stock ?? 0),
+          status: p.status ?? 'active',
+          description: p.description ?? p.desc ?? '',
+        }));
+
+        setProducts(normalized as Product[]);
+      } catch (e) {
+        console.error('Failed to load products', e);
+        setProducts([]);
+      }
+    };
+
+    void fetchProducts();
   }, []);
 
   // --- Edit Handlers ---
@@ -124,19 +120,20 @@ export default function ArtisanDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
-      {/* Craft-inspired Header */}
-      <header className={cn(craftStyles.layout.header, "py-6")}>
-        <div className={craftStyles.layout.container}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-amber-900 font-serif">
-                <Palette className="inline-block w-8 h-8 mr-3 text-amber-600" />
-                Artisan Workshop
-              </h1>
-              <p className="text-amber-700 mt-2 text-lg">Where creativity meets commerce</p>
-            </div>
-            <Link 
+    <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50">
+  {/* Hero section below the header */}
+      <div className={cn(craftStyles.layout.container, "py-6")}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-amber-900 font-serif">
+              <Palette className="inline-block w-8 h-8 mr-3 text-amber-600" />
+              Artisan Dashboard
+            </h1>
+            <p className="text-amber-700 mt-2 text-lg">Where creativity meets commerce</p>
+          </div>
+          {/* Add button sits to the right of the hero */}
+          <div>
+            <Link
               to="/artisan/add-listing"
               className={cn(craftStyles.button.primary, "flex items-center gap-2")}
             >
@@ -145,7 +142,7 @@ export default function ArtisanDashboard() {
             </Link>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Main Content */}
       <main className={cn(craftStyles.layout.container, craftStyles.layout.section)}>

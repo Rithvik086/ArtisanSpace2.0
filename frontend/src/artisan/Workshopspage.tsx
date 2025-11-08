@@ -72,9 +72,10 @@ export default function WorkshopsPage() {
 
   const handleAcceptWorkshop = async (workshopId: string) => {
     try {
-      const response = await fetch(`/api/artisan/workshops/accept/${workshopId}`, {
-        method: 'POST',
-        credentials: 'include'
+      // Backend expects PUT to /api/v1/workshop/:action/:workshopId
+      const response = await fetch(`/api/v1/workshop/accept/${workshopId}`, {
+        method: 'PUT',
+        credentials: 'include',
       });
       
       if (response.ok) {
@@ -96,9 +97,10 @@ export default function WorkshopsPage() {
 
   const handleRemoveWorkshop = async (workshopId: string) => {
     try {
-      const response = await fetch(`/api/artisan/workshops/remove/${workshopId}`, {
-        method: 'DELETE',
-        credentials: 'include'
+      // Backend exposes removal via PUT /api/v1/workshop/remove/:workshopId
+      const response = await fetch(`/api/v1/workshop/remove/${workshopId}`, {
+        method: 'PUT',
+        credentials: 'include',
       });
 
       if (response.ok) {
@@ -138,7 +140,9 @@ export default function WorkshopsPage() {
           <p className="text-amber-700">Discover and manage your workshop opportunities</p>
         </div>
       </div>
-      
+
+      {/* Tabs are provided by the global ArtisanLayout header */}
+
       {/* Main Content */}
       <main className="container mx-auto p-4 md:p-8 space-y-12">
         <AvailableWorkshopsTable 
