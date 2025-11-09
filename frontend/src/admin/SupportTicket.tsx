@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Toaster, toast } from "react-hot-toast";
 import { TicketCard } from "@/components/support/TicketCard";
-import { Ticket, TicketResponse, UserRole } from "../types/ticket";
+import type { Ticket } from "../types/ticket";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
 // --- MOCK DATA (Replace with your actual API call)
