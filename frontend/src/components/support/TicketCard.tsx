@@ -112,14 +112,14 @@ export function TicketCard({ ticket, onResolve, isResolving, className }: Ticket
           href={`mailto:${ticket.email}`}
           className="mt-3 flex items-center gap-2 text-sm text-gray-600 hover:text-[#6B4F3A] transition-colors"
         >
-          <Mail className="h-4 w-4 flex-shrink-0" />
+          <Mail className="h-4 w-4 shrink-0" />
           <span className="truncate">{ticket.email}</span>
         </a>
       </CardHeader>
       
       <CardContent className="py-2 px-6">
         <div className="flex items-start gap-2">
-          <MessageSquare className="h-4 w-4 mt-0.5 text-gray-400 flex-shrink-0" />
+          <MessageSquare className="h-4 w-4 mt-0.5 text-gray-400 shrink-0" />
           <p className="text-gray-700 text-sm line-clamp-3">
             {ticket.description}
           </p>
