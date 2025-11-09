@@ -40,7 +40,10 @@ function Navbar() {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <button className="px-6 py-2 bg-transparent border-2 border-amber-950 text-amber-950 rounded-lg font-semibold hover:bg-amber-950 hover:text-amber-100 transition-all duration-300 hover:cursor-pointer">
+            <button 
+              onClick={() => navigate("/login")}
+              className="px-6 py-2 bg-transparent border-2 border-amber-950 text-amber-950 rounded-lg font-semibold hover:bg-amber-950 hover:text-amber-100 transition-all duration-300 hover:cursor-pointer"
+            >
               Login
             </button>
             <button
@@ -48,6 +51,20 @@ function Navbar() {
               className="px-6 py-2 bg-amber-950 text-amber-100 rounded-lg font-semibold hover:bg-amber-900 transition-colors duration-300 shadow-lg hover:shadow-xl hover:cursor-pointer"
             >
               Signup
+            </button>
+            {/* Temporary Admin Link for Testing */}
+            <button
+              onClick={() => navigate("/admin")}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300"
+            >
+              Admin
+            </button>
+            {/* Temporary Artisan Link for Testing */}
+            <button
+              onClick={() => navigate("/artisan")}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors duration-300"
+            >
+              Artisan
             </button>
           </div>
 
@@ -96,6 +113,25 @@ function Navbar() {
               className="w-full px-6 py-3 bg-amber-950 text-amber-100 rounded-lg font-semibold hover:bg-amber-900 transition-colors duration-300 shadow-lg"
             >
               Signup
+            </button>
+            {/* Temporary Dashboard Links for Testing */}
+            <button
+              onClick={() => {
+                navigate("/admin");
+                setIsOpen(false);
+              }}
+              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300"
+            >
+              Admin Dashboard
+            </button>
+            <button
+              onClick={() => {
+                navigate("/artisan");
+                setIsOpen(false);
+              }}
+              className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors duration-300"
+            >
+              Artisan Dashboard
             </button>
           </div>
         </div>
