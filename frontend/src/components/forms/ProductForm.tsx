@@ -210,7 +210,7 @@ export function ProductForm({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 py-8">
+    <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-8">
@@ -223,7 +223,7 @@ export function ProductForm({
 
         {/* Form Card */}
         <div className="bg-white rounded-2xl shadow-xl border-2 border-amber-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-amber-100 to-orange-100 px-8 py-6 border-b border-amber-200">
+          <div className="bg-linear-to-r from-amber-100 to-orange-100 px-8 py-6 border-b border-amber-200">
             <div className="flex items-center">
               <Sparkles className="w-6 h-6 text-amber-600 mr-3" />
               <div>

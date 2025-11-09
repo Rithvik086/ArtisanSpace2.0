@@ -459,11 +459,11 @@ export default function App(): React.ReactElement {
   ];
 
   return (
-    <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 min-h-screen p-4 md:p-8">
+    <div className="bg-linear-to-br from-amber-50 via-orange-50 to-amber-100 min-h-screen p-4 md:p-8">
       <div className={cn(craftStyles.card.warm, "max-w-6xl mx-auto rounded-2xl shadow-2xl overflow-hidden border-2 border-amber-200")}>
         <div className="md:flex">
           {/* --- Sidebar Navigation --- */}
-          <div className="w-full md:w-1/4 bg-gradient-to-b from-amber-100 to-orange-100 border-b md:border-b-0 md:border-r border-amber-300">
+          <div className="w-full md:w-1/4 bg-linear-to-b from-amber-100 to-orange-100 border-b md:border-b-0 md:border-r border-amber-300">
             <h1 className="text-2xl font-bold text-amber-900 p-6 border-b border-amber-300 font-serif">Settings</h1>
             <nav className="flex flex-row md:flex-col overflow-x-auto md:overflow-x-visible p-4 md:p-6 space-x-3 md:space-x-0 md:space-y-3">
               {tabs.map((tab) => (

@@ -54,7 +54,7 @@ export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) 
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead>
-              <tr className="border-b border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50">
+              <tr className="border-b border-amber-200 bg-linear-to-r from-amber-50 to-orange-50">
                 <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">Category</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">Creation</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">Details</th>
@@ -67,7 +67,7 @@ export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) 
             <tbody className="bg-white divide-y divide-amber-100">
               {products.map((product, index) => (
                 <tr key={product._id} className={cn(
-                  "hover:bg-gradient-to-r hover:from-amber-50 hover:to-orange-50 transition-all duration-200",
+                  "hover:bg-linear-to-r hover:from-amber-50 hover:to-orange-50 transition-all duration-200",
                   index % 2 === 0 ? "bg-white" : "bg-amber-25"
                 )}>
                   <td className="px-6 py-6">
@@ -77,7 +77,7 @@ export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) 
                   </td>
                   <td className="px-6 py-6">
                     <div className="flex items-center space-x-4">
-                      <div className="flex-shrink-0">
+                      <div className="shrink-0">
                         <img
                           src={product.image}
                           alt={product.name}

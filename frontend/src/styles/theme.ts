@@ -109,9 +109,9 @@ export const theme = {
 // Component style utilities
 export const craftStyles = {
   // Button variants
-  button: {
+    button: {
     primary: `
-      bg-gradient-to-r from-amber-600 to-amber-700 
+      bg-linear-to-r from-amber-600 to-amber-700 
       hover:from-amber-700 hover:to-amber-800 
       text-white font-medium px-6 py-3 rounded-lg 
       shadow-md hover:shadow-lg transition-all duration-200
@@ -135,7 +135,7 @@ export const craftStyles = {
       hover:shadow-xl transition-shadow duration-300
     `,
     warm: `
-      bg-gradient-to-br from-amber-50 to-orange-50 
+      bg-linear-to-br from-amber-50 to-orange-50 
       rounded-xl shadow-lg border border-amber-200
       hover:shadow-xl transition-shadow duration-300
     `
@@ -163,7 +163,7 @@ export const craftStyles = {
       py-12 lg:py-16
     `,
     header: `
-      bg-gradient-to-r from-neutral-50 to-amber-50 
+      bg-linear-to-r from-neutral-50 to-amber-50 
       border-b border-neutral-200 shadow-sm
     `
   }
