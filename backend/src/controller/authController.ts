@@ -25,7 +25,15 @@ const updateProfileSchema = z.object({
     .string()
     .min(10, "Mobile number must be at least 10 digits")
     .optional(),
-  address: z.string().optional(),
+  address: z
+    .object({
+      street: z.string().optional(),
+      city: z.string().optional(),
+      state: z.string().optional(),
+      zip: z.string().optional(),
+      country: z.string().optional(),
+    })
+    .optional(),
 });
 
 const signupSchema = z.object({
@@ -341,19 +349,32 @@ const deleteAccount = async (req: Request, res: Response) => {
   }
 };
 
-// TODO: Update profile controller need to changed as i have change the address field in DB
 const updatProfile = async (req: Request, res: Response) => {
   try {
     const validated = updateProfileSchema.parse(req.body);
     const { name, mobile_no, address } = validated;
 
-    const processedAddress = address ? address.toLowerCase() : address;
-    const processedName = name ? name.toLowerCase() : name;
+    const processedAddress: {
+      street?: string;
+      city?: string;
+      state?: string;
+      zip?: string;
+      country?: string;
+    } = {};
+    if (address) {
+      if (address.street) processedAddress.street = address.street.trim().toLowerCase();
+      if (address.city) processedAddress.city = address.city.trim().toLowerCase();
+      if (address.state) processedAddress.state = address.state.trim().toLowerCase();
+      if (address.zip) processedAddress.zip = address.zip.trim();
+      if (address.country) processedAddress.country = address.country.trim().toLowerCase();
+    }
+    const processedName = name ? name.trim().toLowerCase() : name;
+    const processedMobile_no = mobile_no ? mobile_no.trim() : mobile_no;
     const result = await updateUser(
       req.user.id,
       processedName,
-      mobile_no,
-      processedAddress
+      processedMobile_no,
+      Object.keys(processedAddress).length > 0 ? processedAddress : undefined
     );
 
     if (result.success) {

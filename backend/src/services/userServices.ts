@@ -179,7 +179,13 @@ export async function updateUser(
   userId: string,
   name?: string,
   mobile_no?: string,
-  address?: string
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    country?: string;
+  }
 ) {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -190,7 +196,14 @@ export async function updateUser(
     const updateFields: Record<string, any> = {};
     if (name !== undefined) updateFields.name = name;
     if (mobile_no !== undefined) updateFields.mobile_no = mobile_no;
-    if (address !== undefined) updateFields.address = address;
+    if (address !== undefined) {
+      updateFields.address = {};
+      if (address.street !== undefined) updateFields.address.street = address.street;
+      if (address.city !== undefined) updateFields.address.city = address.city;
+      if (address.state !== undefined) updateFields.address.state = address.state;
+      if (address.zip !== undefined) updateFields.address.zip = address.zip;
+      if (address.country !== undefined) updateFields.address.country = address.country;
+    }
 
     console.log(updateFields);
 
