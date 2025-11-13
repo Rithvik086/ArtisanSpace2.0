@@ -36,7 +36,7 @@ export async function addUser(
     if (existingUser) {
       throw new Error("Username or email already exists.");
     }
-
+    // NOTE: Need to ser isVerified to false after the testing phase is over
     const user = new User({
       username,
       name,
@@ -44,6 +44,7 @@ export async function addUser(
       password: hashpass,
       mobile_no,
       role,
+      isVerified: true,
     });
     await user.save({ session });
     await session.commitTransaction();
@@ -198,11 +199,14 @@ export async function updateUser(
     if (mobile_no !== undefined) updateFields.mobile_no = mobile_no;
     if (address !== undefined) {
       updateFields.address = {};
-      if (address.street !== undefined) updateFields.address.street = address.street;
+      if (address.street !== undefined)
+        updateFields.address.street = address.street;
       if (address.city !== undefined) updateFields.address.city = address.city;
-      if (address.state !== undefined) updateFields.address.state = address.state;
+      if (address.state !== undefined)
+        updateFields.address.state = address.state;
       if (address.zip !== undefined) updateFields.address.zip = address.zip;
-      if (address.country !== undefined) updateFields.address.country = address.country;
+      if (address.country !== undefined)
+        updateFields.address.country = address.country;
     }
 
     console.log(updateFields);
