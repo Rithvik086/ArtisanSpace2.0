@@ -18,5 +18,17 @@
   "bugs": {
     "url": "https://github.com/Rithvik086/ArtisanSpace2.0/issues"
   },
-  "homepage": "https://github.com/Rithvik086/ArtisanSpace2.0#readme"
+  "homepage": "https://github.com/Rithvik086/ArtisanSpace2.0#readme",
+  "dependencies": {
+    "@types/react-router-dom": "^5.3.3",
+    "bcryptjs": "^3.0.2",
+    "crypto": "^1.0.1",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "jxt": "^4.0.2",
+    "react-router-dom": "^7.9.5"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2"
+  }
 }
