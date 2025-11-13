@@ -104,6 +104,14 @@ const signup = async (req: Request, res: Response) => {
     if (!user) {
       throw new Error("User creation failed");
     }
+
+    // For development: Skip email verification and set user as verified
+    await User.findByIdAndUpdate(user._id, {
+      isVerified: true,
+    });
+
+    /*
+    // Email verification logic (commented out for development)
     const token = crypto.randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
     await User.findByIdAndUpdate(user._id, {
@@ -111,9 +119,8 @@ const signup = async (req: Request, res: Response) => {
       tokenExpiresAt: expiresAt,
     });
     // TODO: Need to change the frontend URL here later when get the actual frontend URL
-    const verificationLink = `${
-      process.env.FRONTEND_URL || "http://localhost:3000"
-    }/api/v1/verify-email?token=${token}`;
+    const verificationLink = `${process.env.FRONTEND_URL || "http://localhost:3000"
+      }/api/v1/verify-email?token=${token}`;
     try {
       await sendMail(
         email,
@@ -125,9 +132,10 @@ const signup = async (req: Request, res: Response) => {
       await removeUser(user._id.toString());
       throw new Error("Failed to send verification email. Please try again.");
     }
+    */
+
     res.status(201).json({
-      message:
-        "User registered successfully. Please check your email to verify your account.",
+      message: "User registered successfully.",
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -276,9 +284,8 @@ const forgotPassword = async (req: Request, res: Response) => {
       resetTokenExpiresAt: expiresAt,
     });
 
-    const resetLink = `${
-      process.env.FRONTEND_URL || "http://localhost:3000"
-    }/api/v1/reset-password?token=${token}`;
+    const resetLink = `${process.env.FRONTEND_URL || "http://localhost:3000"
+      }/api/v1/reset-password?token=${token}`;
     await sendMail(
       email,
       "Reset Your Password - ArtisanSpace",
@@ -399,68 +406,72 @@ const deleteUser = async (req: Request, res: Response) => {
     if (!userId) {
       return res
         .status(400)
-        .json({ success: false, message: "User ID is required" });
-    }
-    // Prevent managers from deleting admin or other manager accounts
-    const requesterRole = req.user.role;
-    if (requesterRole === "manager") {
-      const targetUser = await getUserById(userId);
-      if (!targetUser) {
-        return res
-          .status(404)
-          .json({ success: false, message: "User not found" });
-      }
-      if (targetUser.role === "admin" || targetUser.role === "manager") {
-        return res.status(403).json({
-          success: false,
-          message:
-            "Managers are not allowed to delete admin or manager accounts",
-        });
-      }
+        .json({ message: "User ID is required" });
     }
 
-    const response = await removeUser(userId);
+    const result = await removeUser(userId);
 
-    if (response.success) {
-      res
-        .status(200)
-        .json({ success: true, message: "User deleted successfully" });
+    if (result.success) {
+      res.status(200).json({ success: true });
     } else {
-      res
-        .status(500)
-        .json({ success: false, message: "Failed to delete user" });
+      res.status(500).json({ success: false });
     }
-  } catch (e) {
-    throw new Error("Error deleting user: " + (e as Error).message);
+  } catch (err) {
+    throw new Error("Error deleting user: " + (err as Error).message);
   }
 };
 
 const addUserHandler = async (req: Request, res: Response) => {
-  const { name, username, mobile_no, email, role, pass } = req.body;
-  const hashpass = await bcrypt.hash(pass, 9);
   try {
-    const result = await addUser(
-      username,
-      name,
-      email,
-      hashpass,
-      mobile_no,
-      role
-    ); // Assuming addUser returns a success status
+    const { username, name, email, password, mobile_no, role } = req.body;
+
+    const hashpass = await bcrypt.hash(password, 9);
+
+    const result = await addUser(username, name, email, hashpass, mobile_no, role);
 
     if (result.success) {
-      res.status(200).json({
-        success: true,
-        message: "User added successfully",
-      });
+      res.status(201).json({ success: true });
     } else {
-      res.status(400).json({
-        success: false,
-        message: "Failed to add user",
-      });
+      res.status(500).json({ success: false });
+    }
+  } catch (err) {
+    throw new Error("Error adding user: " + (err as Error).message);
+  }
+};
+
+const checkUsername = async (req: Request, res: Response) => {
+  try {
+    const { username } = req.body;
+    if (!username) {
+      return res.status(400).json({ message: "Username is required" });
+    }
+
+    const user = await findUserByUserName(username);
+    if (user) {
+      return res.status(200).json({ available: false, message: "Username already exists" });
+    } else {
+      return res.status(200).json({ available: true });
     }
   } catch (error) {
-    throw new Error("Error adding user: " + (error as Error).message);
+    throw new Error("Error checking username: " + (error as Error).message);
+  }
+};
+
+const checkEmail = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await findUserByEmail(email);
+    if (user) {
+      return res.status(200).json({ available: false, message: "Email already exists" });
+    } else {
+      return res.status(200).json({ available: true });
+    }
+  } catch (error) {
+    throw new Error("Error checking email: " + (error as Error).message);
   }
 };
 
@@ -475,4 +486,6 @@ export {
   updatProfile,
   deleteUser,
   addUserHandler,
+  checkUsername,
+  checkEmail,
 };
