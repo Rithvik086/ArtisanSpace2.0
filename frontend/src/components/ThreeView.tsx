@@ -2,12 +2,15 @@ import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-
+import { useSelector } from "react-redux";
+import type { RootState } from "../redux/store";
 
 const ThreeView: React.FC = () => {
   const mountRef = useRef<HTMLDivElement | null>(null);
+  const user = useSelector((state: RootState) => state.auth.user);
 
   useEffect(() => {
+    console.log("Logged in user:", user);
     const mount = mountRef.current;
     if (!mount) return;
 
