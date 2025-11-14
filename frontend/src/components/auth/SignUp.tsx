@@ -27,7 +27,7 @@ export default function SignUp() {
     getValues,
     trigger,
   } = useForm<Inputs>({
-    mode: 'onChange',
+    mode: "onChange",
     defaultValues: {
       role: "customer", // Set a default role
     },
@@ -36,8 +36,8 @@ export default function SignUp() {
   const onBeforeNext = async (step: number) => {
     if (step === 1) {
       // Validate form fields first
-      const isValid = await trigger(['username', 'email', 'password']);
-      if (!isValid) throw new Error('Validation failed');
+      const isValid = await trigger(["username", "email", "password"]);
+      if (!isValid) throw new Error("Validation failed");
 
       // Then check uniqueness
       const values = getValues();
@@ -54,11 +54,11 @@ export default function SignUp() {
         throw new Error("Validation failed");
       }
     } else if (step === 2) {
-      const isValid = await trigger(['name', 'mobile_no']);
-      if (!isValid) throw new Error('Validation failed');
+      const isValid = await trigger(["name", "mobile_no"]);
+      if (!isValid) throw new Error("Validation failed");
     } else if (step === 3) {
-      const isValid = await trigger(['role', 'terms']);
-      if (!isValid) throw new Error('Validation failed');
+      const isValid = await trigger(["role", "terms"]);
+      if (!isValid) throw new Error("Validation failed");
     }
   };
 

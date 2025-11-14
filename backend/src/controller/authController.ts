@@ -206,7 +206,7 @@ const login = async (req: Request, res: Response) => {
 
     res.status(200).json({
       message: "Login successful",
-      user: { id: user._id, role: user.role, name: user.name },
+      user: { id: user._id, role: user.role, name: user.name, username: user.username },
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

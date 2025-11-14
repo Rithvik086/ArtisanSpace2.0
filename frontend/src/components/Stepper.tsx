@@ -7,7 +7,7 @@ import React, {
   type ReactNode,
   type SVGProps,
 } from "react";
-import { motion, AnimatePresence, type Variants } from "motion/react";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 
 interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;

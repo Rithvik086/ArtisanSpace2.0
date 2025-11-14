@@ -36,7 +36,7 @@ export async function addUser(
     if (existingUser) {
       throw new Error("Username or email already exists.");
     }
-    // NOTE: Need to ser isVerified to false after the testing phase is over
+   
     const user = new User({
       username,
       name,

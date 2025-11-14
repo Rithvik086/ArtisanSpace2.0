@@ -40,7 +40,10 @@ function Navbar() {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <button className="px-6 py-2 bg-transparent border-2 border-amber-950 text-amber-950 rounded-lg font-semibold hover:bg-amber-950 hover:text-amber-100 transition-all duration-300 hover:cursor-pointer">
+            <button
+              onClick={() => navigate("/login")}
+              className="px-6 py-2 bg-transparent border-2 border-amber-950 text-amber-950 rounded-lg font-semibold hover:bg-amber-950 hover:text-amber-100 transition-all duration-300 hover:cursor-pointer"
+            >
               Login
             </button>
             <button
