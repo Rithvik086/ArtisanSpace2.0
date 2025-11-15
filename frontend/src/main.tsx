@@ -5,7 +5,7 @@ import App from "./App.tsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import SignUp from "./components/auth/SignUp";
 import Login from "./components/auth/Login";
-import CustomerRoutes from "../routes/CustomerRoutes.js";
+import { customerRoutes } from "../routes/CustomerRoutes";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
 
@@ -24,7 +24,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/customer",
-    element: <CustomerRoutes />,
+    children: customerRoutes,
   },
 ]);
 
