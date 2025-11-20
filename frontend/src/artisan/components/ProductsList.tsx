@@ -1,6 +1,7 @@
 import { ProductTable } from '../../components/ui/ProductTable';
 import { EditProductModal } from '../../components/ui/EditProductModal';
 import { DeleteConfirmationModal } from '../../components/ui/DeleteConfirmationModal';
+import { craftStyles, cn } from '../../styles/theme';
 import type { Product as ProductType } from '../Dashboardpage';
 
 interface Props {
@@ -25,7 +26,7 @@ export default function ProductsList({ products, isEditOpen, selectedProduct, on
           <p className="text-amber-700 mt-1">Manage your handcrafted treasures</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="px-4 py-2 bg-amber-100 text-amber-800 rounded-full text-sm font-medium">{products.length} Products</span>
+          <span className={cn(craftStyles.heroButton.compact, 'px-4 py-2 rounded-full text-sm font-medium')}>{products.length} Products</span>
         </div>
       </div>
 

@@ -20,7 +20,7 @@ export default function Hero({ title = 'Artisan Workshop', subtitle = 'Where cre
           <p className="text-amber-700 mt-2 text-lg">{subtitle}</p>
         </div>
         <div>
-          <Link to={addLink} className={cn(craftStyles.button.primary, 'flex items-center gap-2')}>
+          <Link to={addLink} className={cn(craftStyles.heroButton.default, 'flex items-center gap-2 px-4 py-2') }>
             <Plus className="w-5 h-5" />
             Add New Creation
           </Link>

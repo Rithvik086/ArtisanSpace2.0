@@ -1,7 +1,7 @@
 "use client";
 
 import { Pencil, Trash2, Eye, Star } from "lucide-react";
-import { cn } from "../../styles/theme";
+import { cn, craftStyles } from "../../styles/theme";
 
 interface Product {
   _id: string;
@@ -117,13 +117,13 @@ export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) 
                     <div className="flex items-center space-x-3">
                       <button 
                         onClick={() => onEdit(product)}
-                        className="p-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg transition-colors duration-200 border border-amber-300"
+                        className={cn(craftStyles.heroButton.compact, 'p-2 border border-amber-900')}
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button 
                         onClick={() => onDelete(product._id)}
-                        className="p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors duration-200 border border-red-300"
+                        className={cn(craftStyles.heroButton.compact, 'p-2 border border-amber-900')}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -173,14 +173,14 @@ export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) 
               <div className="flex justify-end space-x-3">
                 <button 
                   onClick={() => onEdit(product)}
-                  className="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg transition-colors duration-200 border border-amber-300 flex items-center space-x-2"
+                  className={cn(craftStyles.heroButton.default, 'px-4 py-2 flex items-center space-x-2')}
                 >
                   <Pencil className="h-4 w-4" />
                   <span>Edit</span>
                 </button>
                 <button 
                   onClick={() => onDelete(product._id)}
-                  className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors duration-200 border border-red-300 flex items-center space-x-2"
+                  className={cn(craftStyles.heroButton.default, 'px-4 py-2 flex items-center space-x-2')}
                 >
                   <Trash2 className="h-4 w-4" />
                   <span>Delete</span>

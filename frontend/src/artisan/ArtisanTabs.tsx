@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Package, CalendarDays, FileText, Menu } from 'lucide-react';
+import { craftStyles, cn } from '../styles/theme';
 
 export default function ArtisanTabs(): React.ReactElement {
   const navLinkClass = ({ isActive }: { isActive: boolean }): string =>
@@ -38,7 +39,7 @@ export default function ArtisanTabs(): React.ReactElement {
             </nav>
           </div>
           <div className="md:hidden flex items-center">
-            <button className="text-gray-600 hover:text-gray-900 p-2 rounded-md">
+            <button className={cn(craftStyles.heroButton.compact, 'p-2 rounded-md') }>
               <Menu size={24} />
             </button>
           </div>

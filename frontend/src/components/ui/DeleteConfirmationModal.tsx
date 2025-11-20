@@ -1,5 +1,7 @@
 "use client";
 
+import { craftStyles, cn } from '../../styles/theme';
+
 interface DeleteConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -21,13 +23,13 @@ export function DeleteConfirmationModal({ isOpen, onClose, onConfirm }: DeleteCo
           <div className="flex justify-end gap-3">
             <button 
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+              className={cn(craftStyles.heroButton.compact, 'px-4 py-2')}
             >
               Cancel
             </button>
             <button
               onClick={onConfirm}
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+              className={cn(craftStyles.heroButton.default, 'px-4 py-2')}
             >
               Delete
             </button>

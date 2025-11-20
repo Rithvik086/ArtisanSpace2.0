@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { craftStyles, cn } from '../styles/theme';
 
 export default function AddListingPage(): React.ReactElement {
   return (
@@ -12,7 +13,7 @@ export default function AddListingPage(): React.ReactElement {
           <input className="w-full border px-3 py-2 rounded" placeholder="Price" />
           <textarea className="w-full border px-3 py-2 rounded" placeholder="Description" />
           <div className="flex justify-end">
-            <Link to="/artisan/listings" className="px-4 py-2 bg-amber-600 text-white rounded">Save (mock)</Link>
+            <Link to="/artisan/listings" className={cn(craftStyles.heroButton.default, 'px-4 py-2 text-sm')}>Save (mock)</Link>
           </div>
         </div>
       </div>

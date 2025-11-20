@@ -127,6 +127,19 @@ export const craftStyles = {
       transition-colors duration-200
     `
   },
+  // Hero / dark button variant (matches landing hero CTA)
+  heroButton: {
+    default: `
+      bg-amber-950 text-amber-100 font-semibold rounded-lg
+      hover:bg-amber-900 transition-colors duration-300
+      shadow-lg hover:shadow-xl transform hover:-translate-y-1
+    `,
+    compact: `
+      bg-amber-950 text-amber-100 rounded-lg
+      hover:bg-amber-900 transition-colors duration-300
+      shadow-md hover:shadow-lg transform hover:-translate-y-0.5
+    `
+  },
 
   // Card styles
   card: {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { craftStyles, cn } from '../../styles/theme';
 
 interface Product {
   _id: string;
@@ -109,7 +110,7 @@ export function EditProductModal({ isOpen, onClose, product, onSave }: EditProdu
       <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
         <div className="flex justify-between items-center p-4 border-b">
           <h2 className="text-xl font-semibold text-gray-800">Edit Product: {product.name}</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-800">
+          <button onClick={onClose} className={cn(craftStyles.heroButton.compact, 'p-2')}>
             <span className="text-2xl">&times;</span>
           </button>
         </div>
@@ -175,13 +176,13 @@ export function EditProductModal({ isOpen, onClose, product, onSave }: EditProdu
               <button 
                 type="button" 
                 onClick={onClose} 
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+                className={cn(craftStyles.heroButton.compact, 'px-4 py-2')}
               >
                 Cancel
               </button>
               <button 
                 type="submit" 
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                className={cn(craftStyles.heroButton.default, 'px-4 py-2')}
               >
                 Save
               </button>
