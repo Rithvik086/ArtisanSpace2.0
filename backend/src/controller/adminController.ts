@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import User from "../models/userModel.js";
+// User lookup moved to user service (see services/userServices.ts)
 import Product from "../models/productModel.js";
 import Order from "../models/ordersModel.js";
 import Ticket from "../models/supportTicketModel.js";
@@ -7,25 +7,6 @@ import Ticket from "../models/supportTicketModel.js";
 function monthName(date: Date) {
   return date.toLocaleString("en-US", { month: "short" });
 }
-
-export const getUsersList = async (_req: Request, res: Response) => {
-  try {
-    // Fetch users from database and exclude sensitive fields
-    const users = await User.find({}).select('-password -verificationToken -resetToken -tokenExpiresAt -resetTokenExpiresAt').lean();
-    const mapped = (Array.isArray(users) ? users : []).map((u: any) => ({
-      id: String(u._id),
-      username: u.username,
-      name: u.name,
-      email: u.email,
-      role: u.role,
-      mobile_no: u.mobile_no,
-      createdAt: u.createdAt,
-    }));
-    res.json(mapped);
-  } catch (error) {
-    res.status(500).json({ success: false, message: (error as Error).message });
-  }
-};
 
 // Removed legacy hardcoded demo arrays so endpoints always return DB data.
 
@@ -129,7 +110,6 @@ export const getSalesData = async (_req: Request, res: Response) => {
 };
 
 export default {
-  getUsersList,
   getProductsList,
   getOrdersList,
   getFeedbackList,

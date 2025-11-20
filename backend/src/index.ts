@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import type { Request, Response, NextFunction } from "express";
 import dbConnect from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
+import usersRoutes from "./routes/users.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 
@@ -40,6 +41,8 @@ app.get("/", (_req: Request, res: Response) => {
 });
 
 app.use("/api/v1/auth/", authRoutes);
+// Users management (admin/manager) endpoints
+app.use("/api/v1/users", usersRoutes);
 app.use("/api/v1/", userRoutes);
 // Admin dashboard endpoints used by frontend (keeps paths simple at /api/...)
 app.use("/api", adminRoutes);
