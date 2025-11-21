@@ -8,8 +8,8 @@ import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import path from "path";
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -35,10 +35,6 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
-app.get("/", (_req: Request, res: Response) => {
-  res.send("Health Check OK");
-});
-
 // Create main API router for /api/v1/
 const apiRouter = express.Router();
 
@@ -49,10 +45,16 @@ apiRouter.use("/", userRoutes);
 app.use("/api/v1", apiRouter);
 
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+  app.use(express.static(path.join(__dirname, "../../frontend/dist")));
 
   app.get("/*splat", (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+    const pathFile = path.join(
+      __dirname,
+      "../../frontend",
+      "dist",
+      "index.html"
+    );
+    res.sendFile(pathFile);
   });
 }
 
