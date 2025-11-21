@@ -1,4 +1,5 @@
 import React, { useReducer, createContext, useContext } from 'react';
+import api from '../lib/axios';
 
 // Types
 export interface User {
@@ -37,18 +38,10 @@ export interface Order {
   raw?: any;
 }
 
-export interface Feedback {
-  id: string;
-  fullName: string;
-  message: string;
-  createdAt?: string;
-}
-
 export interface AppState {
   users: User[];
   products: Product[];
   orders: Order[];
-  feedback: Feedback[];
 }
 
 export type AppAction =
@@ -70,7 +63,6 @@ const initialState: AppState = {
   users: [],
   products: [],
   orders: [],
-  feedback: [],
 };
 
 function appReducer(state: AppState, action: AppAction): AppState {
@@ -95,7 +87,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
         users: Array.isArray(action.payload.users) ? action.payload.users : [],
         products: Array.isArray(action.payload.products) ? action.payload.products : [],
         orders: Array.isArray(action.payload.orders) ? action.payload.orders : [],
-        feedback: Array.isArray(action.payload.feedback) ? action.payload.feedback : [],
       };
     default:
       return state;
@@ -116,20 +107,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   React.useEffect(() => {
     const fetchInitial = async () => {
       try {
-        const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || `${location.protocol}//${location.hostname}:3000`;
-        const [uRes, pRes, oRes, fRes] = await Promise.all([
-          fetch(`${API_BASE}/api/v1/admin/users`, { credentials: 'include' }),
-          fetch(`${API_BASE}/api/v1/admin/products`, { credentials: 'include' }),
-          fetch(`${API_BASE}/api/v1/admin/orders`, { credentials: 'include' }),
-          fetch(`${API_BASE}/api/v1/admin/feedback`, { credentials: 'include' }),
+        const [uRes, pRes, oRes] = await Promise.all([
+          api.get('/admin/users'),
+          api.get('/admin/products'),
+          api.get('/admin/orders'),
         ]);
 
-        const [uJson, pJson, oJson, fJson] = await Promise.all([
-          uRes.json().catch(() => []),
-          pRes.json().catch(() => []),
-          oRes.json().catch(() => []),
-          fRes.json().catch(() => []),
-        ]);
+        const [uJson, pJson, oJson] = [uRes.data, pRes.data, oRes.data];
 
         const normalizeUsers = (Array.isArray(uJson) ? uJson : []).map((u: any) => ({
           id: (u && (u.id || u._id)) ? String(u.id || u._id) : crypto.randomUUID(),
@@ -170,15 +154,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             raw: o,
           };
         });
-
-        const normalizeFeedback = (Array.isArray(fJson) ? fJson : []).map((f: any) => ({
-          id: (f && (f.id || f._id)) ? String(f.id || f._id) : crypto.randomUUID(),
-          fullName: typeof f?.userId === 'object' ? (f.userId.name ?? '') : (f?.fullName ?? f?.name ?? ''),
-          message: f?.description ?? f?.message ?? f?.subject ?? '',
-          createdAt: f?.createdAt ?? f?.created_at ?? '',
-        }));
-
-        dispatch({ type: 'SET_DATA', payload: { users: normalizeUsers, products: normalizeProducts, orders: normalizeOrders, feedback: normalizeFeedback } });
+        
+        dispatch({ type: 'SET_DATA', payload: { users: normalizeUsers, products: normalizeProducts, orders: normalizeOrders} });
       } catch (e) {
         console.error('Failed to fetch initial app data', e);
       }

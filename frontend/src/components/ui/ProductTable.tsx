@@ -57,7 +57,7 @@ export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) 
               <tr className="border-b border-amber-200 bg-linear-to-r from-amber-50 to-orange-50">
                 <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">Category</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">Creation</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">Details</th>
+                {/* <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">Details</th> */}
                 <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">Pricing</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">Stock</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">Status</th>

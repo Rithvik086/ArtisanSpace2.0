@@ -50,22 +50,6 @@ export const getOrdersList = async (_req: Request, res: Response) => {
   }
 };
 
-export const getFeedbackList = async (_req: Request, res: Response) => {
-  try {
-    // Fetch tickets and populate user name, map to simple feedback objects
-    const tickets = await getAllTicketsForAdmin();
-    const mapped = (Array.isArray(tickets) ? tickets : []).map((t: any) => ({
-      id: String(t._id),
-      fullName: t.userId ? (t.userId.name || '') : 'Anonymous',
-      message: t.description || t.subject || '',
-      createdAt: t.createdAt,
-    }));
-    // Return tickets from DB (may be empty array if none)
-    res.json(mapped);
-  } catch (error) {
-    res.status(500).json({ success: false, message: (error as Error).message });
-  }
-};
 
 export const getSalesData = async (_req: Request, res: Response) => {
   try {
@@ -79,6 +63,5 @@ export const getSalesData = async (_req: Request, res: Response) => {
 export default {
   getProductsList,
   getOrdersList,
-  getFeedbackList,
   getSalesData,
 };
