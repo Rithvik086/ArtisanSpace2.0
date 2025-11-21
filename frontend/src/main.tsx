@@ -16,12 +16,12 @@ import CustomRequestsPage from "./artisan/CustomRequestsPage";
 import ArtisanLayout from "./artisan/ArtisanLayout";
 
 // Lazy load big components
-const App = lazy(() => import('./App.tsx'));
-const SignUp = lazy(() => import('./components/auth/SignUp'));
-const Login = lazy(() => import('./components/auth/Login'));
-const ArtisanDashboard = lazy(() => import('./artisan/Dashboardpage'));
-const WorkshopsPage = lazy(() => import('./artisan/Workshopspage'));
-const ListingsPage = lazy(() => import('./artisan/listingspage'));
+const App = lazy(() => import("./App.tsx"));
+const SignUp = lazy(() => import("./components/auth/SignUp"));
+const Login = lazy(() => import("./components/auth/Login"));
+const ArtisanDashboard = lazy(() => import("./artisan/Dashboardpage"));
+const WorkshopsPage = lazy(() => import("./artisan/Workshopspage"));
+const ListingsPage = lazy(() => import("./artisan/listingspage"));
 
 const router = createBrowserRouter([
   {
@@ -39,7 +39,9 @@ const router = createBrowserRouter([
   {
     path: "/customer",
     element: (
-      <ProtectedRoute allowedRoles={['admin', 'manager', 'artisan', 'customer']}>
+      <ProtectedRoute
+        allowedRoles={["admin", "manager", "artisan", "customer"]}
+      >
         <CustomerLayout />
       </ProtectedRoute>
     ),
@@ -48,7 +50,7 @@ const router = createBrowserRouter([
   {
     path: "/admin/*",
     element: (
-      <ProtectedRoute allowedRoles={['admin']}>
+      <ProtectedRoute allowedRoles={["admin"]}>
         <AdminDashboard />
       </ProtectedRoute>
     ),
@@ -56,7 +58,7 @@ const router = createBrowserRouter([
   {
     path: "/manager",
     element: (
-      <ProtectedRoute allowedRoles={['admin', 'manager']}>
+      <ProtectedRoute allowedRoles={["admin", "manager"]}>
         <div>Manager Dashboard - Coming Soon</div>
       </ProtectedRoute>
     ),
@@ -64,7 +66,7 @@ const router = createBrowserRouter([
   {
     path: "/artisan",
     element: (
-      <ProtectedRoute allowedRoles={['admin', 'manager', 'artisan']}>
+      <ProtectedRoute allowedRoles={["admin", "manager", "artisan"]}>
         <ArtisanLayout />
       </ProtectedRoute>
     ),
