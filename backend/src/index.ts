@@ -7,6 +7,7 @@ import dbConnect from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
+import path from "path";
 
 dotenv.config();
 
@@ -42,12 +43,13 @@ apiRouter.use("/", userRoutes);
 
 app.use("/api/v1", apiRouter);
 
-app.all("/*splat", (req: Request, res: Response) => {
-  res.status(404).send({
-    success: false,
-    message: "Endpoint not found",
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+  app.get("/*splat", (req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
   });
-});
+}
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error(err);
