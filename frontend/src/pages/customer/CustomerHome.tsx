@@ -2,15 +2,22 @@ import CustomerHeader from "@/components/customer/CustomerHeader";
 import CustomerFooter from "@/components/customer/CustomerFooter";
 import StaticThreeView from "@/components/StaticThreeView";
 import { TypingAnimation } from "@/components/ui/typing-animation";
-import { MorphingText } from "@/components/ui/morphing-text";
 import { useSelector } from "react-redux";
 import { useState, useCallback } from "react";
 
 const CustomerHome = () => {
   const user = useSelector((state: any) => state.auth.user);
-  const [username, setUsername] = useState(user?.username || "Guest");
 
-  const welcomeText = `Welcome ${username}`;
+  // Helper function to capitalize first letter
+  const capitalizeFirstLetter = (str: string) => {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
+  const [name, setName] = useState(
+    user?.name ? capitalizeFirstLetter(user.name) : "Guest"
+  );
+
+  const welcomeText = `Welcome ${name}`;
   const [showMorphingText, setShowMorphingText] = useState(false);
 
   const handleTypingComplete = useCallback(() => {
