@@ -8,7 +8,7 @@ interface HeroProps {
   addLink?: string;
 }
 
-export default function Hero({ title = 'Artisan Workshop', subtitle = 'Where creativity meets commerce', addLink = '/artisan/add-listing' }: HeroProps) {
+export default function Hero({ title = 'Artisan Workshop', subtitle = 'Where creativity meets commerce', addLink = '/artisan/listings' }: HeroProps) {
   return (
     <div className={cn(craftStyles.layout.container, 'py-6')}>
       <div className="flex items-center justify-between">

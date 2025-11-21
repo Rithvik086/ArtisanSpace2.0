@@ -120,7 +120,7 @@ export default function ArtisanDashboard() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50">
-      <Hero title="Artisan Dashboard" subtitle="Where creativity meets commerce" addLink="/artisan/add-listing" />
+      <Hero title="Artisan Dashboard" subtitle="Where creativity meets commerce" addLink="/artisan/listings" />
 
       <main className={cn(craftStyles.layout.section)}>
         <div className={cn(craftStyles.layout.container)}>
