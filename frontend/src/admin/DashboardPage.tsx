@@ -19,6 +19,7 @@ export default function DashboardPage({ setModalState }: { setModalState: React.
   const [productsChart, setProductsChart] = useState<any[]>([]);
   const [usersChart, setUsersChart] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState<boolean>(true);
+  const [showTabView, setShowTabView] = useState<boolean>(false);
 
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -55,56 +56,90 @@ export default function DashboardPage({ setModalState }: { setModalState: React.
     setUsersChart(buildMonthlyCounts(users || [], 'createdAt', 'users'));
   }, [orders, products, users]);
 
-  const tabs = [
-    { name: 'Users', icon: Users, content: <UsersTab setModalState={setModalState} /> },
-    { name: 'Products', icon: Package, content: <ProductsTab setModalState={setModalState} /> },
-    { name: 'Orders', icon: ShoppingCart, content: <OrdersTab setModalState={setModalState} /> },
+  // const tabs = [
+  //   { name: 'Users', icon: Users, content: <UsersTab setModalState={setModalState} /> },
+  //   { name: 'Products', icon: Package, content: <ProductsTab setModalState={setModalState} /> },
+  //   { name: 'Orders', icon: ShoppingCart, content: <OrdersTab setModalState={setModalState} /> },
 
-  ];
+  // ];
 
   return (
     <div className="space-y-8">
       <section>
         <h2 className="text-3xl font-bold text-amber-900 mb-4 font-serif">Dashboard Overview</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
-          <button onClick={() => setActiveTab('Users')} className="p-4 text-left bg-white rounded-md"> 
-            <div className="text-sm font-medium text-amber-900">Users</div>
-            <div className="text-2xl font-bold text-amber-800">{loadingData ? '—' : users.length}</div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <button onClick={() => { setActiveTab('Users'); setShowTabView(true); }} className="p-4 flex items-center gap-4 bg-white rounded-md shadow-lg hover:shadow-xl border border-gray-100 transition-shadow duration-200"> 
+            <div className="w-12 h-12 flex items-center justify-center rounded-full bg-amber-100 text-amber-700">
+              <Users size={20} />
+            </div>
+            <div className="text-left">
+              <div className="text-sm font-medium text-gray-600">Users</div>
+              <div className="text-2xl font-bold text-amber-800">{loadingData ? '—' : users.length}</div>
+            </div>
           </button>
-          <button onClick={() => setActiveTab('Products')} className="p-4 text-left bg-white rounded-md"> 
-            <div className="text-sm font-medium text-amber-900">Products</div>
-            <div className="text-2xl font-bold text-amber-800">{loadingData ? '—' : products.length}</div>
+
+          <button onClick={() => { setActiveTab('Products'); setShowTabView(true); }} className="p-4 flex items-center gap-4 bg-white rounded-md shadow-lg hover:shadow-xl border border-gray-100 transition-shadow duration-200"> 
+            <div className="w-12 h-12 flex items-center justify-center rounded-full bg-green-100 text-green-700">
+              <Package size={20} />
+            </div>
+            <div className="text-left">
+              <div className="text-sm font-medium text-gray-600">Products</div>
+              <div className="text-2xl font-bold text-green-700">{loadingData ? '—' : products.length}</div>
+            </div>
           </button>
-          <button onClick={() => setActiveTab('Orders')} className="p-4 text-left bg-white rounded-md"> 
-            <div className="text-sm font-medium text-amber-900">Orders</div>
-            <div className="text-2xl font-bold text-amber-800">{loadingData ? '—' : orders.length}</div>
+
+          <button onClick={() => { setActiveTab('Orders'); setShowTabView(true); }} className="p-4 flex items-center gap-4 bg-white rounded-md shadow-lg hover:shadow-xl border border-gray-100 transition-shadow duration-200"> 
+            <div className="w-12 h-12 flex items-center justify-center rounded-full bg-blue-100 text-blue-700">
+              <ShoppingCart size={20} />
+            </div>
+            <div className="text-left">
+              <div className="text-sm font-medium text-gray-600">Orders</div>
+              <div className="text-2xl font-bold text-blue-700">{loadingData ? '—' : orders.length}</div>
+            </div>
           </button>
-          
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <GraphCard title="Total Sales" data={sales} dataKey="sales" xKey="month" icon={DollarSign} unit="₹" />
-          <GraphCard title="Monthly Orders" data={ordersChart} dataKey="orders" xKey="date" icon={BarChart2} />
-          <GraphCard title="Products" data={productsChart} dataKey="products" xKey="date" icon={PackageCheck} />
-          <GraphCard title="Total Users" data={usersChart} dataKey="users" xKey="date" icon={Users2} />
-        </div>
-      </section>
-
-      <section className="data-section">
-        <div className="mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
-              {tabs.map((tab) => (
-                <button key={tab.name} onClick={() => setActiveTab(tab.name)} className={`flex items-center gap-2 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.name ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
-                  <tab.icon size={18} />
-                  <span>{tab.name}</span>
-                </button>
-              ))}
-            </nav>
+        {/* Show Users list in place of the graphs when the Users card is clicked */}
+        {showTabView && activeTab === 'Users' ? (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold">Users</h3>
+              <button className="text-sm text-blue-600" onClick={() => setShowTabView(false)}>Back to overview</button>
+            </div>
+            <div className="bg-white rounded-md shadow-sm p-4">
+              <UsersTab setModalState={setModalState} />
+            </div>
           </div>
-        </div>
-        <div>{tabs.find(tab => tab.name === activeTab)?.content}</div>
+        ) : showTabView && activeTab === 'Products' ? (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold">Products</h3>
+              <button className="text-sm text-blue-600" onClick={() => setShowTabView(false)}>Back to overview</button>
+            </div>
+            <div className="bg-white rounded-md shadow-sm p-4">
+              <ProductsTab setModalState={setModalState} />
+            </div>
+          </div>
+        ) : showTabView && activeTab === 'Orders' ? (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold">Orders</h3>
+              <button className="text-sm text-blue-600" onClick={() => setShowTabView(false)}>Back to overview</button>
+            </div>
+            <div className="bg-white rounded-md shadow-sm p-4">
+              <OrdersTab setModalState={setModalState} />
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <GraphCard title="Total Sales" data={sales} dataKey="sales" xKey="month" icon={DollarSign} unit="₹" />
+            <GraphCard title="Monthly Orders" data={ordersChart} dataKey="orders" xKey="date" icon={BarChart2} />
+            <GraphCard title="Products" data={productsChart} dataKey="products" xKey="date" icon={PackageCheck} />
+            <GraphCard title="Total Users" data={usersChart} dataKey="users" xKey="date" icon={Users2} />
+          </div>
+        )}
       </section>
+
     </div>
   );
 }
