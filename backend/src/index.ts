@@ -46,8 +46,6 @@ app.use("/api/v1/users", usersRoutes);
 app.use("/api/v1/", userRoutes);
 // Admin dashboard endpoints used by frontend (keeps paths simple at /api/...)
 app.use("/api", adminRoutes);
-import settingsRoutes from "./routes/settings.routes.js";
-app.use("/api", settingsRoutes);
 
 app.all("/*splat", (req: Request, res: Response) => {
   res.status(404).send({
