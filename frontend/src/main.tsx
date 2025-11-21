@@ -11,7 +11,7 @@ import WorkshopsPage from "./artisan/Workshopspage";
 import CustomRequestsPage from "./artisan/CustomRequestsPage";
 import ArtisanDashboard from "./artisan/Dashboardpage";
 import ArtisanLayout from "./artisan/ArtisanLayout";
-import { customerRoutes } from "../routes/CustomerRoutes";
+import { CustomerRoutes } from "../routes/CustomerRoutes";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
 
