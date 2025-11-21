@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../../lib/axios";
 import { useDispatch } from "react-redux";
-import { login } from "../../redux/slices/authSlice";
+import { loginUser } from "../../redux/slices/authThunks";
 
 type Inputs = {
   username: string;
@@ -25,17 +24,12 @@ export default function Login() {
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
     setIsSubmitting(true);
     try {
-      const response = await api.post("/auth/login", data);
-      console.log("Login successful:", response.data);
-
-      // Dispatch login action to Redux
-      dispatch(login(response.data.user));
-
+      await dispatch(loginUser(data)).unwrap();
       // Redirect based on role or to customer page
       navigate("/customer");
     } catch (error: any) {
       console.error("Login failed:", error);
-      const message = error.response?.data?.message || "Login failed";
+      const message = error || "Login failed";
       setError("username", { message });
     } finally {
       setIsSubmitting(false);

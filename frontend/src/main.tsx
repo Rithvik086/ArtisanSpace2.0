@@ -1,5 +1,7 @@
 // import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
 import "./index.css";
 import App from "./App.tsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
@@ -15,6 +17,7 @@ import AddListingPage from "./artisan/AddListingPage.tsx";
 import { CustomerRoutes } from "../routes/CustomerRoutes.tsx";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
+import { fetchUser } from "./redux/slices/authThunks";
 
 const router = createBrowserRouter([
   {
@@ -50,8 +53,18 @@ const router = createBrowserRouter([
   },
 ]);
 
+const AppWrapper = () => {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(fetchUser());
+  }, [dispatch]);
+
+  return <RouterProvider router={router} />;
+};
+
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>
-    <RouterProvider router={router} />
+    <AppWrapper />
   </Provider>
 );
