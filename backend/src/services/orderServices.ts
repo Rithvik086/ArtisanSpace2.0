@@ -196,3 +196,66 @@ export async function deleteOrderById(orderId: string) {
     throw new Error("Error in deleting order: " + (err as Error).message);
   }
 }
+
+export async function getAllOrdersForAdmin() {
+  try {
+    const orders = await Order.find({}).populate("userId", "name email").lean();
+    return orders;
+  } catch (err) {
+    throw new Error(
+      "Error getting all orders for admin: " + (err as Error).message
+    );
+  }
+}
+
+export async function getSalesData() {
+  try {
+    const agg = await Order.aggregate([
+      {
+        $addFields: {
+          _date: {
+            $cond: [
+              { $ifNull: ["$purchasedAt", false] },
+              "$purchasedAt",
+              { $toDate: "$createdAt" },
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: "$_date" },
+          total: { $sum: { $ifNull: ["$money", 0] } },
+        },
+      },
+    ]).exec();
+
+    const MONTHS = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const totals = new Array(12).fill(0);
+    (agg || []).forEach((row: any) => {
+      const m = Number(row._id);
+      if (!Number.isNaN(m) && m >= 1 && m <= 12)
+        totals[m - 1] = Number(row.total || 0);
+    });
+    const salesData = MONTHS.map((month, idx) => ({
+      month,
+      sales: totals[idx],
+    }));
+    return salesData;
+  } catch (err) {
+    throw new Error("Error getting sales data: " + (err as Error).message);
+  }
+}

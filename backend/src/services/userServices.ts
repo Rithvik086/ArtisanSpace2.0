@@ -1,6 +1,29 @@
 import mongoose from "mongoose";
 import User from "../models/userModel.js";
 
+export async function getUsersListService() {
+  try {
+    const users = await User.find({}).select('-password -verificationToken -resetToken -tokenExpiresAt -resetTokenExpiresAt').lean();
+    const mapped = (Array.isArray(users) ? users : []).map((u: any) => ({
+      id: String(u._id),
+      username: u.username,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      mobile_no: u.mobile_no,
+      createdAt: u.createdAt,
+    }));
+    return mapped;
+  } catch (error) {
+    throw new Error("Error fetching users: " + (error as Error).message);
+  }
+}
+
+export default {
+  getUsersListService,
+};
+
+
 export async function userExists(userId: string) {
   try {
     if (!mongoose.Types.ObjectId.isValid(userId)) {

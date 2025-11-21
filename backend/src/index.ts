@@ -6,9 +6,16 @@ import type { Request, Response, NextFunction } from "express";
 import dbConnect from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 
 dotenv.config();
-await dbConnect();
+
+// Allow skipping DB connection for local/demo use by setting SKIP_DB=true in .env
+if (process.env.SKIP_DB !== "true") {
+  await dbConnect();
+} else {
+  console.log("SKIP_DB=true — skipping database connection for demo mode");
+}
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -26,8 +33,14 @@ app.get("/", (_req: Request, res: Response) => {
   res.send("Health Check OK");
 });
 
-app.use("/api/v1/auth/", authRoutes);
-app.use("/api/v1/", userRoutes);
+// Create main API router for /api/v1/
+const apiRouter = express.Router();
+
+apiRouter.use("/auth", authRoutes);
+apiRouter.use("/admin", adminRoutes);
+apiRouter.use("/", userRoutes);
+
+app.use("/api/v1", apiRouter);
 
 app.all("/*splat", (req: Request, res: Response) => {
   res.status(404).send({
