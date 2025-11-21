@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, User, LogOut } from "lucide-react";
-import api from "../../lib/axios";
-import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../../redux/slices/authSlice";
+import { useSelector } from "react-redux";
+import { useDispatch } from "../../redux/store";
+import { logoutUser } from "../../redux/slices/authThunks";
 import type { RootState } from "../../redux/store";
 
 export default function CustomerHeader() {
@@ -22,13 +22,11 @@ export default function CustomerHeader() {
 
   const handleLogout = async () => {
     try {
-      await api.post("/auth/logout");
-      dispatch(logout());
+      await dispatch(logoutUser()).unwrap();
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
       // Still navigate
-      dispatch(logout());
       navigate("/");
     }
   };

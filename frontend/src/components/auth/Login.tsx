@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../../lib/axios";
 import { useDispatch } from "react-redux";
-import { login } from "../../redux/slices/authSlice";
+import type { AppDispatch } from "../../redux/store";
+import { loginUser } from "../../redux/slices/authThunks";
 
 type Inputs = {
   username: string;
@@ -13,7 +13,7 @@ type Inputs = {
 export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const {
     register,
@@ -22,20 +22,27 @@ export default function Login() {
     setError,
   } = useForm<Inputs>();
 
-  const onSubmit: SubmitHandler<Inputs> = async (data) => {
+  const onSubmit: SubmitHandler<Inputs> = async (data, e) => {
+    e?.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await api.post("/auth/login", data);
-      console.log("Login successful:", response.data);
-
-      // Dispatch login action to Redux
-      dispatch(login(response.data.user));
-
-      // Redirect based on role or to customer page
-      navigate("/customer");
-    } catch (error: any) {
+      const result = (await dispatch(loginUser(data)).unwrap()) as {
+        user: { role: string };
+      };
+      const role = result.user.role;
+      // Redirect based on role
+      if (role === "admin") {
+        navigate("/admin");
+      } else if (role === "manager") {
+        navigate("/manager");
+      } else if (role === "artisan") {
+        navigate("/artisan");
+      } else {
+        navigate("/customer");
+      }
+    } catch (error: unknown) {
       console.error("Login failed:", error);
-      const message = error.response?.data?.message || "Login failed";
+      const message = (error as string) || "Login failed";
       setError("username", { message });
     } finally {
       setIsSubmitting(false);

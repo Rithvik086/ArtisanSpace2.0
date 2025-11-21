@@ -1,6 +1,8 @@
 // CustomerRoutes.jsx
-import Store from "../src/pages/customer/Store";
+import { lazy } from "react";
 import CustomerHome from "../src/pages/customer/CustomerHome";
+
+const Store = lazy(() => import("../src/pages/customer/Store"));
 
 export const CustomerRoutes = [
   {

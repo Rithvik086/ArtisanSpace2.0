@@ -1,87 +1,128 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Menu, X, LayoutDashboard, Package, CalendarDays, FileText, Plus } from 'lucide-react';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, User, LogOut } from "lucide-react";
+import { useSelector } from "react-redux";
+import { useDispatch } from "../redux/store";
+import { logoutUser } from "../redux/slices/authThunks";
+import type { RootState } from "../redux/store";
 
 export default function ArtisanNavbar(): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const user = useSelector((state: RootState) => state.auth.user);
 
   const navItems = [
-    { name: 'Dashboard', href: '/artisan', icon: <LayoutDashboard size={18} /> },
-    { name: 'Listings', href: '/artisan/listings', icon: <Package size={18} /> },
-    { name: 'Workshops', href: '/artisan/workshops', icon: <CalendarDays size={18} /> },
-    { name: 'Custom Requests', href: '/artisan/customrequests', icon: <FileText size={18} /> },
+    { name: "Dashboard", href: "/artisan" },
+    { name: "Listings", href: "/artisan/listings" },
+    { name: "Workshops", href: "/artisan/workshops" },
+    { name: "Custom Requests", href: "/artisan/customrequests" },
   ];
 
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser()).unwrap();
+      navigate("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      navigate("/");
+    }
+  };
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
+    <header className="sticky top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate('/artisan')}
-              className="font-bold text-amber-950 text-3xl font-kranky transform transition duration-200 ease-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-200"
-            >
+        <div className="flex justify-between items-center h-20">
+          {/* Logo */}
+          <Link to="/artisan" className="flex items-center">
+            <h1 className="font-bold text-amber-950 text-3xl font-kranky">
               ArtisanSpace
-            </button>
-          </div>
+            </h1>
+          </Link>
 
-          <div className="hidden md:flex md:items-center md:space-x-8">
-            {navItems.map(item => (
-              <button
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex space-x-8">
+            {navItems.map((item) => (
+              <Link
                 key={item.name}
-                onClick={() => navigate(item.href)}
-                className="font-semibold text-lg text-amber-900 hover:text-amber-950 transform transition duration-200 ease-out hover:-translate-y-1 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-amber-200 flex items-center gap-2 px-3 py-2"
+                to={item.href}
+                className="font-semibold text-lg text-amber-900 hover:text-amber-950 transition-colors"
               >
-                {item.icon}
-                <span>{item.name}</span>
-              </button>
+                {item.name}
+              </Link>
             ))}
-          </div>
+          </nav>
 
-          {/* <div className="hidden md:flex items-center space-x-3">
+          {/* Desktop User Menu */}
+          <div className="hidden md:flex items-center space-x-4">
+            <span className="text-amber-900 font-medium">
+              Welcome, {user?.name || user?.username}
+            </span>
             <button
-              onClick={() => navigate('/artisan/listings')}
-              className="px-4 py-2 bg-amber-900 text-white rounded-md font-semibold hover:bg-amber-800 transition-colors flex items-center gap-2"
+              onClick={() => navigate("/artisan/settings")}
+              className="text-amber-900 hover:text-amber-950 p-2 rounded-md transition-colors"
+              title="Settings"
             >
-              <Plus size={16} />
-              <span>Add New</span>
+              <User size={20} />
             </button>
-          </div> */}
-
-          <div className="md:hidden flex items-center">
-            <button onClick={() => setIsOpen(!isOpen)} className="text-amber-950 transform transition duration-200 ease-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-200">
-              {isOpen ? <X size={26} /> : <Menu size={26} />}
+            <button
+              onClick={handleLogout}
+              className="text-amber-900 hover:text-amber-950 p-2 rounded-md transition-colors"
+              title="Logout"
+            >
+              <LogOut size={20} />
             </button>
           </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden text-amber-950"
+          >
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </div>
 
+      {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-white/95 shadow-lg pb-4">
-          <div className="flex flex-col space-y-2 px-4 pt-3 pb-3">
-            {navItems.map(item => (
-              <button
+        <div className="md:hidden bg-white shadow-lg border-t">
+          <div className="px-2 pt-2 pb-3 space-y-1">
+            {navItems.map((item) => (
+              <Link
                 key={item.name}
-                onClick={() => { navigate(item.href); setIsOpen(false); }}
-                className="w-full text-left px-3 py-2 rounded-md text-amber-900 hover:bg-amber-50 transform transition duration-150 ease-out hover:-translate-y-1 hover:shadow-md active:scale-95 flex items-center gap-3 font-semibold"
+                to={item.href}
+                onClick={() => setIsOpen(false)}
+                className="block px-3 py-2 rounded-md text-base font-medium text-amber-900 hover:text-amber-950 hover:bg-amber-100"
               >
-                {item.icon}
-                <span className="font-medium">{item.name}</span>
-              </button>
+                {item.name}
+              </Link>
             ))}
-          </div>
-          <div className="px-4 pb-4">
-            <button
-              onClick={() => { navigate('/artisan/listings'); setIsOpen(false); }}
-              className="w-full px-4 py-3 bg-amber-950 text-amber-100 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg transform transition duration-200 ease-out hover:-translate-y-1 hover:shadow-2xl active:scale-95 focus:outline-none focus:ring-2 focus:ring-amber-200"
-            >
-              <Plus size={16} />
-              Add New Listing
-            </button>
+            <div className="border-t pt-2 mt-2">
+              <button
+                onClick={() => {
+                  navigate("/artisan/settings");
+                  setIsOpen(false);
+                }}
+                className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-amber-900 hover:text-amber-950 hover:bg-amber-100"
+              >
+                <User size={20} className="mr-2" />
+                Settings
+              </button>
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsOpen(false);
+                }}
+                className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-amber-900 hover:text-amber-950 hover:bg-amber-100"
+              >
+                <LogOut size={20} className="mr-2" />
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       )}
-    </nav>
+    </header>
   );
 }
