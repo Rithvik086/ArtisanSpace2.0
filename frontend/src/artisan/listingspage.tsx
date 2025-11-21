@@ -18,6 +18,8 @@ export default function ListingsPage(): React.ReactElement {
     const fetchProducts = async () => {
       try {
         const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || `${location.protocol}//${location.hostname}:3000`;
+// rggfre
+
         let res = await fetch(`${API_BASE}/api/v1/products/my`, { credentials: "include" });
         if (!res.ok && (res.status === 401 || res.status === 403)) {
           res = await fetch(`${API_BASE}/api/v1/products/approved`);
