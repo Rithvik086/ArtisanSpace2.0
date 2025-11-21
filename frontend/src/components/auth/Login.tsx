@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import type { AppDispatch } from "../../redux/store";
 import { loginUser } from "../../redux/slices/authThunks";
 
 type Inputs = {
@@ -12,7 +13,7 @@ type Inputs = {
 export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const {
     register,
@@ -24,12 +25,21 @@ export default function Login() {
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
     setIsSubmitting(true);
     try {
-      await dispatch(loginUser(data)).unwrap();
-      // Redirect based on role or to customer page
-      navigate("/customer");
-    } catch (error: any) {
+      const result = await dispatch(loginUser(data)).unwrap() as { user: { role: string } };
+      const role = result.user.role;
+      // Redirect based on role
+      if (role === "admin") {
+        navigate("/admin");
+      } else if (role === "manager") {
+        navigate("/manager");
+      } else if (role === "artisan") {
+        navigate("/artisan");
+      } else {
+        navigate("/customer");
+      }
+    } catch (error: unknown) {
       console.error("Login failed:", error);
-      const message = error || "Login failed";
+      const message = (error as string) || "Login failed";
       setError("username", { message });
     } finally {
       setIsSubmitting(false);
