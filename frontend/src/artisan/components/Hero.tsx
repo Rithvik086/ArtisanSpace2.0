@@ -6,9 +6,10 @@ interface HeroProps {
   title?: string;
   subtitle?: string;
   addLink?: string;
+  onYourCreationsClick?: () => void;
 }
 
-export default function Hero({ title = 'Artisan Workshop', subtitle = 'Where creativity meets commerce', addLink = '/artisan/listings' }: HeroProps) {
+export default function Hero({ title = 'Artisan Workshop', subtitle = 'Where creativity meets commerce', addLink = '/artisan/listings', onYourCreationsClick }: HeroProps) {
   return (
     <div className={cn(craftStyles.layout.container, 'py-6')}>
       <div className="flex items-center justify-between">
@@ -19,7 +20,10 @@ export default function Hero({ title = 'Artisan Workshop', subtitle = 'Where cre
           </h1>
           <p className="text-amber-700 mt-2 text-lg">{subtitle}</p>
         </div>
-        <div>
+        <div className="flex items-center gap-3">
+          <button onClick={onYourCreationsClick} className={cn(craftStyles.heroButton.compact, 'flex items-center gap-2 px-4 py-2 text-md')}>
+            Your Creations
+          </button>
           <Link to={addLink} className={cn(craftStyles.heroButton.default, 'flex items-center gap-2 px-4 py-2') }>
             <Plus className="w-5 h-5" />
             Add New Creation

@@ -111,11 +111,11 @@ export default function ListingsPage(): React.ReactElement {
         <ProductForm onSubmit={handleCreate} submitButtonText="Create Listing" onSuccess={() => { /* no-op, UI updates from handler */ }} />
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
+      {/* <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-2xl font-semibold text-amber-900 mb-4">Your Listings</h2>
         <p className="text-amber-700 mb-6">Manage and view all your product listings.</p>
         <ProductTable products={products} onEdit={handleEdit} onDelete={handleDeleteOpen} />
-      </div>
+      </div> */}
 
       {selectedProduct && (
         <EditProductModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} product={selectedProduct} onSave={handleSave} />

@@ -26,6 +26,8 @@ interface Product {
 
 export default function ArtisanDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [showCreationsPanel, setShowCreationsPanel] = useState<boolean>(false);
+  const [creationFilter, setCreationFilter] = useState<'all'|'active'|'pending'|'rejected'>('all');
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -132,36 +134,76 @@ export default function ArtisanDashboard() {
     handleCloseDeleteModal();
   };
 
+  const filteredProducts = products.filter(p => {
+    if (creationFilter === 'all') return true;
+    if (creationFilter === 'active') return p.status === 'active';
+    if (creationFilter === 'pending') return p.status === 'pending';
+    return p.status === 'rejected';
+  });
+
   return (
     <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50">
-      <Hero title="Artisan Dashboard" subtitle="Where creativity meets commerce" addLink="/artisan/listings" />
+      <Hero title="Artisan Dashboard" subtitle="Where creativity meets commerce" addLink="/artisan/listings" onYourCreationsClick={() => setShowCreationsPanel(true)} />
 
       <main className={cn(craftStyles.layout.section)}>
         <div className={cn(craftStyles.layout.container)}>
-          <StatsOverview
-            total={products.length}
-            active={products.filter((p) => p.status === "active").length}
-            monthValue={"₹15,240"}
-          />
+          {showCreationsPanel ? (
+            <div className="bg-white rounded-lg shadow p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setCreationFilter('all')} className={`px-3 py-1 rounded-md ${creationFilter === 'all' ? 'bg-amber-600 text-white' : 'bg-white border'}`}>All</button>
+                  <button onClick={() => setCreationFilter('active')} className={`px-3 py-1 rounded-md ${creationFilter === 'active' ? 'bg-amber-600 text-white' : 'bg-white border'}`}>Active</button>
+                  <button onClick={() => setCreationFilter('pending')} className={`px-3 py-1 rounded-md ${creationFilter === 'pending' ? 'bg-amber-600 text-white' : 'bg-white border'}`}>Pending</button>
+                  <button onClick={() => setCreationFilter('rejected')} className={`px-3 py-1 rounded-md ${creationFilter === 'rejected' ? 'bg-amber-600 text-white' : 'bg-white border'}`}>Rejected</button>
+                </div>
+                <div>
+                  <button onClick={() => setShowCreationsPanel(false)} className="text-sm text-blue-600">Close</button>
+                </div>
+              </div>
 
-          <ChartsSection
-            total={products.length}
-            active={products.filter((p) => p.status === "active").length}
-            pending={products.filter((p) => p.status === "pending").length}
-          />
+              <div className="bg-gray-50 p-4 rounded">
+                <ProductsList
+                  products={filteredProducts}
+                  isEditOpen={isEditModalOpen}
+                  selectedProduct={selectedProduct}
+                  onEditOpen={handleOpenEditModal}
+                  onEditClose={handleCloseEditModal}
+                  onSave={handleSaveProduct}
+                  onDeleteOpen={handleOpenDeleteModal}
+                  isDeleteOpen={isDeleteModalOpen}
+                  onDeleteClose={handleCloseDeleteModal}
+                  onDeleteConfirm={handleConfirmDelete}
+                />
+              </div>
+            </div>
+          ) : (
+            <>
+              <StatsOverview
+                total={products.length}
+                active={products.filter((p) => p.status === "active").length}
+                monthValue={"₹15,240"}
+              />
 
-          <ProductsList
-            products={products}
-            isEditOpen={isEditModalOpen}
-            selectedProduct={selectedProduct}
-            onEditOpen={handleOpenEditModal}
-            onEditClose={handleCloseEditModal}
-            onSave={handleSaveProduct}
-            onDeleteOpen={handleOpenDeleteModal}
-            isDeleteOpen={isDeleteModalOpen}
-            onDeleteClose={handleCloseDeleteModal}
-            onDeleteConfirm={handleConfirmDelete}
-          />
+              <ChartsSection
+                total={products.length}
+                active={products.filter((p) => p.status === "active").length}
+                pending={products.filter((p) => p.status === "pending").length}
+              />
+
+              <ProductsList
+                products={products}
+                isEditOpen={isEditModalOpen}
+                selectedProduct={selectedProduct}
+                onEditOpen={handleOpenEditModal}
+                onEditClose={handleCloseEditModal}
+                onSave={handleSaveProduct}
+                onDeleteOpen={handleOpenDeleteModal}
+                isDeleteOpen={isDeleteModalOpen}
+                onDeleteClose={handleCloseDeleteModal}
+                onDeleteConfirm={handleConfirmDelete}
+              />
+            </>
+          )}
         </div>
       </main>
 
