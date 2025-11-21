@@ -7,13 +7,14 @@ import React, {
   type ReactNode,
   type SVGProps,
 } from "react";
-import { motion, AnimatePresence, type Variants } from "motion/react";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 
 interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   initialStep?: number;
   currentStep?: number;
   onStepChange?: (step: number) => void;
+  onBeforeNext?: (step: number) => Promise<void>;
   onFinalStepCompleted?: () => Promise<void> | undefined;
   stepCircleContainerClassName?: string;
   stepContainerClassName?: string;
@@ -36,6 +37,7 @@ export default function Stepper({
   initialStep = 1,
   currentStep: controlledCurrentStep,
   onStepChange = () => {},
+  onBeforeNext = () => Promise.resolve(),
   onFinalStepCompleted = () => undefined,
   stepCircleContainerClassName = "",
   stepContainerClassName = "",
@@ -52,8 +54,6 @@ export default function Stepper({
   const [internalCurrentStep, setInternalCurrentStep] =
     useState<number>(initialStep);
   const currentStep = controlledCurrentStep ?? internalCurrentStep;
-  const setCurrentStep =
-    controlledCurrentStep !== undefined ? () => {} : setInternalCurrentStep;
   const [direction, setDirection] = useState<number>(0);
   const stepsArray = Children.toArray(children);
   const totalSteps = stepsArray.length;
@@ -78,10 +78,15 @@ export default function Stepper({
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!isLastStep) {
-      setDirection(1);
-      updateStep(currentStep + 1);
+      try {
+        await onBeforeNext(currentStep);
+        setDirection(1);
+        updateStep(currentStep + 1);
+      } catch (error) {
+        // Validation failed, do not advance
+      }
     }
   };
 
@@ -161,6 +166,7 @@ export default function Stepper({
             >
               {currentStep !== 1 && (
                 <button
+                  type="button"
                   onClick={handleBack}
                   className={`duration-350 rounded px-2 py-1 transition ${
                     currentStep === 1
@@ -173,6 +179,7 @@ export default function Stepper({
                 </button>
               )}
               <button
+                type="button"
                 onClick={isLastStep ? handleComplete : handleNext}
                 className="duration-350 flex items-center justify-center rounded-full bg-[#5c4033] py-1.5 px-3.5 font-medium tracking-tight text-white transition hover:bg-[#4b2e2b] active:bg-[#3d251f] "
                 {...nextButtonProps}
@@ -206,7 +213,7 @@ function StepContentWrapper({
 
   return (
     <motion.div
-      style={{ position: "relative", overflow: "hidden" }}
+      style={{ position: "relative", overflow: "visible" }}
       animate={{ height: isCompleted ? 0 : parentHeight }}
       transition={{ type: "spring", duration: 0.4 }}
       className={className}
@@ -263,7 +270,7 @@ function SlideTransition({
 
 const stepVariants: Variants = {
   enter: (dir: number) => ({
-    x: dir >= 0 ? "-100%" : "100%",
+    x: dir > 0 ? "100%" : "-100%",
     opacity: 0,
   }),
   center: {
@@ -271,7 +278,7 @@ const stepVariants: Variants = {
     opacity: 1,
   },
   exit: (dir: number) => ({
-    x: dir >= 0 ? "50%" : "-50%",
+    x: dir > 0 ? "-50%" : "50%",
     opacity: 0,
   }),
 };
@@ -281,7 +288,7 @@ interface StepProps {
 }
 
 export function Step({ children }: StepProps) {
-  return <div className="px-8">{children}</div>;
+  return <div className="px-8 relative">{children}</div>;
 }
 
 interface StepIndicatorProps {
@@ -305,7 +312,7 @@ function StepIndicator({
       : "complete";
 
   const handleClick = () => {
-    if (step !== currentStep && !disableStepIndicators) {
+    if (step < currentStep && !disableStepIndicators) {
       onClickStep(step);
     }
   };
@@ -313,7 +320,9 @@ function StepIndicator({
   return (
     <motion.div
       onClick={handleClick}
-      className="relative cursor-pointer outline-none focus:outline-none"
+      className={`relative outline-none focus:outline-none ${
+        step > currentStep ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+      }`}
       animate={status}
       initial={false}
     >

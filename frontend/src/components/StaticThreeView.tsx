@@ -2,15 +2,11 @@ import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { useSelector } from "react-redux";
-import type { RootState } from "../redux/store";
 
-const ThreeView: React.FC = () => {
+const StaticThreeView: React.FC = () => {
   const mountRef = useRef<HTMLDivElement | null>(null);
-  const user = useSelector((state: RootState) => state.auth.user);
 
   useEffect(() => {
-    console.log("Logged in user:", user);
     const mount = mountRef.current;
     if (!mount) return;
 
@@ -20,9 +16,9 @@ const ThreeView: React.FC = () => {
     // Scene
     const scene = new THREE.Scene();
 
-    // Camera
-    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-    camera.position.set(5, 0, 5);
+    // Camera: tuned for a mostly frontal, slightly right-offset view matching reference image
+    const camera = new THREE.PerspectiveCamera(48, width / height, 0.1, 1000);
+    camera.position.set(0.9, 1.25, 6.2);
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -30,33 +26,58 @@ const ThreeView: React.FC = () => {
     renderer.setPixelRatio(window.devicePixelRatio || 1);
     mount.appendChild(renderer.domElement);
 
-    // Controls
+    // Controls (interactive): allow user orbit + limited zoom, constrain vertical tilt to keep frontal feel
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableRotate = false;
     controls.enableZoom = false;
-    controls.enablePan = false;
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 3;
+    controls.enablePan = false; // keep model centered
+    controls.minDistance = 4.8; // prevent clipping in
+    controls.maxDistance = 7.5; // avoid getting too far
+    controls.maxPolarAngle = Math.PI / 2.1; // restrict to slightly above horizon
+    controls.minPolarAngle = Math.PI / 3.2; // avoid looking too top-down
     controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
+    controls.dampingFactor = 0.08;
+    controls.rotateSpeed = 0.6;
 
-    // Light
-    const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
-    light.position.set(0, 20, 0);
-    scene.add(light);
+    // Lights (hemisphere + subtle directional for depth)
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+    hemiLight.position.set(0, 8, 0);
+    scene.add(hemiLight);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+    dirLight.position.set(5, 10, 7);
+    scene.add(dirLight);
+
+    scene.fog = new THREE.Fog(new THREE.Color(0x2e2e2e), 8, 18);
 
     // Load model
     const loader = new GLTFLoader();
     let modelGroup: THREE.Group | null = null;
     loader.load(
-      "/ganesha_wooden_mask.glb",
+      "/indian_furniture.glb",
       (gltf) => {
         const model = gltf.scene as THREE.Group;
-        model.scale.set(0.15, 0.15, 0.15);
-        model.position.set(0.7, 0, 0);
-        model.rotation.y = Math.PI / 4;
+
+        // Uniform scale (adjusted slightly bigger for visual weight)
+        model.scale.set(0.25, 0.25, 0.25);
+
+        // Center model using bounding box so it sits nicely in view
+        const box = new THREE.Box3().setFromObject(model);
+        const center = box.getCenter(new THREE.Vector3());
+        model.position.sub(center); // move pivot to geometric center
+
+        // Lift slightly so it doesn't look cut off at bottom
+        // model.position.y -= box.min.y ;
+        model.position.y += 0.8; // compensate for scaled min y
+
+        // Subtle rotation for a hint of depth (close to frontal)
+        model.rotation.y = Math.PI / 18;
+
         scene.add(model);
         modelGroup = model;
+
+        // Update controls target & camera look at center (raise target for vertical centering)
+        controls.target.set(0, 0.75, 0);
+        camera.lookAt(controls.target);
       },
       undefined,
       (error) => {
@@ -67,6 +88,9 @@ const ThreeView: React.FC = () => {
     let reqId = 0;
     const animate = () => {
       reqId = requestAnimationFrame(animate);
+      if (modelGroup) {
+        modelGroup.rotation.y += 0.01; // Auto-rotate on Y-axis
+      }
       controls.update();
       renderer.render(scene, camera);
     };
@@ -119,7 +143,13 @@ const ThreeView: React.FC = () => {
     };
   }, []);
 
-  return <div ref={mountRef} className="w-full h-full" />;
+  return (
+    <div
+      ref={mountRef}
+      // allow pointer interaction for OrbitControls (remove pointer-events-none)
+      className="w-full h-96 md:h-[600px] flex items-center justify-center select-none"
+    />
+  );
 };
 
-export default ThreeView;
+export default StaticThreeView;

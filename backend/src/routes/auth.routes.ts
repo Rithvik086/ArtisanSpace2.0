@@ -11,6 +11,8 @@ import {
   updatProfile,
   deleteUser,
   addUserHandler,
+  checkUsername,
+  checkEmail,
 } from "../controller/authController.js";
 import authorizerole from "../middleware/roleMiddleware.js";
 import { verifytoken } from "../middleware/authMiddleware.js";
@@ -20,6 +22,8 @@ const router = express.Router();
 router.post("/signup", signup);
 router.post("/login", login);
 router.post("/logout", logout);
+router.post("/check-username", checkUsername);
+router.post("/check-email", checkEmail);
 router.get("/verify-email", verifyEmail);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);

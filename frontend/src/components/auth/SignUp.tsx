@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Stepper, { Step } from "../Stepper";
 import { useForm, type SubmitHandler } from "react-hook-form";
+import api from "../../lib/axios";
 
 // 1. Updated the Inputs type for all fields
 type Inputs = {
@@ -16,23 +17,73 @@ type Inputs = {
 export default function SignUp() {
   // 2. Added currentStep state to control footer visibility
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
+    setError,
+    getValues,
+    trigger,
   } = useForm<Inputs>({
+    mode: "onChange",
     defaultValues: {
       role: "customer", // Set a default role
     },
   });
 
+  const onBeforeNext = async (step: number) => {
+    if (step === 1) {
+      // Validate form fields first
+      const isValid = await trigger(["username", "email", "password"]);
+      if (!isValid) throw new Error("Validation failed");
+
+      // Then check uniqueness
+      const values = getValues();
+      const [usernameRes, emailRes] = await Promise.all([
+        api.post("/auth/check-username", { username: values.username }),
+        api.post("/auth/check-email", { email: values.email }),
+      ]);
+      if (!usernameRes.data.available) {
+        setError("username", { message: usernameRes.data.message });
+        throw new Error("Validation failed");
+      }
+      if (!emailRes.data.available) {
+        setError("email", { message: emailRes.data.message });
+        throw new Error("Validation failed");
+      }
+    } else if (step === 2) {
+      const isValid = await trigger(["name", "mobile_no"]);
+      if (!isValid) throw new Error("Validation failed");
+    } else if (step === 3) {
+      const isValid = await trigger(["role", "terms"]);
+      if (!isValid) throw new Error("Validation failed");
+    }
+  };
+
   // This is your final submit handler
-  const onSubmit: SubmitHandler<Inputs> = (data) => {
-    console.log("Form data submitted:", data);
-    // This is where you would send the data to your API
-    // The Stepper's onFinalStepCompleted will handle moving to the next step
+  const onSubmit: SubmitHandler<Inputs> = async (data) => {
+    setIsSubmitting(true);
+    try {
+      const response = await api.post("/auth/signup", data);
+      console.log("Signup successful:", response.data);
+      // On success, advance to step 4
+      setCurrentStep(4);
+    } catch (error: any) {
+      console.error("Signup failed:", error);
+      const message = error.response?.data?.message || "Signup failed";
+      if (message.includes("Username")) {
+        setError("username", { message: "Username already exists" });
+      } else if (message.includes("email")) {
+        setError("email", { message: "Email already exists" });
+      } else {
+        setError("username", { message });
+      }
+      throw new Error(message); // Reject to prevent stepper from advancing
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const inputClassName =
@@ -57,6 +108,7 @@ export default function SignUp() {
           <Stepper
             className="w-full flex flex-col items-center justify-start p-0"
             initialStep={1}
+            onBeforeNext={onBeforeNext}
             onStepChange={(step) => {
               // 4. Update the current step
               setCurrentStep(step);
@@ -150,7 +202,13 @@ export default function SignUp() {
                   <span className={labelClassName}>Your name</span>
                   <input
                     type="text"
-                    {...register("name", { required: "Name is required" })}
+                    {...register("name", {
+                      required: "Name is required",
+                      pattern: {
+                        value: /^[a-zA-Z\s]+$/,
+                        message: "Name can only contain letters and spaces",
+                      },
+                    })}
                     placeholder="e.g. Riya Sharma"
                     className={inputClassName}
                   />
@@ -219,9 +277,10 @@ export default function SignUp() {
               <div className="mt-8">
                 <button
                   type="submit"
-                  className="w-full rounded-lg bg-[#5c4033] text-white px-5 py-3 text-base font-medium hover:bg-[#4b2e2b] transition-colors shadow-lg hover:cursor-pointer "
+                  disabled={isSubmitting}
+                  className="w-full rounded-lg bg-[#5c4033] text-white px-5 py-3 text-base font-medium hover:bg-[#4b2e2b] transition-colors shadow-lg hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Create Account
+                  {isSubmitting ? "Creating Account..." : "Create Account"}
                 </button>
               </div>
             </Step>

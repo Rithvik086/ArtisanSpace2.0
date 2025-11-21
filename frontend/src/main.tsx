@@ -12,6 +12,9 @@ import CustomRequestsPage from "./artisan/CustomRequestsPage";
 import ArtisanDashboard from "./artisan/Dashboardpage";
 import ArtisanLayout from "./artisan/ArtisanLayout";
 import AddListingPage from "./artisan/AddListingPage.tsx";
+import CustomerRoutes from "../routes/CustomerRoutes.js";
+import { Provider } from "react-redux";
+import { store } from "./redux/store";
 
 const router = createBrowserRouter([
   {
@@ -26,23 +29,10 @@ const router = createBrowserRouter([
     path: "/login",
     element: <Login />,
   },
-  {
-    path: "/admin/*",
-    element: <AdminDashboard />,
-  },
-  {
-    path: "/artisan",
-    element: <ArtisanLayout />,
-    children: [
-  { index: true, element: <ArtisanDashboard /> },
-  { path: "add-listing", element: <AddListingPage /> },
-  { path: "workshops", element: <WorkshopsPage /> },
-  { path: "listings", element: <ListingsPage /> },
-  { path: "customrequests", element: <CustomRequestsPage /> },
-    ],
-  },
 ]);
 
 createRoot(document.getElementById("root")!).render(
-  <RouterProvider router={router} />
+  <Provider store={store}>
+    <RouterProvider router={router} />
+  </Provider>
 );

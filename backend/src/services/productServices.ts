@@ -118,9 +118,7 @@ export async function getProducts(
           isValid: true,
         }).populate("userId");
       } else {
-        query = Product.find({ userId: artisanId, isValid: true }).populate(
-          "userId"
-        );
+        query = Product.find({ userId: artisanId, isValid: true });
       }
     } else {
       if (approved) {

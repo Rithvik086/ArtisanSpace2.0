@@ -59,7 +59,7 @@ export async function addUser(
     if (existingUser) {
       throw new Error("Username or email already exists.");
     }
-
+   
     const user = new User({
       username,
       name,
@@ -67,6 +67,7 @@ export async function addUser(
       password: hashpass,
       mobile_no,
       role,
+      isVerified: true,
     });
     await user.save({ session });
     await session.commitTransaction();
@@ -82,7 +83,28 @@ export async function addUser(
   }
 }
 
-export async function findUserByName(username: string) {
+export async function findUserByEmailOrUsername(
+  username: string,
+  email: string
+) {
+  try {
+    const user = await User.find({
+      $or: [{ username: username }, { email: email }],
+    });
+
+    if (!user || user.length === 0) {
+      return null;
+    }
+
+    return user;
+  } catch (e) {
+    throw new Error(
+      "Error finding user by email or username: " + (e as Error).message
+    );
+  }
+}
+
+export async function findUserByUserName(username: string) {
   try {
     const user = await User.findOne({ username: username, isValid: true });
 
@@ -181,7 +203,13 @@ export async function updateUser(
   userId: string,
   name?: string,
   mobile_no?: string,
-  address?: string
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    country?: string;
+  }
 ) {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -192,7 +220,17 @@ export async function updateUser(
     const updateFields: Record<string, any> = {};
     if (name !== undefined) updateFields.name = name;
     if (mobile_no !== undefined) updateFields.mobile_no = mobile_no;
-    if (address !== undefined) updateFields.address = address;
+    if (address !== undefined) {
+      updateFields.address = {};
+      if (address.street !== undefined)
+        updateFields.address.street = address.street;
+      if (address.city !== undefined) updateFields.address.city = address.city;
+      if (address.state !== undefined)
+        updateFields.address.state = address.state;
+      if (address.zip !== undefined) updateFields.address.zip = address.zip;
+      if (address.country !== undefined)
+        updateFields.address.country = address.country;
+    }
 
     console.log(updateFields);
 
