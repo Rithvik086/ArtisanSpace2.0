@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../AppContext';
+import api from '../../lib/axios';
 
 interface Product {
   id: string;
@@ -17,23 +18,16 @@ export default function ModerationProductCard({ product }: { product: Product })
   const { dispatch } = useAppContext();
   const [loading, setLoading] = useState(false);
 
-  const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || `${location.protocol}//${location.hostname}:3000`;
-
   const doModeration = async (action: 'approve' | 'disapprove') => {
     try {
       setLoading(true);
-      const url = `${API_BASE}/api/v1/products/moderation?action=${action}&productId=${encodeURIComponent(product.id)}`;
-      const res = await fetch(url, {
-        method: 'POST',
-        credentials: 'include',
-      });
-      const json = await res.json().catch(() => ({}));
-      if (res.ok && json && json.success) {
+      const res = await api.post(`/products/moderation?action=${action}&productId=${encodeURIComponent(product.id)}`);
+      if (res.status === 200 && res.data && res.data.success) {
         if (action === 'approve') dispatch({ type: 'APPROVE_PRODUCT', payload: product.id });
         else dispatch({ type: 'DISAPPROVE_PRODUCT', payload: product.id });
       } else {
-        console.error('Moderation failed', { status: res.status, body: json });
-        const errMsg = json?.error || json?.message || 'Failed to update product status.';
+        console.error('Moderation failed', { status: res.status, body: res.data });
+        const errMsg = res.data?.error || res.data?.message || 'Failed to update product status.';
         alert(`Moderation failed: ${errMsg}`);
       }
     } catch (e) {

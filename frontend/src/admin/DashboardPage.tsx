@@ -6,6 +6,7 @@ import ProductsTab from './tabs/ProductsTab';
 import OrdersTab from './tabs/OrdersTab';
 
 import { useAppContext } from './AppContext';
+import api from '../lib/axios';
 
 export default function DashboardPage({ setModalState }: { setModalState: React.Dispatch<React.SetStateAction<any>> }) {
   const [activeTab, setActiveTab] = useState<string>('Users');
@@ -39,10 +40,8 @@ export default function DashboardPage({ setModalState }: { setModalState: React.
   async function fetchSales() {
     setLoadingData(true);
     try {
-      const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || `${location.protocol}//${location.hostname}:3000`;
-      const sRes = await fetch(`${API_BASE}/api/v1/admin/sales`, { credentials: 'include' });
-      const sJson = await sRes.json().catch(() => []);
-      setSales(Array.isArray(sJson) ? sJson : []);
+      const sRes = await api.get('/admin/sales');
+      setSales(Array.isArray(sRes.data) ? sRes.data : []);
     } catch (e) {
       console.error('Failed fetching sales data', e);
     } finally { setLoadingData(false); }

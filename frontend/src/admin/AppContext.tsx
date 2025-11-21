@@ -1,4 +1,5 @@
 import React, { useReducer, createContext, useContext } from 'react';
+import api from '../lib/axios';
 
 // Types
 export interface User {
@@ -106,18 +107,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   React.useEffect(() => {
     const fetchInitial = async () => {
       try {
-        const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || `${location.protocol}//${location.hostname}:3000`;
         const [uRes, pRes, oRes] = await Promise.all([
-          fetch(`${API_BASE}/api/v1/admin/users`, { credentials: 'include' }),
-          fetch(`${API_BASE}/api/v1/admin/products`, { credentials: 'include' }),
-          fetch(`${API_BASE}/api/v1/admin/orders`, { credentials: 'include' }),
+          api.get('/admin/users'),
+          api.get('/admin/products'),
+          api.get('/admin/orders'),
         ]);
 
-        const [uJson, pJson, oJson] = await Promise.all([
-          uRes.json().catch(() => []),
-          pRes.json().catch(() => []),
-          oRes.json().catch(() => []),
-        ]);
+        const [uJson, pJson, oJson] = [uRes.data, pRes.data, oRes.data];
 
         const normalizeUsers = (Array.isArray(uJson) ? uJson : []).map((u: any) => ({
           id: (u && (u.id || u._id)) ? String(u.id || u._id) : crypto.randomUUID(),

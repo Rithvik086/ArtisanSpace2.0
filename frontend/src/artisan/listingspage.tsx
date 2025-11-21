@@ -6,6 +6,7 @@ import { DeleteConfirmationModal } from "../components/ui/DeleteConfirmationModa
 import { craftStyles, cn } from "../styles/theme";
 import type { Product as ProductType } from "./Dashboardpage";
 import { ProductForm } from "../components/forms/ProductForm";
+import api from "../lib/axios";
 
 export default function ListingsPage(): React.ReactElement {
   const [, setProducts] = useState<ProductType[]>([]);
@@ -17,15 +18,11 @@ export default function ListingsPage(): React.ReactElement {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || `${location.protocol}//${location.hostname}:3000`;
-// rggfre
-
-        let res = await fetch(`${API_BASE}/api/v1/products/my`, { credentials: "include" });
-        if (!res.ok && (res.status === 401 || res.status === 403)) {
-          res = await fetch(`${API_BASE}/api/v1/products/approved`);
+        let res = await api.get('/products/my');
+        if (res.status === 401 || res.status === 403) {
+          res = await api.get('/products/approved');
         }
-        const json = await res.json().catch(() => []);
-        const list = Array.isArray(json) ? json : (json?.products ?? json?.data ?? []);
+        const list = Array.isArray(res.data) ? res.data : (res.data?.products ?? res.data?.data ?? []);
         const normalized = (list as any[]).map((p: any) => ({
           _id: String(p._id ?? p.id ?? `${Date.now()}-${Math.random()}`),
           category: p.category ?? p.type ?? "",
@@ -48,20 +45,9 @@ export default function ListingsPage(): React.ReactElement {
   }, []);
 
   const handleCreate = async (formData: FormData) => {
-    const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || `${location.protocol}//${location.hostname}:3000`;
-    const res = await fetch(`${API_BASE}/api/v1/products`, {
-      method: "POST",
-      body: formData,
-      credentials: "include",
-    });
+    const res = await api.post('/products', formData);
 
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(text || "Failed to create product");
-    }
-
-    const json = await res.json().catch(() => ({}));
-    const p = json?.product ?? json ?? {};
+    const p = res.data?.product ?? res.data ?? {};
     const normalized = {
       _id: String(p._id ?? p.id ?? `${Date.now()}-${Math.random()}`),
       category: p.category ?? p.type ?? "",
@@ -80,7 +66,7 @@ export default function ListingsPage(): React.ReactElement {
     try {
       window.dispatchEvent(new CustomEvent('artisan:product-created', { detail: normalized }));
     } catch (e) {}
-    return json;
+    return res.data;
   };
 
   // these are not used

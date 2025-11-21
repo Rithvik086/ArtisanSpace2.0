@@ -8,6 +8,7 @@ import Hero from "./components/Hero";
 import StatsOverview from "./components/StatsOverview";
 import ChartsSection from "./components/ChartsSection";
 import ProductsList from "./components/ProductsList";
+import api from "../lib/axios";
 
 // TypeScript interfaces
 interface Product {
@@ -37,19 +38,15 @@ export default function ArtisanDashboard() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || `${location.protocol}//${location.hostname}:3000`;
         // Try to fetch the artisan's products (requires auth)
-        let res = await fetch(`${API_BASE}/api/v1/products/my`, { credentials: 'include' });
+        let res = await api.get('/products/my');
 
         // If not authorized, fall back to public approved listing
-        if (!res.ok) {
-          if (res.status === 401 || res.status === 403) {
-            res = await fetch(`${API_BASE}/api/v1/products/approved`);
-          }
+        if (res.status === 401 || res.status === 403) {
+          res = await api.get('/products/approved');
         }
 
-        const json = await res.json().catch(() => []);
-        const list = Array.isArray(json) ? json : (json?.products ?? json?.data ?? []);
+        const list = Array.isArray(res.data) ? res.data : (res.data?.products ?? res.data?.data ?? []);
 
         const normalized = (list as any[]).map((p: any) => ({
           _id: String(p._id ?? p.id ?? crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`),
