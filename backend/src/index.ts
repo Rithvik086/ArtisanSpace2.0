@@ -5,7 +5,6 @@ import cookieParser from "cookie-parser";
 import type { Request, Response, NextFunction } from "express";
 import dbConnect from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
-import usersRoutes from "./routes/users.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 
@@ -23,9 +22,10 @@ const app = express();
 
 // Normalize CORS origin so it works whether the env var includes protocol or not
 const rawCors = process.env.CORS_ORIGIN || "http://localhost:5173";
-const corsOrigin = rawCors.startsWith("http://") || rawCors.startsWith("https://")
-  ? rawCors
-  : `http://${rawCors}`;
+const corsOrigin =
+  rawCors.startsWith("http://") || rawCors.startsWith("https://")
+    ? rawCors
+    : `http://${rawCors}`;
 
 app.use(
   cors({
@@ -40,12 +40,14 @@ app.get("/", (_req: Request, res: Response) => {
   res.send("Health Check OK");
 });
 
-app.use("/api/v1/auth/", authRoutes);
-// Users management (admin/manager) endpoints
-app.use("/api/v1/users", usersRoutes);
-app.use("/api/v1/", userRoutes);
-// Admin dashboard endpoints used by frontend (keeps paths simple at /api/...)
-app.use("/api", adminRoutes);
+// Create main API router for /api/v1/
+const apiRouter = express.Router();
+
+apiRouter.use("/auth", authRoutes);
+apiRouter.use("/admin", adminRoutes);
+apiRouter.use("/", userRoutes);
+
+app.use("/api/v1", apiRouter);
 
 app.all("/*splat", (req: Request, res: Response) => {
   res.status(404).send({

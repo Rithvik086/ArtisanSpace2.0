@@ -1,19 +1,13 @@
 import type { Request, Response } from "express";
 // User lookup moved to user service (see services/userServices.ts)
-import Product from "../models/productModel.js";
-import Order from "../models/ordersModel.js";
-import Ticket from "../models/supportTicketModel.js";
-
-function monthName(date: Date) {
-  return date.toLocaleString("en-US", { month: "short" });
-}
-
-// Removed legacy hardcoded demo arrays so endpoints always return DB data.
+import { getAllProductsForAdmin } from "../services/productServices.js";
+import { getAllOrdersForAdmin, getSalesData as getSalesDataService } from "../services/orderServices.js";
+import { getAllTicketsForAdmin } from "../services/ticketServices.js";
 
 export const getProductsList = async (_req: Request, res: Response) => {
   try {
     // Fetch products from database and map to frontend-friendly shape
-    const products = await Product.find({}).lean();
+    const products = await getAllProductsForAdmin();
     const mapped = (Array.isArray(products) ? products : []).map((p: any) => ({
       id: String(p._id),
       image: p.image,
@@ -37,7 +31,7 @@ export const getProductsList = async (_req: Request, res: Response) => {
 export const getOrdersList = async (_req: Request, res: Response) => {
   try {
     // Fetch orders, populate user info, and map to frontend shape
-    const orders = await Order.find({}).populate('userId', 'name email').lean();
+    const orders = await getAllOrdersForAdmin();
     const mapped = (Array.isArray(orders) ? orders : []).map((o: any) => {
       const items = Array.isArray(o.products) ? o.products.reduce((sum: number, it: any) => sum + (it.quantity || 0), 0) : 0;
       return {
@@ -59,7 +53,7 @@ export const getOrdersList = async (_req: Request, res: Response) => {
 export const getFeedbackList = async (_req: Request, res: Response) => {
   try {
     // Fetch tickets and populate user name, map to simple feedback objects
-    const tickets = await Ticket.find({}).populate('userId', 'name').lean();
+    const tickets = await getAllTicketsForAdmin();
     const mapped = (Array.isArray(tickets) ? tickets : []).map((t: any) => ({
       id: String(t._id),
       fullName: t.userId ? (t.userId.name || '') : 'Anonymous',
@@ -75,34 +69,7 @@ export const getFeedbackList = async (_req: Request, res: Response) => {
 
 export const getSalesData = async (_req: Request, res: Response) => {
   try {
-    // Aggregate sales (sum of `money`) by month from orders collection
-    const agg = await Order.aggregate([
-      {
-        $addFields: {
-          _date: {
-            $cond: [
-              { $ifNull: ["$purchasedAt", false] },
-              "$purchasedAt",
-              { $toDate: "$createdAt" }
-            ]
-          }
-        }
-      },
-      {
-        $group: {
-          _id: { $month: "$_date" },
-          total: { $sum: { $ifNull: ["$money", 0] } }
-        }
-      }
-    ]).exec();
-
-    const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    const totals = new Array(12).fill(0);
-    (agg || []).forEach((row: any) => {
-      const m = Number(row._id);
-      if (!Number.isNaN(m) && m >= 1 && m <= 12) totals[m - 1] = Number(row.total || 0);
-    });
-    const salesData = MONTHS.map((month, idx) => ({ month, sales: totals[idx] }));
+    const salesData = await getSalesDataService();
     res.json(salesData);
   } catch (error) {
     res.status(500).json({ success: false, message: (error as Error).message });

@@ -118,10 +118,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || `${location.protocol}//${location.hostname}:3000`;
         const [uRes, pRes, oRes, fRes] = await Promise.all([
-          fetch(`${API_BASE}/api/users`, { credentials: 'include' }),
-          fetch(`${API_BASE}/api/products`, { credentials: 'include' }),
-          fetch(`${API_BASE}/api/orders`, { credentials: 'include' }),
-          fetch(`${API_BASE}/api/feedback`, { credentials: 'include' }),
+          fetch(`${API_BASE}/api/v1/admin/users`, { credentials: 'include' }),
+          fetch(`${API_BASE}/api/v1/admin/products`, { credentials: 'include' }),
+          fetch(`${API_BASE}/api/v1/admin/orders`, { credentials: 'include' }),
+          fetch(`${API_BASE}/api/v1/admin/feedback`, { credentials: 'include' }),
         ]);
 
         const [uJson, pJson, oJson, fJson] = await Promise.all([

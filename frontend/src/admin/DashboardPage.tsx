@@ -39,7 +39,7 @@ export default function DashboardPage({ setModalState }: { setModalState: React.
     setLoadingData(true);
     try {
       const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || `${location.protocol}//${location.hostname}:3000`;
-      const sRes = await fetch(`${API_BASE}/api/sales`, { credentials: 'include' });
+      const sRes = await fetch(`${API_BASE}/api/v1/admin/sales`, { credentials: 'include' });
       const sJson = await sRes.json().catch(() => []);
       setSales(Array.isArray(sJson) ? sJson : []);
     } catch (e) {

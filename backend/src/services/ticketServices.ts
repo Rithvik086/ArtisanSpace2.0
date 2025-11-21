@@ -64,3 +64,12 @@ export async function updateTicketStatus(
     throw new Error("Error updating ticket status: " + (e as Error).message);
   }
 }
+
+export async function getAllTicketsForAdmin() {
+  try {
+    const tickets = await Ticket.find({}).populate('userId', 'name').lean();
+    return tickets;
+  } catch (e) {
+    throw new Error("Error getting all tickets for admin: " + (e as Error).message);
+  }
+}
