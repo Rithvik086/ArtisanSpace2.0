@@ -433,3 +433,12 @@ export async function updateProduct(
     session.endSession();
   }
 }
+
+export async function getAllProductsForAdmin() {
+  try {
+    const products = await Product.find({}).lean();
+    return products;
+  } catch (e) {
+    throw new Error("Error getting all products for admin: " + (e as Error).message);
+  }
+}

@@ -52,6 +52,20 @@ function Navbar() {
             >
               Signup
             </button>
+            {/* Temporary Admin Link for Testing */}
+            <button
+              onClick={() => navigate("/admin")}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300"
+            >
+              Admin
+            </button>
+            {/* Temporary Artisan Link for Testing */}
+            <button
+              onClick={() => navigate("/artisan")}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors duration-300"
+            >
+              Artisan
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -99,6 +113,25 @@ function Navbar() {
               className="w-full px-6 py-3 bg-amber-950 text-amber-100 rounded-lg font-semibold hover:bg-amber-900 transition-colors duration-300 shadow-lg"
             >
               Signup
+            </button>
+            {/* Temporary Dashboard Links for Testing */}
+            <button
+              onClick={() => {
+                navigate("/admin");
+                setIsOpen(false);
+              }}
+              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300"
+            >
+              Admin Dashboard
+            </button>
+            <button
+              onClick={() => {
+                navigate("/artisan");
+                setIsOpen(false);
+              }}
+              className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors duration-300"
+            >
+              Artisan Dashboard
             </button>
           </div>
         </div>

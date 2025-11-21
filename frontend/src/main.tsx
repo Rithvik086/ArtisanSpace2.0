@@ -5,6 +5,13 @@ import App from "./App.tsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import SignUp from "./components/auth/SignUp";
 import Login from "./components/auth/Login";
+import AdminDashboard from "./admin/AdminDashboardEntry";
+import ListingsPage from "./artisan/listingspage";
+import WorkshopsPage from "./artisan/Workshopspage";
+import CustomRequestsPage from "./artisan/CustomRequestsPage";
+import ArtisanDashboard from "./artisan/Dashboardpage";
+import ArtisanLayout from "./artisan/ArtisanLayout";
+import AddListingPage from "./artisan/AddListingPage.tsx";
 import { customerRoutes } from "../routes/CustomerRoutes";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
@@ -24,7 +31,22 @@ const router = createBrowserRouter([
   },
   {
     path: "/customer",
-    children: customerRoutes,
+    element: <CustomerRoutes />,
+  },
+  {
+    path: "/admin/*",
+    element: <AdminDashboard />,
+  },
+  {
+    path: "/artisan",
+    element: <ArtisanLayout />,
+    children: [
+      { index: true, element: <ArtisanDashboard /> },
+      { path: "add-listing", element: <AddListingPage /> },
+      { path: "workshops", element: <WorkshopsPage /> },
+      { path: "listings", element: <ListingsPage /> },
+      { path: "customrequests", element: <CustomRequestsPage /> },
+    ],
   },
 ]);
 
