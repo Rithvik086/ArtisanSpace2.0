@@ -22,10 +22,13 @@ export default function Login() {
     setError,
   } = useForm<Inputs>();
 
-  const onSubmit: SubmitHandler<Inputs> = async (data) => {
+  const onSubmit: SubmitHandler<Inputs> = async (data, e) => {
+    e?.preventDefault();
     setIsSubmitting(true);
     try {
-      const result = await dispatch(loginUser(data)).unwrap() as { user: { role: string } };
+      const result = (await dispatch(loginUser(data)).unwrap()) as {
+        user: { role: string };
+      };
       const role = result.user.role;
       // Redirect based on role
       if (role === "admin") {

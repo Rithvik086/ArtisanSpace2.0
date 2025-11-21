@@ -1,5 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../lib/axios";
+import { setUser } from "./authSlice";
 
 export const fetchUser = createAsyncThunk(
   "auth/fetchUser",
@@ -23,8 +24,8 @@ export const loginUser = createAsyncThunk(
   ) => {
     try {
       const response = await api.post("/auth/login", { username, password });
-      // After successful login, fetch user details
-      dispatch(fetchUser());
+      // Set user directly from login response to avoid race condition
+      dispatch(setUser(response.data.user));
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || "Login failed");
