@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm install --prefix backend --include=dev && npm install --prefix frontend --include=dev && npm run build --prefix frontend && npm run build --prefix backend"
+    "build": "npm install --prefix backend --include=dev && npm install --prefix frontend --include=dev && npm run build --prefix frontend && npm run build --prefix backend",
+    "start": "npm run start --prefic backend",
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\" "
   },
   "repository": {
     "type": "git",
@@ -18,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/Rithvik086/ArtisanSpace2.0/issues"
   },
-  "homepage": "https://github.com/Rithvik086/ArtisanSpace2.0#readme"
+  "homepage": "https://github.com/Rithvik086/ArtisanSpace2.0#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
 }

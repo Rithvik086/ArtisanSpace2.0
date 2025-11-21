@@ -13,12 +13,12 @@ const CustomerHome = () => {
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
-  const [name, setName] = useState(
+  const [name] = useState(
     user?.name ? capitalizeFirstLetter(user.name) : "Guest"
   );
 
   const welcomeText = `Welcome ${name}`;
-  const [showMorphingText, setShowMorphingText] = useState(false);
+  const [, setShowMorphingText] = useState(false);
 
   const handleTypingComplete = useCallback(() => {
     setTimeout(() => {

@@ -2,7 +2,7 @@
 import Store from "../src/pages/customer/Store";
 import CustomerHome from "../src/pages/customer/CustomerHome";
 
-export const customerRoutes = [
+export const CustomerRoutes = [
   {
     index: true,
     element: <CustomerHome />,

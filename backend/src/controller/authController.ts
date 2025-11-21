@@ -49,7 +49,7 @@ const signupSchema = z.object({
     .min(3, "Name is required with at least 3 characters")
     .regex(/^[a-zA-Z\s]+$/, "Name can only contain letters and spaces"),
   email: z.email("Invalid email format"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
   mobile_no: z.string().min(10, "Mobile number must be at least 10 digits"),
   role: z.enum(["artisan", "customer"]),
 });
@@ -201,12 +201,18 @@ const login = async (req: Request, res: Response) => {
     res.cookie("token", token, {
       httpOnly: true,
       sameSite: "strict",
-      maxAge: 86400000,
+      maxAge: 86400000, // 24 hours,
+      secure: process.env.NODE_ENV === "production",
     });
 
     res.status(200).json({
       message: "Login successful",
-      user: { id: user._id, role: user.role, name: user.name, username: user.username },
+      user: {
+        id: user._id,
+        role: user.role,
+        name: user.name,
+        username: user.username,
+      },
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -284,8 +290,9 @@ const forgotPassword = async (req: Request, res: Response) => {
       resetTokenExpiresAt: expiresAt,
     });
 
-    const resetLink = `${process.env.FRONTEND_URL || "http://localhost:3000"
-      }/api/v1/reset-password?token=${token}`;
+    const resetLink = `${
+      process.env.FRONTEND_URL || "http://localhost:3000"
+    }/api/v1/reset-password?token=${token}`;
     await sendMail(
       email,
       "Reset Your Password - ArtisanSpace",
@@ -369,11 +376,15 @@ const updatProfile = async (req: Request, res: Response) => {
       country?: string;
     } = {};
     if (address) {
-      if (address.street) processedAddress.street = address.street.trim().toLowerCase();
-      if (address.city) processedAddress.city = address.city.trim().toLowerCase();
-      if (address.state) processedAddress.state = address.state.trim().toLowerCase();
+      if (address.street)
+        processedAddress.street = address.street.trim().toLowerCase();
+      if (address.city)
+        processedAddress.city = address.city.trim().toLowerCase();
+      if (address.state)
+        processedAddress.state = address.state.trim().toLowerCase();
       if (address.zip) processedAddress.zip = address.zip.trim();
-      if (address.country) processedAddress.country = address.country.trim().toLowerCase();
+      if (address.country)
+        processedAddress.country = address.country.trim().toLowerCase();
     }
     const processedName = name ? name.trim().toLowerCase() : name;
     const processedMobile_no = mobile_no ? mobile_no.trim() : mobile_no;
@@ -404,9 +415,7 @@ const deleteUser = async (req: Request, res: Response) => {
   try {
     const userId = req.params.userId;
     if (!userId) {
-      return res
-        .status(400)
-        .json({ message: "User ID is required" });
+      return res.status(400).json({ message: "User ID is required" });
     }
 
     const result = await removeUser(userId);
@@ -427,7 +436,14 @@ const addUserHandler = async (req: Request, res: Response) => {
 
     const hashpass = await bcrypt.hash(password, 9);
 
-    const result = await addUser(username, name, email, hashpass, mobile_no, role);
+    const result = await addUser(
+      username,
+      name,
+      email,
+      hashpass,
+      mobile_no,
+      role
+    );
 
     if (result.success) {
       res.status(201).json({ success: true });
@@ -448,7 +464,9 @@ const checkUsername = async (req: Request, res: Response) => {
 
     const user = await findUserByUserName(username);
     if (user) {
-      return res.status(200).json({ available: false, message: "Username already exists" });
+      return res
+        .status(200)
+        .json({ available: false, message: "Username already exists" });
     } else {
       return res.status(200).json({ available: true });
     }
@@ -466,7 +484,9 @@ const checkEmail = async (req: Request, res: Response) => {
 
     const user = await findUserByEmail(email);
     if (user) {
-      return res.status(200).json({ available: false, message: "Email already exists" });
+      return res
+        .status(200)
+        .json({ available: false, message: "Email already exists" });
     } else {
       return res.status(200).json({ available: true });
     }
