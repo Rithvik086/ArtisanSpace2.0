@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import GraphCard from './components/GraphCard';
-import { DollarSign, BarChart2, PackageCheck, Users2, Users, Package, ShoppingCart, MessageSquare } from 'lucide-react';
+import { DollarSign, BarChart2, PackageCheck, Users2, Users, Package, ShoppingCart } from 'lucide-react';
 import UsersTab from './tabs/UsersTab';
 import ProductsTab from './tabs/ProductsTab';
 import OrdersTab from './tabs/OrdersTab';
-import FeedbackTab from './tabs/FeedbackTab';
+
 import { useAppContext } from './AppContext';
 
 export default function DashboardPage({ setModalState }: { setModalState: React.Dispatch<React.SetStateAction<any>> }) {
@@ -13,7 +13,7 @@ export default function DashboardPage({ setModalState }: { setModalState: React.
   const users = state.users;
   const products = state.products;
   const orders = state.orders;
-  const feedback = state.feedback;
+
   const [sales, setSales] = useState<Array<{ month: string; sales: number }>>([]);
   const [ordersChart, setOrdersChart] = useState<any[]>([]);
   const [productsChart, setProductsChart] = useState<any[]>([]);
@@ -59,7 +59,7 @@ export default function DashboardPage({ setModalState }: { setModalState: React.
     { name: 'Users', icon: Users, content: <UsersTab setModalState={setModalState} /> },
     { name: 'Products', icon: Package, content: <ProductsTab setModalState={setModalState} /> },
     { name: 'Orders', icon: ShoppingCart, content: <OrdersTab setModalState={setModalState} /> },
-    { name: 'Feedback', icon: MessageSquare, content: <FeedbackTab /> },
+
   ];
 
   return (
@@ -79,10 +79,7 @@ export default function DashboardPage({ setModalState }: { setModalState: React.
             <div className="text-sm font-medium text-amber-900">Orders</div>
             <div className="text-2xl font-bold text-amber-800">{loadingData ? '—' : orders.length}</div>
           </button>
-          <button onClick={() => setActiveTab('Feedback')} className="p-4 text-left bg-white rounded-md"> 
-            <div className="text-sm font-medium text-amber-900">Feedback</div>
-            <div className="text-2xl font-bold text-amber-800">{loadingData ? '—' : feedback.length}</div>
-          </button>
+          
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

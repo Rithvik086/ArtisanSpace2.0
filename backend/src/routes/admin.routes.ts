@@ -10,7 +10,6 @@ const router = Router();
 
 router.get("/products", adminController.getProductsList);
 router.get("/orders", adminController.getOrdersList);
-router.get("/feedback", adminController.getFeedbackList);
 router.get("/sales", adminController.getSalesData);
 router.get("/users", getUsers);
 
