@@ -143,6 +143,14 @@ export default function SignUp() {
                     type="text"
                     {...register("username", {
                       required: "Username is required",
+                      minLength: {
+                        value: 3,
+                        message: "Username must be at least 3 characters long",
+                      },
+                      pattern: {
+                        value: /^[a-zA-Z0-9_]+$/,
+                        message: "Username can only contain letters, numbers, and underscores",
+                      },
                     })}
                     placeholder="e.g. riya_sharma"
                     className={inputClassName}
@@ -204,6 +212,10 @@ export default function SignUp() {
                     type="text"
                     {...register("name", {
                       required: "Name is required",
+                      minLength: {
+                        value: 3,
+                        message: "Name must be at least 3 characters long",
+                      },
                       pattern: {
                         value: /^[a-zA-Z\s]+$/,
                         message: "Name can only contain letters and spaces",

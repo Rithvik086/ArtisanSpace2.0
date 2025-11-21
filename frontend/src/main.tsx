@@ -30,7 +30,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/customer",
-    children: customerRoutes ,  
+    children: CustomerRoutes,
   },
   {
     path: "/admin/*",

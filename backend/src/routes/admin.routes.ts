@@ -6,7 +6,9 @@ import authorizerole from "../middleware/roleMiddleware.js";
 
 const router = Router();
 
-// NOTE: All routes need to be authorized later in the middleware chain
+router.use(verifytoken);
+
+router.use(authorizerole("admin"));
 
 router.get("/products", adminController.getProductsList);
 router.get("/orders", adminController.getOrdersList);
