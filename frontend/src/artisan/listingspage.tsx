@@ -8,7 +8,7 @@ import type { Product as ProductType } from "./Dashboardpage";
 import { ProductForm } from "../components/forms/ProductForm";
 
 export default function ListingsPage(): React.ReactElement {
-  const [products, setProducts] = useState<ProductType[]>([]);
+  const [, setProducts] = useState<ProductType[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
