@@ -29,6 +29,25 @@ const router = createBrowserRouter([
     path: "/login",
     element: <Login />,
   },
+  {
+    path: "/customer",
+    element: <CustomerRoutes />,
+  },
+  {
+    path: "/admin/*",
+    element: <AdminDashboard />,
+  },
+  {
+    path: "/artisan",
+    element: <ArtisanLayout />,
+    children: [
+      { index: true, element: <ArtisanDashboard /> },
+      { path: "add-listing", element: <AddListingPage /> },
+      { path: "workshops", element: <WorkshopsPage /> },
+      { path: "listings", element: <ListingsPage /> },
+      { path: "customrequests", element: <CustomRequestsPage /> },
+    ],
+  },
 ]);
 
 createRoot(document.getElementById("root")!).render(
