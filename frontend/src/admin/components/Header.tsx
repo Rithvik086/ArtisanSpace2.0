@@ -6,8 +6,8 @@ export default function Header(): React.ReactElement {
   const navLinkClass = ({ isActive }: { isActive: boolean }): string =>
     `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
       isActive
-        ? 'bg-amber-100 text-amber-900 border border-amber-300 shadow-sm'
-        : 'text-amber-700 hover:bg-amber-50 hover:text-amber-900'
+        ? 'bg-amber-100 text-amber-900 border border-amber-300 shadow-lg transform'
+        : 'text-amber-700 hover:bg-amber-50 hover:text-amber-900 transform transition duration-200 ease-out hover:-translate-y-1 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-amber-200'
     }`;
 
   return (
@@ -15,7 +15,7 @@ export default function Header(): React.ReactElement {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="shrink-0 flex items-center">
-            <h1 className="text-2xl font-bold text-amber-900 font-serif">ArtisanSpace Admin</h1>
+            <h1 className="text-3xl font-bold text-amber-950 font-kranky">ArtisanSpace Admin</h1>
           </div>
           <div className="hidden md:flex md:ml-6">
             <nav className="flex space-x-3">
@@ -34,7 +34,7 @@ export default function Header(): React.ReactElement {
             </nav>
           </div>
           <div className="md:hidden flex items-center">
-            <button className="text-gray-600 hover:text-gray-900 p-2 rounded-md">
+            <button className="text-amber-950 transform transition duration-200 ease-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-200 p-2 rounded-md">
               <Menu size={24} />
             </button>
           </div>

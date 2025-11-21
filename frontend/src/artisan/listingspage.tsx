@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ProductTable } from "../components/ui/ProductTable";
 import { EditProductModal } from "../components/ui/EditProductModal";
 import { DeleteConfirmationModal } from "../components/ui/DeleteConfirmationModal";
 import { craftStyles, cn } from "../styles/theme";
@@ -82,14 +81,15 @@ export default function ListingsPage(): React.ReactElement {
     return json;
   };
 
-  const handleEdit = (p: ProductType) => {
-    setSelectedProduct(p);
-    setIsEditModalOpen(true);
-  };
-  const handleDeleteOpen = (id: string) => {
-    setProductToDeleteId(id);
-    setIsDeleteOpen(true);
-  };
+  // these are not used
+  // const handleEdit = (p: ProductType) => {
+  //   setSelectedProduct(p);
+  //   setIsEditModalOpen(true);
+  // };     
+  // const handleDeleteOpen = (id: string) => {
+  //   setProductToDeleteId(id);
+  //   setIsDeleteOpen(true);
+  // };
 
   const handleSave = (updated: ProductType) => {
     setProducts(prev => prev.map(p => (p._id === updated._id ? updated : p)));

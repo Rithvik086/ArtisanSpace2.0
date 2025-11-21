@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppContext } from '../AppContext';
 
 interface Product {
@@ -15,9 +15,37 @@ interface Product {
 
 export default function ModerationProductCard({ product }: { product: Product }): React.ReactElement {
   const { dispatch } = useAppContext();
+  const [loading, setLoading] = useState(false);
 
-  const handleApprove = (): void => dispatch({ type: 'APPROVE_PRODUCT', payload: product.id });
-  const handleDisapprove = (): void => dispatch({ type: 'DISAPPROVE_PRODUCT', payload: product.id });
+  const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || `${location.protocol}//${location.hostname}:3000`;
+
+  const doModeration = async (action: 'approve' | 'disapprove') => {
+    try {
+      setLoading(true);
+      const url = `${API_BASE}/api/v1/products/moderation?action=${action}&productId=${encodeURIComponent(product.id)}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json && json.success) {
+        if (action === 'approve') dispatch({ type: 'APPROVE_PRODUCT', payload: product.id });
+        else dispatch({ type: 'DISAPPROVE_PRODUCT', payload: product.id });
+      } else {
+        console.error('Moderation failed', { status: res.status, body: json });
+        const errMsg = json?.error || json?.message || 'Failed to update product status.';
+        alert(`Moderation failed: ${errMsg}`);
+      }
+    } catch (e) {
+      console.error('Error moderating product', e);
+      alert('Failed to update product status.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = (): void => { void doModeration('approve'); };
+  const handleDisapprove = (): void => { void doModeration('disapprove'); };
 
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
@@ -37,10 +65,22 @@ export default function ModerationProductCard({ product }: { product: Product })
       </div>
       <div className="bg-gray-50 px-4 py-3 flex justify-end gap-3">
         {product.status !== 'approved' && (
-          <button onClick={handleApprove} className="px-3 py-1 bg-green-500 text-white rounded-md">Approve</button>
+          <button
+            onClick={handleApprove}
+            disabled={loading}
+            className={`px-3 py-1 bg-green-500 text-white rounded-md ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:brightness-95'}`}
+          >
+            Approve
+          </button>
         )}
         {product.status !== 'disapproved' && (
-          <button onClick={handleDisapprove} className="px-3 py-1 bg-red-500 text-white rounded-md">Disapprove</button>
+          <button
+            onClick={handleDisapprove}
+            disabled={loading}
+            className={`px-3 py-1 bg-red-500 text-white rounded-md ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:brightness-95'}`}
+          >
+            Disapprove
+          </button>
         )}
       </div>
     </div>
