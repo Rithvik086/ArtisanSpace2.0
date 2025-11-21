@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { AvailableWorkshopsTable } from "../components/workshops/AvailableWorkshopsTable";
 import { AcceptedWorkshopsTable } from "../components/workshops/AcceptedWorkshopsTable";
 import { type Workshop } from "../types/workshop";
+import api from "../lib/axios";
 
 // --- MOCK DATA (Replace with your actual API call) ---
 const mockAvailableWorkshops: Workshop[] = [
@@ -73,12 +74,9 @@ export default function WorkshopsPage() {
   const handleAcceptWorkshop = async (workshopId: string) => {
     try {
       // Backend expects PUT to /api/v1/workshop/:action/:workshopId
-      const response = await fetch(`/api/v1/workshop/accept/${workshopId}`, {
-        method: 'PUT',
-        credentials: 'include',
-      });
+      const response = await api.put(`/workshop/accept/${workshopId}`);
       
-      if (response.ok) {
+      if (response.status === 200) {
         // Optimistically update the UI for a better user experience
         const workshopToMove = availableWorkshops.find(w => w._id === workshopId);
         if (workshopToMove) {
@@ -98,12 +96,9 @@ export default function WorkshopsPage() {
   const handleRemoveWorkshop = async (workshopId: string) => {
     try {
       // Backend exposes removal via PUT /api/v1/workshop/remove/:workshopId
-      const response = await fetch(`/api/v1/workshop/remove/${workshopId}`, {
-        method: 'PUT',
-        credentials: 'include',
-      });
+      const response = await api.put(`/workshop/remove/${workshopId}`);
 
-      if (response.ok) {
+      if (response.status === 200) {
         // Optimistically update UI
         setAcceptedWorkshops(prev => prev.filter(w => w._id !== workshopId));
         alert("Workshop removed successfully!");

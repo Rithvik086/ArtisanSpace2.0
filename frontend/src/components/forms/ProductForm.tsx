@@ -210,7 +210,7 @@ export function ProductForm({
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50 py-8">
+    <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50 ">
       <div className="max-w-4xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-8">

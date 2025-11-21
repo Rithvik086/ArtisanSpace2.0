@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ProductTable } from "../components/ui/ProductTable";
 import { EditProductModal } from "../components/ui/EditProductModal";
 import { DeleteConfirmationModal } from "../components/ui/DeleteConfirmationModal";
 import { craftStyles, cn } from "../styles/theme";
 import type { Product as ProductType } from "./Dashboardpage";
 import { ProductForm } from "../components/forms/ProductForm";
+import api from "../lib/axios";
 
 export default function ListingsPage(): React.ReactElement {
-  const [products, setProducts] = useState<ProductType[]>([]);
+  const [, setProducts] = useState<ProductType[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
@@ -18,13 +18,11 @@ export default function ListingsPage(): React.ReactElement {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || `${location.protocol}//${location.hostname}:3000`;
-        let res = await fetch(`${API_BASE}/api/v1/products/my`, { credentials: "include" });
-        if (!res.ok && (res.status === 401 || res.status === 403)) {
-          res = await fetch(`${API_BASE}/api/v1/products/approved`);
+        let res = await api.get('/products/my');
+        if (res.status === 401 || res.status === 403) {
+          res = await api.get('/products/approved');
         }
-        const json = await res.json().catch(() => []);
-        const list = Array.isArray(json) ? json : (json?.products ?? json?.data ?? []);
+        const list = Array.isArray(res.data) ? res.data : (res.data?.products ?? res.data?.data ?? []);
         const normalized = (list as any[]).map((p: any) => ({
           _id: String(p._id ?? p.id ?? `${Date.now()}-${Math.random()}`),
           category: p.category ?? p.type ?? "",
@@ -47,20 +45,9 @@ export default function ListingsPage(): React.ReactElement {
   }, []);
 
   const handleCreate = async (formData: FormData) => {
-    const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || `${location.protocol}//${location.hostname}:3000`;
-    const res = await fetch(`${API_BASE}/api/v1/products`, {
-      method: "POST",
-      body: formData,
-      credentials: "include",
-    });
+    const res = await api.post('/products', formData);
 
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(text || "Failed to create product");
-    }
-
-    const json = await res.json().catch(() => ({}));
-    const p = json?.product ?? json ?? {};
+    const p = res.data?.product ?? res.data ?? {};
     const normalized = {
       _id: String(p._id ?? p.id ?? `${Date.now()}-${Math.random()}`),
       category: p.category ?? p.type ?? "",
@@ -75,17 +62,22 @@ export default function ListingsPage(): React.ReactElement {
 
     // add to list
     setProducts(prev => [normalized, ...prev]);
-    return json;
+    // notify other artisan pages (e.g. Dashboard) about the new product so they can update immediately
+    try {
+      window.dispatchEvent(new CustomEvent('artisan:product-created', { detail: normalized }));
+    } catch (e) {}
+    return res.data;
   };
 
-  const handleEdit = (p: ProductType) => {
-    setSelectedProduct(p);
-    setIsEditModalOpen(true);
-  };
-  const handleDeleteOpen = (id: string) => {
-    setProductToDeleteId(id);
-    setIsDeleteOpen(true);
-  };
+  // these are not used
+  // const handleEdit = (p: ProductType) => {
+  //   setSelectedProduct(p);
+  //   setIsEditModalOpen(true);
+  // };     
+  // const handleDeleteOpen = (id: string) => {
+  //   setProductToDeleteId(id);
+  //   setIsDeleteOpen(true);
+  // };
 
   const handleSave = (updated: ProductType) => {
     setProducts(prev => prev.map(p => (p._id === updated._id ? updated : p)));
@@ -101,17 +93,17 @@ export default function ListingsPage(): React.ReactElement {
 
   return (
     <div className={cn(craftStyles.layout.container, "py-6")}>
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h2 className="text-2xl font-semibold text-amber-900 mb-4">Create a Listing</h2>
-        <p className="text-amber-700 mb-6">Fill the form to add a new product listing.</p>
+      <div className="bg-white rounded-lg shadow  mb-8">
+        {/* <h2 className="text-2xl font-semibold text-amber-900 mb-4">Create a Listing</h2>
+        <p className="text-amber-700 mb-6">Fill the form to add a new product listing.</p> */}
         <ProductForm onSubmit={handleCreate} submitButtonText="Create Listing" onSuccess={() => { /* no-op, UI updates from handler */ }} />
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
+      {/* <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-2xl font-semibold text-amber-900 mb-4">Your Listings</h2>
         <p className="text-amber-700 mb-6">Manage and view all your product listings.</p>
         <ProductTable products={products} onEdit={handleEdit} onDelete={handleDeleteOpen} />
-      </div>
+      </div> */}
 
       {selectedProduct && (
         <EditProductModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} product={selectedProduct} onSave={handleSave} />

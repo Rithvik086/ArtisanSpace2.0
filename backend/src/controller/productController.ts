@@ -106,25 +106,37 @@ export const addProduct = async (req: Request, res: Response) => {
 
 export const productsModeration = async (req: Request, res: Response) => {
   try {
-    const { action, productId } = req.query;
-    let msg = { success: false };
+    // Accept parameters from either query string or JSON body
+    const actionRaw = (req.query.action as string) || (req.body && req.body.action);
+    const productIdRaw = (req.query.productId as string) || (req.body && req.body.productId);
 
-    if (action === "approve") {
-      msg = await approveProduct(productId as string);
-    } else if (action === "disapprove") {
-      msg = await disapproveProduct(productId as string);
-    } else if (action === "remove") {
-      msg = await deleteProductService(productId as string);
+    const action = typeof actionRaw === 'string' ? actionRaw.trim().toLowerCase() : '';
+    const productId = typeof productIdRaw === 'string' ? productIdRaw.trim() : '';
+
+    if (!action) return res.status(400).json({ success: false, error: 'Missing action parameter' });
+    if (!productId) return res.status(400).json({ success: false, error: 'Missing productId parameter' });
+
+    let result = { success: false };
+
+    if (action === 'approve') {
+      result = await approveProduct(productId);
+    } else if (action === 'disapprove') {
+      result = await disapproveProduct(productId);
+    } else if (action === 'remove') {
+      result = await deleteProductService(productId);
     } else {
-      return res.status(400).json({ success: false, error: "Invalid action" });
+      return res.status(400).json({ success: false, error: 'Invalid action' });
     }
-    if (msg.success) {
-      res.status(200).json({ success: true });
-    } else {
-      res.status(500).json({ success: false });
+
+    if (result && result.success) {
+      return res.status(200).json({ success: true });
     }
+
+    // If service returned falsy success, return 500 with optional message
+    return res.status(500).json({ success: false, error: 'Moderation action failed' });
   } catch (e) {
-    throw new Error("Error in product moderation: " + (e as Error).message);
+    console.error('Error in productsModeration:', (e as Error).message);
+    return res.status(500).json({ success: false, error: (e as Error).message || 'Server error' });
   }
 };
 
