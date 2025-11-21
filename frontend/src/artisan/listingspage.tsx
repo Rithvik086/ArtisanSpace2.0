@@ -75,6 +75,10 @@ export default function ListingsPage(): React.ReactElement {
 
     // add to list
     setProducts(prev => [normalized, ...prev]);
+    // notify other artisan pages (e.g. Dashboard) about the new product so they can update immediately
+    try {
+      window.dispatchEvent(new CustomEvent('artisan:product-created', { detail: normalized }));
+    } catch (e) {}
     return json;
   };
 

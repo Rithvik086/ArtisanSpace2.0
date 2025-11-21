@@ -69,6 +69,20 @@ export default function ArtisanDashboard() {
     };
 
     void fetchProducts();
+
+    // Listen for products created elsewhere (ListingsPage) and prepend them
+    const onCreated = (e: any) => {
+      try {
+        const p = e?.detail;
+        if (!p) return;
+        setProducts(prev => [p, ...prev]);
+      } catch (err) { /* ignore */ }
+    };
+    window.addEventListener('artisan:product-created', onCreated as EventListener);
+
+    return () => {
+      window.removeEventListener('artisan:product-created', onCreated as EventListener);
+    };
   }, []);
 
   // --- Edit Handlers ---
