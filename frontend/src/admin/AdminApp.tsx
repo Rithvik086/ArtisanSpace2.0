@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
-import DashboardPage from './DashboardPage';
 import ContentModerationPage from './ContentModerationPage';
 import SupportTicketPage from './SupportTicketPage';
 import { AddUserModal, AddProductModal, DeleteModal } from './components/ModalComponents';
 import { useAppContext } from './AppContext';
+
+// Lazy load big pages
+const DashboardPage = lazy(() => import('./DashboardPage'));
 
 export default function AdminApp(): React.ReactElement {
   const [modalState, setModalState] = React.useState<{ type: string | null; isOpen: boolean; data: any }>({ type: null, isOpen: false, data: null });
@@ -33,11 +35,13 @@ export default function AdminApp(): React.ReactElement {
       <Header />
       <main className="grow p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
-          <Routes>
-            <Route path="/" element={<DashboardPage setModalState={setModalState} />} />
-            <Route path="/moderation" element={<ContentModerationPage />} />
-            <Route path="/support" element={<SupportTicketPage />} />
-          </Routes>
+          <Suspense fallback={<div>Loading...</div>}>
+            <Routes>
+              <Route path="/" element={<DashboardPage setModalState={setModalState} />} />
+              <Route path="/moderation" element={<ContentModerationPage />} />
+              <Route path="/support" element={<SupportTicketPage />} />
+            </Routes>
+          </Suspense>
         </div>
       </main>
 

@@ -1,18 +1,9 @@
 // import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { useDispatch } from "react-redux";
 import "./index.css";
-import App from "./App.tsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import SignUp from "./components/auth/SignUp";
-import Login from "./components/auth/Login";
-import AdminDashboard from "./admin/AdminDashboardEntry";
-import ListingsPage from "./artisan/listingspage";
-import WorkshopsPage from "./artisan/Workshopspage";
-import CustomRequestsPage from "./artisan/CustomRequestsPage";
-import ArtisanDashboard from "./artisan/Dashboardpage";
-import ArtisanLayout from "./artisan/ArtisanLayout";
 import { CustomerRoutes } from "../routes/CustomerRoutes";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
@@ -20,6 +11,17 @@ import type { AppDispatch } from "./redux/store";
 import { fetchUser } from "./redux/slices/authThunks";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import CustomerLayout from "./components/customer/CustomerLayout";
+import AdminDashboard from "./admin/AdminDashboardEntry";
+import CustomRequestsPage from "./artisan/CustomRequestsPage";
+import ArtisanLayout from "./artisan/ArtisanLayout";
+
+// Lazy load big components
+const App = lazy(() => import('./App.tsx'));
+const SignUp = lazy(() => import('./components/auth/SignUp'));
+const Login = lazy(() => import('./components/auth/Login'));
+const ArtisanDashboard = lazy(() => import('./artisan/Dashboardpage'));
+const WorkshopsPage = lazy(() => import('./artisan/Workshopspage'));
+const ListingsPage = lazy(() => import('./artisan/listingspage'));
 
 const router = createBrowserRouter([
   {
@@ -83,7 +85,11 @@ const AppWrapper = () => {
     dispatch(fetchUser());
   }, [dispatch]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <RouterProvider router={router} />
+    </Suspense>
+  );
 };
 
 createRoot(document.getElementById("root")!).render(
