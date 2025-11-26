@@ -1,5 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Search,
+  Filter,
+  ChevronDown,
+  SlidersHorizontal,
+  Check,
+} from "lucide-react";
 import CustomerHeader from "@/components/customer/CustomerHeader";
 import CustomerFooter from "@/components/customer/CustomerFooter";
 import StoreCard from "@/components/customer/StoreCard";
@@ -30,6 +37,8 @@ const Store: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [sortBy, setSortBy] = useState("newest");
   const [pagination, setPagination] = useState<PaginationInfo>({
     currentPage: 1,
     totalPages: 1,
@@ -46,20 +55,19 @@ const Store: React.FC = () => {
   ];
   const materials = ["Wood", "Metal", "Ceramic", "Fabric", "Leather", "Glass"];
 
-  useEffect(() => {
-    fetchProducts();
-  }, [currentPage, selectedCategories, selectedMaterials]);
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       const categoryParam =
         selectedCategories.length > 0
           ? selectedCategories.join(",")
           : undefined;
+
+      // In a real app, you'd pass these to the backend
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: "12",
+        sort: sortBy,
       });
 
       if (categoryParam) {
@@ -74,16 +82,19 @@ const Store: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, selectedCategories, sortBy]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts, selectedMaterials]);
 
   const handleAddToCart = async (productId: string) => {
     try {
       await api.post("/cart", { productId, quantity: 1 });
-      // Show success notification (you can implement this)
-      alert("Product added to cart!");
+      // Ideally use a toast notification here
+      // toast.success("Added to cart!");
     } catch (error) {
       console.error("Error adding to cart:", error);
-      alert("Failed to add product to cart. Please try again.");
     }
   };
 
@@ -107,8 +118,7 @@ const Store: React.FC = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Implement search functionality
-    console.log("Searching for:", searchTerm);
+    // In a real app, this would trigger a backend search
   };
 
   const filteredProducts = products.filter(
@@ -118,159 +128,325 @@ const Store: React.FC = () => {
       product.material.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 100,
+      },
+    },
+  };
+
   return (
-    <>
+    <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-stone-100 font-sans text-stone-800">
       <CustomerHeader />
-      <main className="min-h-screen pt-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-20 px-4 overflow-hidden">
+        <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-amber-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-96 h-96 bg-orange-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+
+        <div className="relative z-10 max-w-7xl mx-auto text-center">
+          <motion.h1
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-5xl md:text-6xl font-serif font-bold text-amber-900 mb-6 tracking-tight"
+          >
+            Curated Artisan Treasures
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-xl text-stone-600 max-w-2xl mx-auto mb-10 font-light"
+          >
+            Discover unique, handcrafted pieces that tell a story. Directly from
+            the hands of master artisans to your home.
+          </motion.p>
+
           {/* Search Bar */}
-          <div className="relative flex flex-col items-center w-full max-w-md mx-auto my-7.5">
-            <form onSubmit={handleSearch} className="w-full">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="relative max-w-2xl mx-auto"
+          >
+            <form onSubmit={handleSearch} className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-stone-400 group-focus-within:text-amber-600 transition-colors" />
+              </div>
               <input
                 type="text"
-                id="searchInput"
-                placeholder="Search products..."
+                placeholder="Search for jewelry, pottery, woodwork..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-amber-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="block w-full pl-12 pr-4 py-4 bg-white border-2 border-stone-200 rounded-full text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all shadow-lg hover:shadow-xl"
               />
+              <button
+                type="submit"
+                className="absolute right-2 top-2 bottom-2 bg-amber-900 text-white px-6 rounded-full font-medium hover:bg-amber-800 transition-colors"
+              >
+                Search
+              </button>
             </form>
+          </motion.div>
+        </div>
+      </section>
+
+      <main className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 py-12">
+        <div className="flex flex-col lg:flex-row gap-10">
+          {/* Mobile Filter Toggle */}
+          <div className="lg:hidden mb-6">
+            <button
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className="w-full flex items-center justify-center gap-2 bg-white border border-stone-200 p-3 rounded-lg shadow-sm text-stone-700 font-medium"
+            >
+              <Filter className="h-5 w-5" />
+              {showMobileFilters ? "Hide Filters" : "Show Filters"}
+            </button>
           </div>
 
-          <div className="flex gap-8">
-            {/* Left Sidebar - Filters */}
-            <aside className="w-64 bg-amber-50 p-6 rounded-lg shadow-sm h-fit sticky top-24">
-              <h3 className="text-xl font-bold text-amber-900 mb-6 text-center">
-                Filters
-              </h3>
-
-              {/* Category Filter */}
-              <div className="mb-6 p-2.5 bg-white/70 rounded-lg">
-                <h4 className="text-lg font-semibold text-amber-900 mb-3 border-b-2 border-amber-900 pb-2">
-                  Category
-                </h4>
-                {categories.map((category) => (
-                  <label
-                    key={category}
-                    className="flex items-center cursor-pointer p-1.5 rounded transition-colors hover:bg-amber-100/50"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedCategories.includes(category)}
-                      onChange={() => handleCategoryChange(category)}
-                      className="mr-2.5 accent-amber-800"
-                    />
-                    <span className="text-sm">{category}</span>
-                  </label>
-                ))}
-              </div>
-
-              {/* Material Filter */}
-              <div className="p-2.5 bg-white/70 rounded-lg">
-                <h4 className="text-lg font-semibold text-amber-900 mb-3 border-b-2 border-amber-900 pb-2">
-                  Material
-                </h4>
-                {materials.map((material) => (
-                  <label
-                    key={material}
-                    className="flex items-center cursor-pointer p-1.5 rounded transition-colors hover:bg-amber-100/50"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedMaterials.includes(material)}
-                      onChange={() => handleMaterialChange(material)}
-                      className="mr-2.5 accent-amber-800"
-                    />
-                    <span className="text-sm">{material}</span>
-                  </label>
-                ))}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedCategories([]);
-                  setSelectedMaterials([]);
-                  setCurrentPage(1);
-                }}
-                className="w-full mt-6 bg-amber-800 text-white py-2 px-4 rounded-lg hover:bg-amber-900 transition-colors"
-              >
-                Clear Filters
-              </button>
-            </aside>
-
-            {/* Right Side - Products */}
-            <div className="flex-1">
-              {loading ? (
-                <div className="text-center py-16">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-800 mx-auto"></div>
-                  <p className="mt-4 text-gray-600">Loading products...</p>
-                </div>
-              ) : (
-                <>
-                  <div className="mb-6">
-                    <p className="text-gray-600">
-                      Showing {filteredProducts.length} of{" "}
-                      {pagination.totalProducts} products
-                    </p>
-                  </div>
-
-                  {filteredProducts.length === 0 ? (
-                    <div className="text-center py-16">
-                      <p className="text-xl text-gray-600 mb-4">
-                        No products found
-                      </p>
-                      <p className="text-gray-500">
-                        Try adjusting your search or filters
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      <ul className="list-none flex justify-center flex-wrap gap-15 p-0">
-                        {filteredProducts.map((product) => (
-                          <StoreCard
-                            key={product._id}
-                            product={product}
-                            onAddToCart={handleAddToCart}
-                          />
-                        ))}
-                      </ul>
-
-                      {/* Pagination */}
-                      {pagination.totalPages > 1 && (
-                        <div className="flex justify-center mt-12">
-                          {Array.from(
-                            { length: pagination.totalPages },
-                            (_, i) => i + 1
-                          ).map((page) => (
-                            <Link
-                              key={page}
-                              to="#"
-                              className={`font-bold mx-1 px-3 py-2 rounded ${
-                                page === currentPage
-                                  ? "bg-amber-800 text-white"
-                                  : "bg-amber-50 text-amber-800 hover:bg-amber-100"
-                              }`}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                setCurrentPage(page);
-                              }}
-                            >
-                              {page}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </>
+          {/* Sidebar Filters */}
+          <aside
+            className={`lg:w-64 shrink-0 ${
+              showMobileFilters ? "block" : "hidden lg:block"
+            }`}
+          >
+            <div className="sticky top-24 space-y-8">
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-serif font-bold text-amber-900 flex items-center gap-2">
+                    <SlidersHorizontal className="h-4 w-4" />
+                    Filters
+                  </h3>
+                  {(selectedCategories.length > 0 ||
+                    selectedMaterials.length > 0) && (
+                    <button
+                      onClick={() => {
+                        setSelectedCategories([]);
+                        setSelectedMaterials([]);
+                        setCurrentPage(1);
+                      }}
+                      className="text-xs text-amber-600 hover:text-amber-800 font-medium underline"
+                    >
+                      Reset
+                    </button>
                   )}
-                </>
-              )}
+                </div>
+
+                {/* Categories */}
+                <div className="mb-8">
+                  <h4 className="text-sm font-bold text-stone-900 uppercase tracking-wider mb-4">
+                    Category
+                  </h4>
+                  <div className="space-y-2">
+                    {categories.map((category) => (
+                      <label
+                        key={category}
+                        className="flex items-center group cursor-pointer"
+                      >
+                        <div className="relative flex items-center">
+                          <input
+                            type="checkbox"
+                            className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-stone-300 transition-all checked:border-amber-600 checked:bg-amber-600 hover:border-amber-500"
+                            checked={selectedCategories.includes(category)}
+                            onChange={() => handleCategoryChange(category)}
+                          />
+                          <Check className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
+                        </div>
+                        <span className="ml-3 text-stone-600 group-hover:text-amber-800 transition-colors">
+                          {category}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Materials */}
+                <div>
+                  <h4 className="text-sm font-bold text-stone-900 uppercase tracking-wider mb-4">
+                    Material
+                  </h4>
+                  <div className="space-y-2">
+                    {materials.map((material) => (
+                      <label
+                        key={material}
+                        className="flex items-center group cursor-pointer"
+                      >
+                        <div className="relative flex items-center">
+                          <input
+                            type="checkbox"
+                            className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-stone-300 transition-all checked:border-amber-600 checked:bg-amber-600 hover:border-amber-500"
+                            checked={selectedMaterials.includes(material)}
+                            onChange={() => handleMaterialChange(material)}
+                          />
+                          <Check className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
+                        </div>
+                        <span className="ml-3 text-stone-600 group-hover:text-amber-800 transition-colors">
+                          {material}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Promo Card */}
+              <div className="bg-amber-900 text-amber-50 p-6 rounded-2xl relative overflow-hidden">
+                <div className="relative z-10">
+                  <h4 className="font-serif text-xl font-bold mb-2">
+                    Join the Community
+                  </h4>
+                  <p className="text-amber-200 text-sm mb-4">
+                    Get exclusive access to new artisan drops.
+                  </p>
+                  <button className="w-full bg-white text-amber-900 py-2 rounded-lg text-sm font-bold hover:bg-amber-50 transition-colors">
+                    Sign Up
+                  </button>
+                </div>
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-amber-800 rounded-full opacity-50"></div>
+              </div>
             </div>
+          </aside>
+
+          {/* Product Grid */}
+          <div className="flex-1">
+            {/* Toolbar */}
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-8 bg-white p-4 rounded-xl shadow-sm border border-stone-100">
+              <p className="text-stone-500 text-sm mb-4 sm:mb-0">
+                Showing{" "}
+                <span className="font-bold text-stone-900">
+                  {filteredProducts.length}
+                </span>{" "}
+                results
+              </p>
+
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-stone-500">Sort by:</span>
+                <div className="relative">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="appearance-none bg-stone-50 border border-stone-200 text-stone-700 py-2 pl-4 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 cursor-pointer text-sm font-medium"
+                  >
+                    <option value="newest">Newest Arrivals</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="popular">Most Popular</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 pointer-events-none" />
+                </div>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                  <div
+                    key={n}
+                    className="bg-white rounded-xl h-[450px] animate-pulse shadow-sm border border-stone-100"
+                  >
+                    <div className="h-64 bg-stone-200 rounded-t-xl"></div>
+                    <div className="p-4 space-y-3">
+                      <div className="h-6 bg-stone-200 rounded w-3/4"></div>
+                      <div className="h-4 bg-stone-200 rounded w-1/2"></div>
+                      <div className="h-10 bg-stone-200 rounded mt-4"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-stone-300">
+                <div className="bg-stone-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Search className="h-10 w-10 text-stone-400" />
+                </div>
+                <h3 className="text-2xl font-serif font-bold text-stone-800 mb-2">
+                  No products found
+                </h3>
+                <p className="text-stone-500 max-w-md mx-auto mb-8">
+                  We couldn't find any matches for "{searchTerm}". Try adjusting
+                  your filters or search terms.
+                </p>
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSelectedCategories([]);
+                    setSelectedMaterials([]);
+                  }}
+                  className="text-amber-700 font-medium hover:text-amber-900 underline"
+                >
+                  Clear all filters
+                </button>
+              </div>
+            ) : (
+              <>
+                <motion.div
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+                >
+                  <AnimatePresence>
+                    {filteredProducts.map((product) => (
+                      <motion.div
+                        key={product._id}
+                        variants={itemVariants}
+                        layout
+                      >
+                        <StoreCard
+                          product={product}
+                          onAddToCart={handleAddToCart}
+                        />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
+
+                {/* Pagination */}
+                {pagination.totalPages > 1 && (
+                  <div className="flex justify-center mt-16">
+                    <nav className="flex items-center gap-2 bg-white p-2 rounded-xl shadow-sm border border-stone-100">
+                      {Array.from(
+                        { length: pagination.totalPages },
+                        (_, i) => i + 1
+                      ).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`w-10 h-10 rounded-lg flex items-center justify-center font-medium transition-all ${
+                            page === currentPage
+                              ? "bg-amber-900 text-white shadow-md"
+                              : "text-stone-600 hover:bg-stone-100"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </nav>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </main>
       <CustomerFooter />
-    </>
+    </div>
   );
 };
 

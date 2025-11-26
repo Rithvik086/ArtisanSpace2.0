@@ -45,26 +45,26 @@ const StoreCard: React.FC<StoreCardProps> = ({ product, onAddToCart }) => {
   };
 
   return (
-    <div className="relative p-0 text-center w-80 h-[450px] bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+    <div className="relative flex flex-col w-full h-[480px] bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
       {/* Product Image and Discount Badge */}
       <Link
         to={`/customer/product/${product._id}`}
-        className="relative block overflow-hidden"
+        className="relative block overflow-hidden h-64 w-full bg-white p-4"
       >
         <img
           src={product.image}
           alt={product.name}
-          className="w-full h-55 object-cover transition-transform duration-700 hover:scale-105"
+          className="w-full h-full object-contain transition-transform duration-700 hover:scale-105"
         />
         {discountPercentage > 0 && (
-          <div className="absolute top-2.5 right-2.5 bg-red-500 text-white px-2 py-1 rounded-full font-bold text-sm shadow-lg">
+          <div className="absolute top-2.5 right-2.5 bg-red-500 text-white px-2 py-1 rounded-full font-bold text-sm shadow-lg z-10">
             -{discountPercentage}%
           </div>
         )}
       </Link>
 
       {/* Product Details Area */}
-      <div className="flex flex-col justify-between items-start p-4 h-[calc(100%-220px)] text-left relative">
+      <div className="flex flex-col justify-between items-start p-4 flex-1 text-left relative w-full">
         <Link
           to={`/customer/product/${product._id}`}
           className="no-underline text-gray-800 self-stretch hover:text-amber-900"
