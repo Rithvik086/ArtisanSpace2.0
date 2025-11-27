@@ -36,8 +36,8 @@ export async function addProductService(
       userId,
       uploadedBy,
       name,
-      category,
-      material,
+      category: category.toLowerCase(),
+      material: material.toLowerCase(),
       image,
       oldPrice: oldPriceRounded,
       newPrice: newPriceRounded,
@@ -245,36 +245,40 @@ export async function disapproveProduct(productId: string) {
 
 export async function getApprovedProducts(
   category: string | string[] | null = null,
+  material: string | string[] | null = null,
   page = 1,
   limit = 10
 ) {
   try {
     const skip = (page - 1) * limit;
 
-    let query;
-    if (!category) {
-      query = Product.find({ status: "approved", isValid: true }).populate(
-        "userId"
-      );
-    } else {
-      if (!Array.isArray(category)) {
-        //checking if category is not a array
-        query = Product.find({
-          status: "approved",
-          isValid: true,
-          category,
-        }).populate("userId");
-      } else {
-        query = Product.find({
-          status: "approved",
-          isValid: true,
-          category: { $in: category },
-        }).populate("userId");
-      }
+    const queryFilter: any = {
+      status: "approved",
+      isValid: true,
+    };
+
+    if (category) {
+      const categories = Array.isArray(category) ? category : [category];
+      const categoryRegexes = categories.map((c) => {
+        const escaped = c.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return new RegExp(`^${escaped.replace(/_/g, "[ _]")}$`, "i");
+      });
+      queryFilter.category = { $in: categoryRegexes };
     }
 
+    if (material) {
+      const materials = Array.isArray(material) ? material : [material];
+      const materialRegexes = materials.map((m) => {
+        const escaped = m.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return new RegExp(`^${escaped.replace(/_/g, "[ _]")}$`, "i");
+      });
+      queryFilter.material = { $in: materialRegexes };
+    }
+
+    const query = Product.find(queryFilter).populate("userId");
+
     // Get total count for pagination metadata
-    const totalCount = await query.clone().countDocuments();
+    const totalCount = await Product.countDocuments(queryFilter);
 
     // Apply pagination
     const products = await query.skip(skip).limit(limit);
@@ -439,6 +443,28 @@ export async function getAllProductsForAdmin() {
     const products = await Product.find({}).lean();
     return products;
   } catch (e) {
-    throw new Error("Error getting all products for admin: " + (e as Error).message);
+    throw new Error(
+      "Error getting all products for admin: " + (e as Error).message
+    );
+  }
+}
+
+export async function getProductById(productId: string) {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      throw new Error("Invalid product ID");
+    }
+    const product = await Product.findOne({
+      _id: productId,
+      isValid: true,
+      status: "approved",
+    }).populate("userId");
+
+    if (!product) {
+      throw new Error("Product not found");
+    }
+    return product;
+  } catch (e) {
+    throw new Error("Error getting product: " + (e as Error).message);
   }
 }

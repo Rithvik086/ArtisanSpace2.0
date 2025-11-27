@@ -3,6 +3,9 @@ import { lazy } from "react";
 import CustomerHome from "../src/pages/customer/CustomerHome";
 
 const Store = lazy(() => import("../src/pages/customer/Store"));
+const ProductDetails = lazy(
+  () => import("../src/pages/customer/ProductDetails")
+);
 
 export const CustomerRoutes = [
   {
@@ -12,6 +15,10 @@ export const CustomerRoutes = [
   {
     path: "store",
     element: <Store />,
+  },
+  {
+    path: "product/:id",
+    element: <ProductDetails />,
   },
   {
     path: "cart",

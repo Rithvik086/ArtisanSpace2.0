@@ -4,6 +4,7 @@ import {
   deleteProduct,
   editProduct,
   getAllProducts,
+  getProductById,
   getProducts,
   getUserProducts,
   productsModeration,
@@ -18,6 +19,12 @@ router.get(
   "/approved",
   authorizerole("customer", "artisan", "manager", "admin"),
   getProducts
+);
+
+router.get(
+  "/:id",
+  authorizerole("customer", "artisan", "manager", "admin"),
+  getProductById
 );
 
 // Artisan+ routes
