@@ -448,3 +448,23 @@ export async function getAllProductsForAdmin() {
     );
   }
 }
+
+export async function getProductById(productId: string) {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      throw new Error("Invalid product ID");
+    }
+    const product = await Product.findOne({
+      _id: productId,
+      isValid: true,
+      status: "approved",
+    }).populate("userId");
+
+    if (!product) {
+      throw new Error("Product not found");
+    }
+    return product;
+  } catch (e) {
+    throw new Error("Error getting product: " + (e as Error).message);
+  }
+}

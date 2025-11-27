@@ -72,7 +72,7 @@ const StoreCard: React.FC<StoreCardProps> = ({ product, onAddToCart }) => {
       </Link>
 
       {/* Product Details Area */}
-      <div className="flex flex-col justify-between items-start p-4 flex-1 text-left relative w-full">
+      <div className="flex flex-col justify-start items-start p-4 pb-24 flex-1 text-left relative w-full">
         <Link
           to={`/customer/product/${product._id}`}
           className="no-underline text-gray-800 self-stretch hover:text-amber-900"
@@ -96,8 +96,8 @@ const StoreCard: React.FC<StoreCardProps> = ({ product, onAddToCart }) => {
         <div className="text-amber-500 text-sm mb-2">★★★★☆ 4.2</div>
 
         {/* Price */}
-        <div className="flex items-center gap-2 my-2">
-          <span className="text-lg font-bold text-green-700">
+        <div className="flex items-center gap-2 mt-auto">
+          <span className="text-xl font-bold text-amber-900">
             ₹{product.newPrice}
           </span>
           {product.oldPrice > product.newPrice && (

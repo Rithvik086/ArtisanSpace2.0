@@ -332,7 +332,7 @@ const Store: React.FC = () => {
               </div>
 
               {/* Promo Card */}
-              <div className="bg-amber-900 text-amber-50 p-6 rounded-2xl relative overflow-hidden">
+              {/* <div className="bg-amber-900 text-amber-50 p-6 rounded-2xl relative overflow-hidden">
                 <div className="relative z-10">
                   <h4 className="font-baloo text-xl font-bold mb-2">
                     Join the Community
@@ -345,22 +345,14 @@ const Store: React.FC = () => {
                   </button>
                 </div>
                 <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-amber-800 rounded-full opacity-50"></div>
-              </div>
+              </div> */}
             </div>
           </aside>
 
           {/* Product Grid */}
           <div className="flex-1">
             {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-8 bg-white p-4 rounded-xl shadow-sm border border-stone-100">
-              <p className="text-stone-500 text-sm mb-4 sm:mb-0">
-                Showing{" "}
-                <span className="font-bold text-stone-900">
-                  {filteredProducts.length}
-                </span>{" "}
-                results
-              </p>
-
+            <div className="flex flex-col sm:flex-row justify-end items-center mb-8 bg-white p-4 rounded-xl shadow-sm border border-stone-100">
               <div className="flex items-center gap-4">
                 <span className="text-sm text-stone-500">Sort by:</span>
                 <div className="relative">

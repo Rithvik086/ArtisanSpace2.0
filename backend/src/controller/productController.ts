@@ -5,6 +5,7 @@ import {
   deleteProductService,
   disapproveProduct,
   getApprovedProducts,
+  getProductById as getProductByIdService,
   getProducts as getProductsService,
   updateProduct,
 } from "../services/productServices.js";
@@ -198,5 +199,20 @@ export const getUserProducts = async (req: Request, res: Response) => {
     throw new Error(
       "Error fetching user products: " + (error as Error).message
     );
+  }
+};
+
+export const getProductById = async (req: Request, res: Response) => {
+  try {
+    const productId = req.params.id;
+    if (!productId) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Product ID is required" });
+    }
+    const product = await getProductByIdService(productId);
+    res.status(200).json({ success: true, product });
+  } catch (error) {
+    res.status(404).json({ success: false, error: (error as Error).message });
   }
 };
