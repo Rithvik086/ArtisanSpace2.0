@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import axios from "../../lib/axios";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../redux/store";
@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import CustomerHeader from "@/components/customer/CustomerHeader";
 import CustomerFooter from "@/components/customer/CustomerFooter";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useLoading } from "@/components/ui/LoadingProvider";
 import {
   ShoppingBag,
   Minus,
@@ -13,6 +14,7 @@ import {
   ArrowRight,
   CreditCard,
   PackageOpen,
+  X,
 } from "lucide-react";
 
 interface CartItem {
@@ -29,12 +31,16 @@ interface CartItem {
 const Cart: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
   const user = useSelector((state: RootState) => state.auth.user);
   const { showToast } = useToast();
+  const { showLoading, hideLoading } = useLoading();
   const [editingQuantities, setEditingQuantities] = useState<{
     [key: string]: string | undefined;
   }>({});
+  const [pendingUpdates, setPendingUpdates] = useState<{
+    [key: string]: { action: string; amount?: number };
+  }>({});
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -42,34 +48,96 @@ const Cart: React.FC = () => {
     }
   }, [user]);
 
+  useEffect(() => {
+    return () => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const fetchCart = async () => {
     try {
+      showLoading();
       const response = await axios.get("/cart");
       setCart(response.data.cart);
       setTotal(response.data.amount);
     } catch (error) {
       console.error("Error fetching cart:", error);
     } finally {
-      setLoading(false);
+      hideLoading();
     }
   };
 
-  const updateQuantity = async (productId: string, newQuantity: number) => {
-    if (newQuantity < 1) return;
+  const debouncedUpdate = useCallback(async () => {
+    if (Object.keys(pendingUpdates).length === 0) return;
+
     try {
-      await axios.put(
-        "/cart",
-        {},
-        {
-          params: { productId, action: "none", amount: newQuantity },
-        }
+      // Process all pending updates
+      const updatePromises = Object.entries(pendingUpdates).map(
+        ([productId, update]) =>
+          axios.put(
+            "/cart",
+            {},
+            {
+              params: {
+                productId,
+                action: update.action,
+                amount: update.amount,
+              },
+            }
+          )
       );
-      showToast("Cart updated!", "success");
-      fetchCart();
+
+      await Promise.all(updatePromises);
+      setPendingUpdates({});
+
+      // Refresh cart data
+      const response = await axios.get("/cart");
+      setCart(response.data.cart);
+      setTotal(response.data.amount);
+
+      // Show success toast only once after batch update
+      showToast("Cart updated successfully!", "success");
     } catch (error) {
-      console.error("Error updating quantity:", error);
+      console.error("Error updating cart:", error);
       showToast("Failed to update cart", "error");
+      // Revert optimistic updates by refetching
+      fetchCart();
     }
+  }, [pendingUpdates]);
+
+  const updateQuantity = (productId: string, newQuantity: number) => {
+    if (newQuantity < 1) return;
+
+    // Optimistic update
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.productId._id === productId
+          ? { ...item, quantity: newQuantity }
+          : item
+      )
+    );
+
+    // Update total optimistically
+    const item = cart.find((item) => item.productId._id === productId);
+    if (item) {
+      const difference =
+        (newQuantity - item.quantity) * item.productId.newPrice;
+      setTotal((prevTotal) => prevTotal + difference);
+    }
+
+    // Queue the update
+    setPendingUpdates((prev) => ({
+      ...prev,
+      [productId]: { action: "none", amount: newQuantity },
+    }));
+
+    // Clear existing timeout and set new one
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+    updateTimeoutRef.current = setTimeout(debouncedUpdate, 800);
   };
 
   const handleInputChange = (productId: string, value: string) => {
@@ -88,10 +156,7 @@ const Cart: React.FC = () => {
       return;
     }
     if (num > maxStock) {
-      showToast(
-        `Quantity exceeds available stock. Setting to maximum available: ${maxStock}`,
-        "error"
-      );
+      showToast(`Maximum available stock is ${maxStock}`, "warning");
       updateQuantity(productId, maxStock);
     } else {
       updateQuantity(productId, num);
@@ -115,18 +180,38 @@ const Cart: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-amber-50 flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-800 rounded-full animate-spin"></div>
-          <p className="text-amber-900 font-medium animate-pulse">
-            Loading your selection...
-          </p>
-        </div>
-      </div>
+  const removeProduct = async (productId: string) => {
+    // Find the item to calculate price reduction
+    const itemToRemove = cart.find((item) => item.productId._id === productId);
+
+    // Optimistic update
+    setCart((prevCart) =>
+      prevCart.filter((item) => item.productId._id !== productId)
     );
-  }
+
+    if (itemToRemove) {
+      setTotal(
+        (prevTotal) =>
+          prevTotal - itemToRemove.quantity * itemToRemove.productId.newPrice
+      );
+    }
+
+    try {
+      await axios.put(
+        "/cart",
+        {},
+        {
+          params: { productId, action: "rem" },
+        }
+      );
+      showToast("Product removed from cart", "success");
+    } catch (error) {
+      console.error("Error removing product:", error);
+      showToast("Failed to remove product", "error");
+      // Revert optimistic update
+      fetchCart();
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-amber-50">
@@ -197,9 +282,18 @@ const Cart: React.FC = () => {
                               : "Out of Stock"}
                           </p>
                         </div>
-                        <p className="text-xl font-bold text-amber-900">
-                          ${item.productId.newPrice.toFixed(2)}
-                        </p>
+                        <div className="flex items-center gap-4">
+                          <p className="text-xl font-bold text-amber-900">
+                            ${item.productId.newPrice.toFixed(2)}
+                          </p>
+                          <button
+                            onClick={() => removeProduct(item.productId._id)}
+                            className="p-2 rounded-md hover:bg-red-100 text-red-600 hover:text-red-800 transition-all"
+                            title="Remove from cart"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
                       </div>
 
                       {/* Controls Section */}
@@ -239,6 +333,11 @@ const Cart: React.FC = () => {
                                   item.productId.quantity
                                 )
                               }
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  (e.target as HTMLInputElement).blur();
+                                }
+                              }}
                               className="w-12 text-center bg-transparent border-none focus:ring-0 text-amber-900 font-semibold text-lg p-0 mx-1 appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                               style={{
                                 WebkitAppearance: "none",

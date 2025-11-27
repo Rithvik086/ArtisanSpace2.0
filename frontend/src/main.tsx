@@ -15,6 +15,7 @@ import AdminDashboard from "./admin/AdminDashboardEntry";
 import CustomRequestsPage from "./artisan/CustomRequestsPage";
 import ArtisanLayout from "./artisan/ArtisanLayout";
 import ToastProvider from "./components/ui/ToastProvider";
+import { LoadingProvider } from "./components/ui/LoadingProvider";
 
 // Lazy load big components
 const App = lazy(() => import("./App.tsx"));
@@ -89,11 +90,13 @@ const AppWrapper = () => {
   }, [dispatch]);
 
   return (
-    <ToastProvider>
-      <Suspense fallback={<div>Loading...</div>}>
-        <RouterProvider router={router} />
-      </Suspense>
-    </ToastProvider>
+    <LoadingProvider>
+      <ToastProvider>
+        <Suspense fallback={null}>
+          <RouterProvider router={router} />
+        </Suspense>
+      </ToastProvider>
+    </LoadingProvider>
   );
 };
 
