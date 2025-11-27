@@ -11,6 +11,8 @@ import CustomerHeader from "@/components/customer/CustomerHeader";
 import CustomerFooter from "@/components/customer/CustomerFooter";
 import StoreCard from "@/components/customer/StoreCard";
 import api from "@/lib/axios";
+import { useToast } from "@/components/ui/ToastProvider";
+import { useLoading } from "@/components/ui/LoadingProvider";
 
 interface Product {
   _id: string;
@@ -32,7 +34,6 @@ interface PaginationInfo {
 
 const Store: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
@@ -44,6 +45,8 @@ const Store: React.FC = () => {
     totalPages: 1,
     totalProducts: 0,
   });
+  const { showToast } = useToast();
+  const { showLoading, hideLoading } = useLoading();
 
   // Available filter options
   const categories = [
@@ -66,7 +69,7 @@ const Store: React.FC = () => {
 
   const fetchProducts = useCallback(async () => {
     try {
-      setLoading(true);
+      showLoading();
       const categoryParam =
         selectedCategories.length > 0
           ? selectedCategories
@@ -102,9 +105,16 @@ const Store: React.FC = () => {
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {
-      setLoading(false);
+      hideLoading();
     }
-  }, [currentPage, selectedCategories, selectedMaterials, sortBy]);
+  }, [
+    currentPage,
+    selectedCategories,
+    selectedMaterials,
+    sortBy,
+    showLoading,
+    hideLoading,
+  ]);
 
   useEffect(() => {
     fetchProducts();
@@ -112,11 +122,15 @@ const Store: React.FC = () => {
 
   const handleAddToCart = async (productId: string) => {
     try {
-      await api.post("/cart", { productId, quantity: 1 });
-      // Ideally use a toast notification here
-      // toast.success("Added to cart!");
+      const response = await api.post(`/cart?productId=${productId}`);
+      if (response.data.success) {
+        showToast("Product added to cart!", "success");
+      } else {
+        showToast(response.data.message || "Failed to add to cart", "error");
+      }
     } catch (error) {
       console.error("Error adding to cart:", error);
+      showToast("Failed to add to cart", "error");
     }
   };
 
@@ -371,23 +385,7 @@ const Store: React.FC = () => {
               </div>
             </div>
 
-            {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                  <div
-                    key={n}
-                    className="bg-white rounded-xl h-[450px] animate-pulse shadow-sm border border-stone-100"
-                  >
-                    <div className="h-64 bg-stone-200 rounded-t-xl"></div>
-                    <div className="p-4 space-y-3">
-                      <div className="h-6 bg-stone-200 rounded w-3/4"></div>
-                      <div className="h-4 bg-stone-200 rounded w-1/2"></div>
-                      <div className="h-10 bg-stone-200 rounded mt-4"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : filteredProducts.length === 0 ? (
+            {filteredProducts.length === 0 ? (
               <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-stone-300">
                 <div className="bg-stone-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Search className="h-10 w-10 text-stone-400" />

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import axiosInstance from "../../lib/axios";
 import { motion } from "framer-motion";
+import { useToast } from "@/components/ui/ToastProvider";
 
 interface Product {
   _id: string;
@@ -34,6 +35,7 @@ const ProductDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -57,10 +59,21 @@ const ProductDetails: React.FC = () => {
     }
   }, [id]);
 
-  const handleAddToCart = () => {
-    // Implement add to cart logic here
-    console.log("Added to cart:", product?._id, "Quantity:", quantity);
-    // You might want to dispatch a redux action here
+  const handleAddToCart = async () => {
+    if (!product) return;
+    try {
+      const response = await axiosInstance.post(
+        `/cart?productId=${product._id}&quantity=${quantity}`
+      );
+      if (response.data.success) {
+        showToast("Product added to cart!", "success");
+      } else {
+        showToast(response.data.message || "Failed to add to cart", "error");
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      showToast("Failed to add to cart", "error");
+    }
   };
 
   const formatTag = (text: string) => {
