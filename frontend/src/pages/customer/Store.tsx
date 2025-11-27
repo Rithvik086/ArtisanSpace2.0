@@ -48,19 +48,37 @@ const Store: React.FC = () => {
   // Available filter options
   const categories = [
     "Jewelry",
+    "Statue",
     "Home Decor",
     "Clothing",
     "Art",
     "Accessories",
   ];
-  const materials = ["Wood", "Metal", "Ceramic", "Fabric", "Leather", "Glass"];
+  const materials = [
+    "Wood",
+    "Brass",
+    "Clay",
+    "Ceramic",
+    "Fabric",
+    "Leather",
+    "Glass",
+  ];
 
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       const categoryParam =
         selectedCategories.length > 0
-          ? selectedCategories.join(",")
+          ? selectedCategories
+              .map((c) => c.toLowerCase().replace(/\s+/g, "_"))
+              .join(",")
+          : undefined;
+
+      const materialParam =
+        selectedMaterials.length > 0
+          ? selectedMaterials
+              .map((m) => m.toLowerCase().replace(/\s+/g, "_"))
+              .join(",")
           : undefined;
 
       // In a real app, you'd pass these to the backend
@@ -74,6 +92,10 @@ const Store: React.FC = () => {
         params.append("category", categoryParam);
       }
 
+      if (materialParam) {
+        params.append("material", materialParam);
+      }
+
       const response = await api.get(`/products/approved?${params.toString()}`);
       setProducts(response.data.products);
       setPagination(response.data.pagination);
@@ -82,7 +104,7 @@ const Store: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, selectedCategories, sortBy]);
+  }, [currentPage, selectedCategories, selectedMaterials, sortBy]);
 
   useEffect(() => {
     fetchProducts();
@@ -121,11 +143,14 @@ const Store: React.FC = () => {
     // In a real app, this would trigger a backend search
   };
 
+  const normalizeString = (str: string) =>
+    str.toLowerCase().replace(/\s+/g, "_");
+
   const filteredProducts = products.filter(
     (product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.material.toLowerCase().includes(searchTerm.toLowerCase())
+      normalizeString(product.name).includes(normalizeString(searchTerm)) ||
+      normalizeString(product.category).includes(normalizeString(searchTerm)) ||
+      normalizeString(product.material).includes(normalizeString(searchTerm))
   );
 
   // Animation variants
@@ -152,7 +177,7 @@ const Store: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-stone-100 font-sans text-stone-800">
+    <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-stone-100 font-baloo text-stone-800">
       <CustomerHeader />
 
       {/* Hero Section */}
@@ -165,7 +190,7 @@ const Store: React.FC = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-5xl md:text-6xl font-serif font-bold text-amber-900 mb-6 tracking-tight"
+            className="text-5xl md:text-6xl font-baloo font-bold text-amber-900 mb-6 tracking-tight"
           >
             Curated Artisan Treasures
           </motion.h1>
@@ -230,7 +255,7 @@ const Store: React.FC = () => {
             <div className="sticky top-24 space-y-8">
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-serif font-bold text-amber-900 flex items-center gap-2">
+                  <h3 className="text-lg font-baloo font-bold text-amber-900 flex items-center gap-2">
                     <SlidersHorizontal className="h-4 w-4" />
                     Filters
                   </h3>
@@ -309,7 +334,7 @@ const Store: React.FC = () => {
               {/* Promo Card */}
               <div className="bg-amber-900 text-amber-50 p-6 rounded-2xl relative overflow-hidden">
                 <div className="relative z-10">
-                  <h4 className="font-serif text-xl font-bold mb-2">
+                  <h4 className="font-baloo text-xl font-bold mb-2">
                     Join the Community
                   </h4>
                   <p className="text-amber-200 text-sm mb-4">
@@ -375,7 +400,7 @@ const Store: React.FC = () => {
                 <div className="bg-stone-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Search className="h-10 w-10 text-stone-400" />
                 </div>
-                <h3 className="text-2xl font-serif font-bold text-stone-800 mb-2">
+                <h3 className="text-2xl font-baloo font-bold text-stone-800 mb-2">
                   No products found
                 </h3>
                 <p className="text-stone-500 max-w-md mx-auto mb-8">

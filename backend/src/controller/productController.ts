@@ -12,7 +12,7 @@ import cloudinary from "../config/cloudinary.js";
 
 export const getProducts = async (req: Request, res: Response) => {
   try {
-    const { category } = req.query;
+    const { category, material } = req.query;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 12;
 
@@ -25,7 +25,21 @@ export const getProducts = async (req: Request, res: Response) => {
       );
     }
 
-    const result = await getApprovedProducts(categoryParam, page, limit);
+    let materialParam: string | string[] | null = null;
+    if (typeof material === "string") {
+      materialParam = material;
+    } else if (Array.isArray(material)) {
+      materialParam = material.filter(
+        (item): item is string => typeof item === "string"
+      );
+    }
+
+    const result = await getApprovedProducts(
+      categoryParam,
+      materialParam,
+      page,
+      limit
+    );
 
     res.status(200).json({
       success: true,
@@ -107,25 +121,35 @@ export const addProduct = async (req: Request, res: Response) => {
 export const productsModeration = async (req: Request, res: Response) => {
   try {
     // Accept parameters from either query string or JSON body
-    const actionRaw = (req.query.action as string) || (req.body && req.body.action);
-    const productIdRaw = (req.query.productId as string) || (req.body && req.body.productId);
+    const actionRaw =
+      (req.query.action as string) || (req.body && req.body.action);
+    const productIdRaw =
+      (req.query.productId as string) || (req.body && req.body.productId);
 
-    const action = typeof actionRaw === 'string' ? actionRaw.trim().toLowerCase() : '';
-    const productId = typeof productIdRaw === 'string' ? productIdRaw.trim() : '';
+    const action =
+      typeof actionRaw === "string" ? actionRaw.trim().toLowerCase() : "";
+    const productId =
+      typeof productIdRaw === "string" ? productIdRaw.trim() : "";
 
-    if (!action) return res.status(400).json({ success: false, error: 'Missing action parameter' });
-    if (!productId) return res.status(400).json({ success: false, error: 'Missing productId parameter' });
+    if (!action)
+      return res
+        .status(400)
+        .json({ success: false, error: "Missing action parameter" });
+    if (!productId)
+      return res
+        .status(400)
+        .json({ success: false, error: "Missing productId parameter" });
 
     let result = { success: false };
 
-    if (action === 'approve') {
+    if (action === "approve") {
       result = await approveProduct(productId);
-    } else if (action === 'disapprove') {
+    } else if (action === "disapprove") {
       result = await disapproveProduct(productId);
-    } else if (action === 'remove') {
+    } else if (action === "remove") {
       result = await deleteProductService(productId);
     } else {
-      return res.status(400).json({ success: false, error: 'Invalid action' });
+      return res.status(400).json({ success: false, error: "Invalid action" });
     }
 
     if (result && result.success) {
@@ -133,10 +157,14 @@ export const productsModeration = async (req: Request, res: Response) => {
     }
 
     // If service returned falsy success, return 500 with optional message
-    return res.status(500).json({ success: false, error: 'Moderation action failed' });
+    return res
+      .status(500)
+      .json({ success: false, error: "Moderation action failed" });
   } catch (e) {
-    console.error('Error in productsModeration:', (e as Error).message);
-    return res.status(500).json({ success: false, error: (e as Error).message || 'Server error' });
+    console.error("Error in productsModeration:", (e as Error).message);
+    return res
+      .status(500)
+      .json({ success: false, error: (e as Error).message || "Server error" });
   }
 };
 
@@ -151,9 +179,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
       pagination: result.pagination,
     });
   } catch (error) {
-    throw new Error(
-      "Error fetching all products: " + (error as Error).message
-    );
+    throw new Error("Error fetching all products: " + (error as Error).message);
   }
 };
 

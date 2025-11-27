@@ -44,6 +44,14 @@ const StoreCard: React.FC<StoreCardProps> = ({ product, onAddToCart }) => {
     }
   };
 
+  const formatTag = (text: string) => {
+    if (!text) return "";
+    return text
+      .replace(/_/g, " ")
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
   return (
     <div className="relative flex flex-col w-full h-[480px] bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
       {/* Product Image and Discount Badge */}
@@ -77,10 +85,10 @@ const StoreCard: React.FC<StoreCardProps> = ({ product, onAddToCart }) => {
         {/* Tags */}
         <div className="flex flex-wrap gap-2 mb-2 text-sm">
           <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded text-xs font-medium">
-            {product.category}
+            {formatTag(product.category)}
           </span>
           <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
-            {product.material}
+            {formatTag(product.material)}
           </span>
         </div>
 
