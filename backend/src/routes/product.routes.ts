@@ -11,8 +11,11 @@ import {
 } from "../controller/productController.js";
 import upload from "../middleware/multer.js";
 import authorizerole from "../middleware/roleMiddleware.js";
+import { verifytoken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+router.use(verifytoken);
 
 // Public routes - accessible by all authenticated users
 router.get(

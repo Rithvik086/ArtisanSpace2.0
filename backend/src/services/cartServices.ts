@@ -59,7 +59,7 @@ export async function getCartProductQuantity(
   }
 }
 
-export async function addItem(userId: string, productId: string) {
+export async function addItem(userId: string, productId: string, quantity: number = 1) {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -78,18 +78,20 @@ export async function addItem(userId: string, productId: string) {
     if (productQuantity > cartQuantity) {
       if (cartQuantity > 0) {
         // Update the quantity of the existing product in the cart
+        const newQty = Math.min(cartQuantity + quantity, productQuantity);
         await Cart.findOneAndUpdate(
           { userId, "products.productId": productId },
-          { $inc: { "products.$.quantity": 1 } },
+          { $inc: { "products.$.quantity": quantity } },
           { new: true, runValidators: true, session }
         );
         await session.commitTransaction();
         return { success: true, message: "Cart updated!" };
       } else {
         // Add the product to the cart if it doesn't exist
+        const addQty = Math.min(quantity, productQuantity);
         await Cart.findOneAndUpdate(
           { userId },
-          { $addToSet: { products: { productId, quantity: 1 } } },
+          { $addToSet: { products: { productId, quantity: addQty } } },
           { new: true, upsert: true, runValidators: true, session }
         );
         await session.commitTransaction();

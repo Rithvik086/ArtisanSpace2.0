@@ -11,6 +11,7 @@ import CustomerHeader from "@/components/customer/CustomerHeader";
 import CustomerFooter from "@/components/customer/CustomerFooter";
 import StoreCard from "@/components/customer/StoreCard";
 import api from "@/lib/axios";
+import { useToast } from "@/components/ui/ToastProvider";
 
 interface Product {
   _id: string;
@@ -44,6 +45,7 @@ const Store: React.FC = () => {
     totalPages: 1,
     totalProducts: 0,
   });
+  const { showToast } = useToast();
 
   // Available filter options
   const categories = [
@@ -112,11 +114,15 @@ const Store: React.FC = () => {
 
   const handleAddToCart = async (productId: string) => {
     try {
-      await api.post("/cart", { productId, quantity: 1 });
-      // Ideally use a toast notification here
-      // toast.success("Added to cart!");
+      const response = await api.post(`/cart?productId=${productId}`);
+      if (response.data.success) {
+        showToast("Product added to cart!", "success");
+      } else {
+        showToast(response.data.message || "Failed to add to cart", "error");
+      }
     } catch (error) {
       console.error("Error adding to cart:", error);
+      showToast("Failed to add to cart", "error");
     }
   };
 
