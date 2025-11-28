@@ -5,6 +5,7 @@ import { Toaster, toast } from "react-hot-toast";
 import { TicketCard } from "@/components/support/TicketCard";
 import type { Ticket } from "../types/ticket";
 import { AlertTriangle, RefreshCw } from "lucide-react";
+import Loader from "@/components/ui/Loader";
 
 // --- MOCK DATA (Replace with your actual API call)
 const mockTickets: Ticket[] = [
@@ -16,7 +17,8 @@ const mockTickets: Ticket[] = [
     username: "ArtisanCrafts",
     role: "Artisan",
     email: "artisan@example.com",
-    description: "I'm trying to upload a new product image, but it keeps failing with a '500 Server Error'. Please help.",
+    description:
+      "I'm trying to upload a new product image, but it keeps failing with a '500 Server Error'. Please help.",
     status: "open",
     priority: "high",
     createdAt: "2025-11-02T10:30:00.000Z",
@@ -30,7 +32,8 @@ const mockTickets: Ticket[] = [
     username: "CustomerPriya",
     role: "Customer",
     email: "priya@example.com",
-    description: "My order #ORD-123 shows as paid, but the artisan says they haven't received the payment.",
+    description:
+      "My order #ORD-123 shows as paid, but the artisan says they haven't received the payment.",
     status: "in_progress",
     priority: "high",
     createdAt: "2025-11-01T14:45:00.000Z",
@@ -44,7 +47,8 @@ const mockTickets: Ticket[] = [
     username: "WoodWorkerIndia",
     role: "Artisan",
     email: "woodwork@example.com",
-    description: "A customer requested a custom order, but I need to ask them a few more questions. How do I contact them?",
+    description:
+      "A customer requested a custom order, but I need to ask them a few more questions. How do I contact them?",
     status: "open",
     priority: "medium",
     createdAt: "2025-11-01T09:15:00.000Z",
@@ -73,11 +77,12 @@ export default function SupportTicketsPage() {
       //   throw new Error(data.error || 'Failed to fetch tickets');
       // }
       // setTickets(data.tickets || []);
-      
+
       // Using mock data
       setTickets(mockTickets);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load support tickets';
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to load support tickets";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -92,7 +97,7 @@ export default function SupportTicketsPage() {
 
   const handleResolveTicket = async (ticketId: string) => {
     if (!ticketId) {
-      toast.error('Invalid ticket ID');
+      toast.error("Invalid ticket ID");
       return;
     }
 
@@ -105,33 +110,34 @@ export default function SupportTicketsPage() {
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify({ status: 'resolved' }),
       // });
-      
+
       // const data: TicketResponse = await response.json();
       // if (!response.ok || !data.success) {
       //   throw new Error(data.error || 'Failed to update ticket status');
       // }
 
       // Simulate API call with mock data
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       // Optimistically update the ticket status
-      setTickets(prevTickets => 
-        prevTickets.map(ticket => 
-          ticket._id === ticketId 
-            ? { 
-                ...ticket, 
-                status: 'resolved', 
+      setTickets((prevTickets) =>
+        prevTickets.map((ticket) =>
+          ticket._id === ticketId
+            ? {
+                ...ticket,
+                status: "resolved",
                 updatedAt: new Date().toISOString(),
-                resolvedAt: new Date().toISOString()
-              } 
+                resolvedAt: new Date().toISOString(),
+              }
             : ticket
         )
       );
-      
-      toast.success('Ticket marked as resolved');
+
+      toast.success("Ticket marked as resolved");
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to resolve ticket';
-      console.error('Error resolving ticket:', err);
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to resolve ticket";
+      console.error("Error resolving ticket:", err);
       toast.error(errorMessage);
     } finally {
       setResolvingId(null);
@@ -146,7 +152,7 @@ export default function SupportTicketsPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-t-4 border-gray-200 rounded-full animate-spin border-t-[#6B4F3A] mx-auto"></div>
+          <Loader />
           <p className="mt-4 text-gray-600">Loading support tickets...</p>
         </div>
       </div>
@@ -159,7 +165,9 @@ export default function SupportTicketsPage() {
       <main className="container mx-auto p-4 md:p-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#4F3824]">Support Tickets</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#4F3824]">
+              Support Tickets
+            </h1>
             <p className="text-sm sm:text-base text-neutral-600">
               Manage all support requests from your dashboard.
             </p>
@@ -182,7 +190,7 @@ export default function SupportTicketsPage() {
             )}
           </button>
         </div>
-        
+
         {error && (
           <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
             <p>{error}</p>
@@ -191,7 +199,7 @@ export default function SupportTicketsPage() {
 
         {tickets.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tickets.map(ticket => (
+            {tickets.map((ticket) => (
               <TicketCard
                 key={ticket._id}
                 ticket={ticket}

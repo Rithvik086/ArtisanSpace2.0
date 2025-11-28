@@ -9,6 +9,7 @@ import {
   DeleteModal,
 } from "./components/ModalComponents";
 import { useAppContext } from "./AppContext";
+import Loader from "../components/ui/Loader";
 
 // Lazy load big pages
 const DashboardPage = lazy(() => import("./DashboardPage"));
@@ -47,7 +48,13 @@ export default function AdminApp(): React.ReactElement {
       <Header />
       <main className="grow p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense
+            fallback={
+              <div className="flex justify-center items-center h-64">
+                <Loader />
+              </div>
+            }
+          >
             <Routes>
               <Route
                 path="/"
