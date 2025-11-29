@@ -1,5 +1,4 @@
-import CustomerHeader from "@/components/customer/CustomerHeader";
-import CustomerFooter from "@/components/customer/CustomerFooter";
+// Header/Footer provided by `CustomerLayout`
 import StaticThreeView from "@/components/StaticThreeView";
 import { TypingAnimation } from "@/components/ui/typing-animation";
 import { useSelector } from "react-redux";
@@ -29,9 +28,7 @@ const CustomerHome = () => {
   }, []);
 
   return (
-    <>
-      <CustomerHeader />
-      <section className="pt-20 md:pt-0 md:h-screen grid grid-cols-1 md:grid-cols-2 bg-linear-to-r from-[#d4b996] to-[#5c4033] w-full">
+    <section className="pt-20 md:pt-0 md:h-screen grid grid-cols-1 md:grid-cols-2 bg-linear-to-r from-[#d4b996] to-[#5c4033] w-full">
         {/* --- LEFT SIDE --- */}
         <div className="h-full flex flex-col justify-center p-8 sm:p-16 md:pl-24 md:pr-12 text-center md:text-left">
           <div className="mt-10">
@@ -63,8 +60,6 @@ const CustomerHome = () => {
           <StaticThreeView />
         </div>
       </section>
-      <CustomerFooter />
-    </>
   );
 };
 

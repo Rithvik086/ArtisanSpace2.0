@@ -61,7 +61,7 @@ export default function CustomerHeader() {
               Welcome, {user?.name || user?.username}
             </span>
             <button
-              onClick={() => navigate("/settings")}
+              onClick={() => navigate("/customer/settings")}
               className="text-amber-900 hover:text-amber-950 p-2 rounded-md transition-colors"
               title="Settings"
             >
@@ -103,7 +103,7 @@ export default function CustomerHeader() {
             <div className="border-t pt-2 mt-2">
               <button
                 onClick={() => {
-                  navigate("/settings");
+                  navigate("/customer/settings");
                   setIsOpen(false);
                 }}
                 className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-amber-900 hover:text-amber-950 hover:bg-amber-100"

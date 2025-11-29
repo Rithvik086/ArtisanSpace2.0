@@ -171,25 +171,23 @@ const AddressSettings: React.FC<AddressSettingsProps> = ({ formData, handleChang
       <div className="flex rounded-lg bg-amber-100 p-1 mb-8 max-w-xs border border-amber-300">
         <button
           onClick={() => setAddressType('home')}
-          className={`w-1/2 py-3 px-4 rounded-lg font-semibold transition ${
-            addressType === 'home' 
-              ? 'bg-amber-600 text-white shadow-lg' 
-              : 'text-amber-700 hover:bg-amber-200'
-          }`}
+          className={cn(
+            'w-1/2 rounded-lg font-semibold transition flex items-center justify-center space-x-2 h-14',
+            addressType === 'home' ? craftStyles.button.primary : craftStyles.button.ghost
+          )}
         >
-          <Home className="h-5 w-5 inline mr-2" />
-          Home
+          <Home className="h-5 w-5" />
+          <span className="truncate">Home</span>
         </button>
         <button
           onClick={() => setAddressType('work')}
-          className={`w-1/2 py-3 px-4 rounded-lg font-semibold transition ${
-            addressType === 'work' 
-              ? 'bg-amber-600 text-white shadow-lg' 
-              : 'text-amber-700 hover:bg-amber-200'
-          }`}
+          className={cn(
+            'w-1/2 rounded-lg font-semibold transition flex items-center justify-center space-x-2 h-14',
+            addressType === 'work' ? craftStyles.button.primary : craftStyles.button.ghost
+          )}
         >
-          <Briefcase className="h-5 w-5 inline mr-2" />
-          Work
+          <Briefcase className="h-5 w-5" />
+          <span className="truncate">Work</span>
         </button>
       </div>
 
@@ -406,27 +404,30 @@ export default function App(): React.ReactElement {
   // Try to hydrate from backend demo endpoint if available. If backend isn't running
   // the fetch will fail and we keep the local defaults above so the page still renders.
   useEffect(() => {
-    fetch('/api/settings')
+    // Fetch settings from backend API (mounted at /api/v1)
+    fetch('/api/v1/settings', { credentials: 'include' })
       .then((res) => {
         if (!res.ok) throw new Error('no settings');
         return res.json();
       })
       .then((data) => {
         if (!data) return;
+
+        // Map backend response to local form state
         setFormData((prev) => ({
           ...prev,
           name: data.profile?.name ?? prev.name,
           username: data.profile?.username ?? prev.username,
           email: data.profile?.email ?? prev.email,
           mobile: data.profile?.mobile ?? prev.mobile,
-          homeStreet: data.addresses?.[0]?.street ?? prev.homeStreet,
-          homeCity: data.addresses?.[0]?.city ?? prev.homeCity,
-          homeState: data.addresses?.[0]?.state ?? prev.homeState,
-          homeZip: data.addresses?.[0]?.zip ?? prev.homeZip,
-          workStreet: data.addresses?.[1]?.street ?? prev.workStreet,
-          workCity: data.addresses?.[1]?.city ?? prev.workCity,
-          workState: data.addresses?.[1]?.state ?? prev.workState,
-          workZip: data.addresses?.[1]?.zip ?? prev.workZip,
+          homeStreet: data.addresses?.find((a: any) => a.type === 'home')?.street ?? data.addresses?.[0]?.street ?? prev.homeStreet,
+          homeCity: data.addresses?.find((a: any) => a.type === 'home')?.city ?? data.addresses?.[0]?.city ?? prev.homeCity,
+          homeState: data.addresses?.find((a: any) => a.type === 'home')?.state ?? data.addresses?.[0]?.state ?? prev.homeState,
+          homeZip: data.addresses?.find((a: any) => a.type === 'home')?.zip ?? data.addresses?.[0]?.zip ?? prev.homeZip,
+          workStreet: data.addresses?.find((a: any) => a.type === 'work')?.street ?? data.addresses?.[1]?.street ?? prev.workStreet,
+          workCity: data.addresses?.find((a: any) => a.type === 'work')?.city ?? data.addresses?.[1]?.city ?? prev.workCity,
+          workState: data.addresses?.find((a: any) => a.type === 'work')?.state ?? data.addresses?.[1]?.state ?? prev.workState,
+          workZip: data.addresses?.find((a: any) => a.type === 'work')?.zip ?? data.addresses?.[1]?.zip ?? prev.workZip,
         }));
 
         setNotifications((prev) => ({ ...prev, ...data.notifications }));
@@ -470,14 +471,13 @@ export default function App(): React.ReactElement {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center w-full min-w-max md:min-w-full space-x-3 p-4 rounded-lg font-semibold text-left transition-all duration-200 ${
-                    activeTab === tab.id
-                      ? 'bg-amber-600 text-white shadow-lg border border-amber-700'
-                      : 'text-amber-800 hover:bg-amber-200 hover:text-amber-900 border border-transparent'
-                  }`}
+                  className={cn(
+                    'flex items-center w-full md:min-w-full space-x-3 rounded-lg h-14 font-semibold text-left transition-all duration-200',
+                    activeTab === tab.id ? craftStyles.button.primary : craftStyles.button.ghost
+                  )}
                 >
                   <tab.icon className="h-5 w-5" />
-                  <span>{tab.label}</span>
+                  <span className="truncate">{tab.label}</span>
                 </button>
               ))}
             </nav>

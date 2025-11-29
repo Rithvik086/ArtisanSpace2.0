@@ -61,9 +61,9 @@ export default function AdminApp(): React.ReactElement {
                 path="/"
                 element={<DashboardPage setModalState={setModalState} />}
               />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/moderation" element={<ContentModerationPage />} />
-              <Route path="/support" element={<SupportTicketPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="moderation" element={<ContentModerationPage />} />
+              <Route path="support" element={<SupportTicketPage />} />
             </Routes>
           </Suspense>
         </div>
