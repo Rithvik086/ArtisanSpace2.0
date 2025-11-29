@@ -495,6 +495,32 @@ const checkEmail = async (req: Request, res: Response) => {
   }
 };
 
+const me = async (req: Request, res: Response) => {
+  try {
+    const user = await getUserById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      user: {
+        id: user._id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        mobile_no: user.mobile_no,
+        address: user.address,
+        role: user.role,
+        isVerified: user.isVerified,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    });
+  } catch (error) {
+    throw new Error("Error fetching user: " + (error as Error).message);
+  }
+};
+
 export {
   signup,
   login,
@@ -508,4 +534,5 @@ export {
   addUserHandler,
   checkUsername,
   checkEmail,
+  me,
 };

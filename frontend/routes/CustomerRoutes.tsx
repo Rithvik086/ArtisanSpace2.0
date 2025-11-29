@@ -1,6 +1,12 @@
 // CustomerRoutes.jsx
-import Store from "../src/pages/customer/Store";
+import { lazy } from "react";
 import CustomerHome from "../src/pages/customer/CustomerHome";
+
+const Store = lazy(() => import("../src/pages/customer/Store"));
+const Cart = lazy(() => import("../src/pages/customer/Cart"));
+const ProductDetails = lazy(
+  () => import("../src/pages/customer/ProductDetails")
+);
 
 export const CustomerRoutes = [
   {
@@ -12,8 +18,12 @@ export const CustomerRoutes = [
     element: <Store />,
   },
   {
+    path: "product/:id",
+    element: <ProductDetails />,
+  },
+  {
     path: "cart",
-    element: <div>Cart Page - Coming Soon</div>,
+    element: <Cart />,
   },
   {
     path: "workshop",

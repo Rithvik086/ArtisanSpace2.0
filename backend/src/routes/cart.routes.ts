@@ -1,8 +1,11 @@
 import express from "express";
 import { addToCart, editCart, getCart } from "../controller/cartController.js";
 import authorizerole from "../middleware/roleMiddleware.js";
+import { verifytoken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+router.use(verifytoken);
 
 router.get(
   "/",

@@ -30,14 +30,20 @@ export const getCart = async (req: Request, res: Response) => {
 
 export const addToCart = async (req: Request, res: Response) => {
   const userId = req.user.id;
-  const { productId } = req.query;
+  const { productId, quantity } = req.query;
   if (!userId || !productId) {
     return res
       .status(400)
       .json({ success: false, message: "userId and productId are required" });
   }
+  const qty = quantity ? parseInt(quantity as string) : 1;
+  if (isNaN(qty) || qty < 1) {
+    return res
+      .status(400)
+      .json({ success: false, message: "quantity must be a positive number" });
+  }
   try {
-    res.status(200).json(await addItem(userId as string, productId as string));
+    res.status(200).json(await addItem(userId as string, productId as string, qty));
   } catch (error) {
     throw new Error("Error processing request: " + (error as Error).message);
   }

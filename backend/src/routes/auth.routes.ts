@@ -13,6 +13,7 @@ import {
   addUserHandler,
   checkUsername,
   checkEmail,
+  me,
 } from "../controller/authController.js";
 import authorizerole from "../middleware/roleMiddleware.js";
 import { verifytoken } from "../middleware/authMiddleware.js";
@@ -30,6 +31,8 @@ router.post("/reset-password", resetPassword);
 
 // Authenticated routes
 router.use(verifytoken);
+
+router.get("/me", me);
 
 // Authrorized routes
 router.post(

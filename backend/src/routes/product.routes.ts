@@ -4,20 +4,30 @@ import {
   deleteProduct,
   editProduct,
   getAllProducts,
+  getProductById,
   getProducts,
   getUserProducts,
   productsModeration,
 } from "../controller/productController.js";
 import upload from "../middleware/multer.js";
 import authorizerole from "../middleware/roleMiddleware.js";
+import { verifytoken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+router.use(verifytoken);
 
 // Public routes - accessible by all authenticated users
 router.get(
   "/approved",
   authorizerole("customer", "artisan", "manager", "admin"),
   getProducts
+);
+
+router.get(
+  "/:id",
+  authorizerole("customer", "artisan", "manager", "admin"),
+  getProductById
 );
 
 // Artisan+ routes
