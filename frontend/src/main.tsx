@@ -16,6 +16,7 @@ import CustomRequestsPage from "./artisan/CustomRequestsPage";
 import ArtisanLayout from "./artisan/ArtisanLayout";
 import ToastProvider from "./components/ui/ToastProvider";
 import { LoadingProvider } from "./components/ui/LoadingProvider";
+import Loader from "./components/ui/Loader";
 
 // Lazy load big components
 const App = lazy(() => import("./App.tsx"));
@@ -92,7 +93,13 @@ const AppWrapper = () => {
   return (
     <LoadingProvider>
       <ToastProvider>
-        <Suspense fallback={null}>
+        <Suspense
+          fallback={
+            <div className="flex justify-center items-center min-h-screen">
+              <Loader />
+            </div>
+          }
+        >
           <RouterProvider router={router} />
         </Suspense>
       </ToastProvider>

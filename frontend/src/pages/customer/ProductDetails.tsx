@@ -11,6 +11,7 @@ import {
 import axiosInstance from "../../lib/axios";
 import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/ToastProvider";
+import Loader from "@/components/ui/Loader";
 
 interface Product {
   _id: string;
@@ -87,7 +88,7 @@ const ProductDetails: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-amber-50">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-amber-800"></div>
+        <Loader />
       </div>
     );
   }

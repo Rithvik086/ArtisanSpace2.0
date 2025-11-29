@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
 import type { RootState } from "../../redux/store";
+import Loader from "../ui/Loader";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -17,7 +18,7 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
     // Show loading spinner or placeholder
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-amber-950"></div>
+        <Loader />
       </div>
     );
   }
