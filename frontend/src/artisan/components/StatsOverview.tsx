@@ -16,7 +16,7 @@ export default function StatsOverview({ total, active, monthValue = '—' }: Sta
             <p className="text-sm font-medium text-amber-700 uppercase tracking-wide">Total Creations</p>
             <p className="text-3xl font-bold text-amber-900 mt-2">{total}</p>
           </div>
-          <Package className="w-12 h-12 text-amber-600" />
+          <Package className="w-12 h-12 text-amber-900" />
         </div>
       </div>
 
@@ -26,7 +26,7 @@ export default function StatsOverview({ total, active, monthValue = '—' }: Sta
             <p className="text-sm font-medium text-amber-700 uppercase tracking-wide">Active Listings</p>
             <p className="text-3xl font-bold text-amber-900 mt-2">{active}</p>
           </div>
-          <Eye className="w-12 h-12 text-amber-600" />
+          <Eye className="w-12 h-12 text-amber-900" />
         </div>
       </div>
 
@@ -36,7 +36,7 @@ export default function StatsOverview({ total, active, monthValue = '—' }: Sta
             <p className="text-sm font-medium text-amber-700 uppercase tracking-wide">This Month</p>
             <p className="text-3xl font-bold text-amber-900 mt-2">{monthValue}</p>
           </div>
-          <TrendingUp className="w-12 h-12 text-amber-600" />
+          <TrendingUp className="w-12 h-12 text-amber-900" />
         </div>
       </div>
     </section>

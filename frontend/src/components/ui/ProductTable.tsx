@@ -39,7 +39,7 @@ export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) 
     return (
       <div className="text-center py-12">
         <div className="mx-auto w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mb-4">
-          <Eye className="w-12 h-12 text-amber-600" />
+          <Eye className="w-12 h-12 text-amber-800" />
         </div>
         <h3 className="text-xl font-semibold text-amber-900 mb-2">No creations yet</h3>
         <p className="text-amber-700">Start crafting your first listing to showcase your talents!</p>
