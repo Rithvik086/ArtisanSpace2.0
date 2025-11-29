@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Header from "./components/AdminHeader";
 import ContentModerationPage from "./ContentModerationPage";
 import SupportTicketPage from "./SupportTicketPage";
+const SettingsPage = lazy(() => import("../SettingsPage"));
 import {
   AddUserModal,
   AddProductModal,
@@ -60,6 +61,7 @@ export default function AdminApp(): React.ReactElement {
                 path="/"
                 element={<DashboardPage setModalState={setModalState} />}
               />
+              <Route path="/settings" element={<SettingsPage />} />
               <Route path="/moderation" element={<ContentModerationPage />} />
               <Route path="/support" element={<SupportTicketPage />} />
             </Routes>

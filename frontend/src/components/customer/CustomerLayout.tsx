@@ -1,10 +1,15 @@
 import { Outlet } from 'react-router-dom';
+import CustomerHeader from './CustomerHeader';
+import CustomerFooter from './CustomerFooter';
 
 const CustomerLayout = () => {
   return (
-    <div>
-      {/* Add any customer-specific layout here, like navbar or sidebar */}
-      <Outlet />
+    <div className="min-h-screen flex flex-col">
+      <CustomerHeader />
+      <main className="grow">
+        <Outlet />
+      </main>
+      <CustomerFooter />
     </div>
   );
 };

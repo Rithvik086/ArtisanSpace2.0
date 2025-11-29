@@ -7,6 +7,7 @@ const Cart = lazy(() => import("../src/pages/customer/Cart"));
 const ProductDetails = lazy(
   () => import("../src/pages/customer/ProductDetails")
 );
+const SettingsPage = lazy(() => import("../src/SettingsPage"));
 
 export const CustomerRoutes = [
   {
@@ -32,5 +33,9 @@ export const CustomerRoutes = [
   {
     path: "custom-order",
     element: <div>Custom Order Page - Coming Soon</div>,
+  },
+  {
+    path: "settings",
+    element: <SettingsPage />,
   },
 ];

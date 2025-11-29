@@ -25,11 +25,20 @@ const Login = lazy(() => import("./components/auth/Login"));
 const ArtisanDashboard = lazy(() => import("./artisan/Dashboardpage"));
 const WorkshopsPage = lazy(() => import("./artisan/Workshopspage"));
 const ListingsPage = lazy(() => import("./artisan/listingspage"));
+const SettingsPage = lazy(() => import("./SettingsPage"));
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
+  },
+  {
+    path: "/settings",
+    element: (
+      <ProtectedRoute allowedRoles={["admin", "manager", "artisan", "customer"]}>
+        <SettingsPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/signup",
@@ -78,6 +87,7 @@ const router = createBrowserRouter([
       // Removed 'add-listing' route. Use '/artisan/listings' instead.
       { path: "workshops", element: <WorkshopsPage /> },
       { path: "listings", element: <ListingsPage /> },
+      { path: "settings", element: <SettingsPage /> },
       { path: "customrequests", element: <CustomRequestsPage /> },
     ],
   },
