@@ -1,6 +1,6 @@
 import React, { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
-import Header from "./components/Header";
+import Header from "./components/AdminHeader";
 import ContentModerationPage from "./ContentModerationPage";
 import SupportTicketPage from "./SupportTicketPage";
 import {
