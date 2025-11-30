@@ -6,6 +6,7 @@ export const getAvailableOrdersService = async () => {
     const orders = await Order.find({
       status: { $in: ["pending", "shipped"] },
       deliveryPersonId: null,
+      isValid: true,
     }).populate("userId", "name address mobile_no");
     return { success: true, orders };
   } catch (error) {
@@ -18,7 +19,7 @@ export const acceptOrderService = async (
   deliveryPersonId: string
 ) => {
   try {
-    const order = await Order.findById(orderId);
+    const order = await Order.findOne({ _id: orderId, isValid: true });
     if (!order) {
       return { success: false, message: "Order not found" };
     }
@@ -43,7 +44,7 @@ export const completeOrderService = async (
   deliveryPersonId: string
 ) => {
   try {
-    const order = await Order.findById(orderId);
+    const order = await Order.findOne({ _id: orderId, isValid: true });
     if (!order) {
       return { success: false, message: "Order not found" };
     }
@@ -66,6 +67,7 @@ export const getMyOrdersService = async (deliveryPersonId: string) => {
   try {
     const orders = await Order.find({
       deliveryPersonId: deliveryPersonId,
+      isValid: true,
     }).populate("userId", "name address mobile_no");
     return { success: true, orders };
   } catch (error) {

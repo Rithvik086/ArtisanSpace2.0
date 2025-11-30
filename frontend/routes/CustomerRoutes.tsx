@@ -4,6 +4,7 @@ import CustomerHome from "../src/pages/customer/CustomerHome";
 
 const Store = lazy(() => import("../src/pages/customer/Store"));
 const Cart = lazy(() => import("../src/pages/customer/Cart"));
+const Checkout = lazy(() => import("../src/pages/customer/Checkout"));
 const ProductDetails = lazy(
   () => import("../src/pages/customer/ProductDetails")
 );
@@ -24,6 +25,10 @@ export const CustomerRoutes = [
   {
     path: "cart",
     element: <Cart />,
+  },
+  {
+    path: "checkout",
+    element: <Checkout />,
   },
   {
     path: "workshop",

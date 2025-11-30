@@ -21,7 +21,7 @@ const cartSchema = new mongoose.Schema({
         default: 1,
         validate: {
           validator: Number.isInteger,
-          mesage: "{VALUE} is not a valid number",
+          message: "{VALUE} is not a valid number",
         },
       },
     },

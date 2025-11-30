@@ -48,7 +48,8 @@ export async function placeUserOrder(userId: string) {
       const response = await decreaseProductQuantity(
         product._id,
         newStock,
-        session
+        session,
+        true // Allow zero quantity for order processing
       );
 
       if (!response.success) {

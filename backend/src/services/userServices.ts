@@ -59,7 +59,7 @@ export async function addUser(
     if (existingUser) {
       throw new Error("Username or email already exists.");
     }
-   
+
     const user = new User({
       username,
       name,
@@ -90,6 +90,7 @@ export async function findUserByEmailOrUsername(
   try {
     const user = await User.find({
       $or: [{ username: username }, { email: email }],
+      isValid: true,
     });
 
     if (!user || user.length === 0) {
@@ -120,11 +121,11 @@ export async function findUserByUserName(username: string) {
 
 export async function findUserByEmail(email: string) {
   try {
-    const user = await User.findOne({ email, isValid: true });
-
     if (!email) {
       return null;
     }
+
+    const user = await User.findOne({ email, isValid: true });
     return user;
   } catch (e) {
     throw new Error("Error finding user by email: " + (e as Error).message);

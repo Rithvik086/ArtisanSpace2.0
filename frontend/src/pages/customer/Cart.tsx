@@ -40,7 +40,15 @@ const Cart: React.FC = () => {
   const [pendingUpdates, setPendingUpdates] = useState<{
     [key: string]: { action: string; amount?: number };
   }>({});
+  const [notes, setNotes] = useState<{
+    [key: string]: string;
+  }>({});
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Keep a ref to the latest pending updates so the debounced sender always
+  // reads the freshest data (avoids React state closure staleness).
+  const pendingUpdatesRef = useRef<{
+    [key: string]: { action: string; amount?: number };
+  }>({});
 
   useEffect(() => {
     if (user) {
@@ -69,27 +77,24 @@ const Cart: React.FC = () => {
     }
   };
 
-  const debouncedUpdate = useCallback(async () => {
-    if (Object.keys(pendingUpdates).length === 0) return;
+  // Process pending updates from the ref (always reads freshest data).
+  const processPendingUpdates = useCallback(async () => {
+    const toSend = pendingUpdatesRef.current || {};
+    if (Object.keys(toSend).length === 0) return;
 
     try {
-      // Process all pending updates
-      const updatePromises = Object.entries(pendingUpdates).map(
-        ([productId, update]) =>
-          axios.put(
-            "/cart",
-            {},
-            {
-              params: {
-                productId,
-                action: update.action,
-                amount: update.amount,
-              },
-            }
-          )
+      const updatePromises = Object.entries(toSend).map(([productId, update]) =>
+        axios.put("/cart", {
+          productId,
+          action: update.action,
+          amount: update.amount,
+        })
       );
 
       await Promise.all(updatePromises);
+
+      // Clear both ref and state after successful send
+      pendingUpdatesRef.current = {};
       setPendingUpdates({});
 
       // Refresh cart data
@@ -97,7 +102,6 @@ const Cart: React.FC = () => {
       setCart(response.data.cart);
       setTotal(response.data.amount);
 
-      // Show success toast only once after batch update
       showToast("Cart updated successfully!", "success");
     } catch (error) {
       console.error("Error updating cart:", error);
@@ -105,10 +109,23 @@ const Cart: React.FC = () => {
       // Revert optimistic updates by refetching
       fetchCart();
     }
+  }, [fetchCart, showToast]);
+
+  // Keep state ref in sync if other code modifies `pendingUpdates`.
+  useEffect(() => {
+    pendingUpdatesRef.current = pendingUpdates;
   }, [pendingUpdates]);
 
-  const updateQuantity = (productId: string, newQuantity: number) => {
-    if (newQuantity < 1) return;
+  const updateQuantity = (
+    productId: string,
+    newQuantity: number,
+    maxStock: number
+  ) => {
+    const cappedQuantity = Math.min(newQuantity, maxStock);
+    if (cappedQuantity !== newQuantity) {
+      showToast(`Maximum available stock is ${maxStock}`, "warning");
+      newQuantity = cappedQuantity;
+    }
 
     // Optimistic update
     setCart((prevCart) =>
@@ -127,21 +144,24 @@ const Cart: React.FC = () => {
       setTotal((prevTotal) => prevTotal + difference);
     }
 
-    // Queue the update
+    // Queue the update (state for UI + ref for sender)
     setPendingUpdates((prev) => ({
       ...prev,
       [productId]: { action: "none", amount: newQuantity },
     }));
+    // Update ref synchronously so the scheduled sender reads the latest
+    pendingUpdatesRef.current = {
+      ...pendingUpdatesRef.current,
+      [productId]: { action: "none", amount: newQuantity },
+    };
 
-    // Clear existing timeout and set new one
+    // Clear existing timeout and set new one to process from the ref
     if (updateTimeoutRef.current) {
       clearTimeout(updateTimeoutRef.current);
     }
-    updateTimeoutRef.current = setTimeout(debouncedUpdate, 800);
-  };
-
-  const handleInputChange = (productId: string, value: string) => {
-    setEditingQuantities((prev) => ({ ...prev, [productId]: value }));
+    updateTimeoutRef.current = setTimeout(() => {
+      processPendingUpdates();
+    }, 800);
   };
 
   const handleQuantityBlur = (productId: string, maxStock: number) => {
@@ -155,13 +175,12 @@ const Cart: React.FC = () => {
       setEditingQuantities((prev) => ({ ...prev, [productId]: undefined }));
       return;
     }
-    if (num > maxStock) {
-      showToast(`Maximum available stock is ${maxStock}`, "warning");
-      updateQuantity(productId, maxStock);
-    } else {
-      updateQuantity(productId, num);
-    }
+    updateQuantity(productId, num, maxStock);
     setEditingQuantities((prev) => ({ ...prev, [productId]: undefined }));
+  };
+
+  const handleInputChange = (productId: string, value: string) => {
+    setEditingQuantities((prev) => ({ ...prev, [productId]: value }));
   };
 
   const incrementQuantity = (
@@ -169,14 +188,19 @@ const Cart: React.FC = () => {
     current: number,
     maxStock: number
   ) => {
-    if (current < maxStock) {
-      updateQuantity(productId, current + 1);
+    const newQty = Math.min(current + 1, maxStock);
+    if (newQty > current) {
+      updateQuantity(productId, newQty, maxStock);
     }
   };
 
-  const decrementQuantity = (productId: string, current: number) => {
+  const decrementQuantity = (
+    productId: string,
+    current: number,
+    maxStock: number
+  ) => {
     if (current > 1) {
-      updateQuantity(productId, current - 1);
+      updateQuantity(productId, current - 1, maxStock);
     }
   };
 
@@ -197,13 +221,10 @@ const Cart: React.FC = () => {
     }
 
     try {
-      await axios.put(
-        "/cart",
-        {},
-        {
-          params: { productId, action: "rem" },
-        }
-      );
+      await axios.put("/cart", {
+        productId,
+        action: "rem",
+      });
       showToast("Product removed from cart", "success");
     } catch (error) {
       console.error("Error removing product:", error);
@@ -307,7 +328,8 @@ const Cart: React.FC = () => {
                               onClick={() =>
                                 decrementQuantity(
                                   item.productId._id,
-                                  item.quantity
+                                  item.quantity,
+                                  item.productId.quantity
                                 )
                               }
                               className="p-2 rounded-md hover:bg-white hover:shadow-sm text-amber-800 transition-all disabled:opacity-50"
@@ -369,6 +391,13 @@ const Cart: React.FC = () => {
                           </label>
                           <textarea
                             placeholder="Add notes..."
+                            value={notes[item.productId._id] || ""}
+                            onChange={(e) =>
+                              setNotes((prev) => ({
+                                ...prev,
+                                [item.productId._id]: e.target.value,
+                              }))
+                            }
                             className="w-full text-sm bg-white border border-amber-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 transition-all resize-none placeholder:text-amber-300 text-amber-900"
                             rows={2}
                           />
@@ -408,10 +437,13 @@ const Cart: React.FC = () => {
                         </span>
                       </div>
 
-                      <button className="w-full bg-amber-900 text-white py-4 px-6 rounded-xl font-bold hover:bg-amber-800 transition-all duration-200 shadow-lg shadow-amber-900/20 hover:shadow-amber-900/30 flex items-center justify-center gap-2 group">
+                      <Link
+                        to="/customer/checkout"
+                        className="w-full bg-amber-900 text-white py-4 px-6 rounded-xl font-bold hover:bg-amber-800 transition-all duration-200 shadow-lg shadow-amber-900/20 hover:shadow-amber-900/30 flex items-center justify-center gap-2 group"
+                      >
                         <CreditCard className="w-5 h-5 group-hover:scale-110 transition-transform" />
                         Proceed to Checkout
-                      </button>
+                      </Link>
 
                       <div className="mt-6 text-center">
                         <Link
