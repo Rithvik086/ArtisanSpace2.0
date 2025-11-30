@@ -1,12 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Search,
-  Filter,
-  ChevronDown,
-  SlidersHorizontal,
-  Check,
-} from "lucide-react";
+import { Search, Filter, SlidersHorizontal, Check } from "lucide-react";
 import CustomerHeader from "@/components/customer/CustomerHeader";
 import CustomerFooter from "@/components/customer/CustomerFooter";
 import StoreCard from "@/components/customer/StoreCard";
@@ -39,7 +33,6 @@ const Store: React.FC = () => {
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [sortBy, setSortBy] = useState("newest");
   const [pagination, setPagination] = useState<PaginationInfo>({
     currentPage: 1,
     totalPages: 1,
@@ -88,7 +81,6 @@ const Store: React.FC = () => {
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: "12",
-        sort: sortBy,
       });
 
       if (categoryParam) {
@@ -111,7 +103,6 @@ const Store: React.FC = () => {
     currentPage,
     selectedCategories,
     selectedMaterials,
-    sortBy,
     showLoading,
     hideLoading,
   ]);
@@ -122,7 +113,7 @@ const Store: React.FC = () => {
 
   const handleAddToCart = async (productId: string) => {
     try {
-      const response = await api.post(`/cart?productId=${productId}`);
+      const response = await api.post(`/cart`, { productId });
       if (response.data.success) {
         showToast("Product added to cart!", "success");
       } else {
@@ -365,26 +356,6 @@ const Store: React.FC = () => {
 
           {/* Product Grid */}
           <div className="flex-1">
-            {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row justify-end items-center mb-8 bg-white p-4 rounded-xl shadow-sm border border-stone-100">
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-stone-500">Sort by:</span>
-                <div className="relative">
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="appearance-none bg-stone-50 border border-stone-200 text-stone-700 py-2 pl-4 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 cursor-pointer text-sm font-medium"
-                  >
-                    <option value="newest">Newest Arrivals</option>
-                    <option value="price-low">Price: Low to High</option>
-                    <option value="price-high">Price: High to Low</option>
-                    <option value="popular">Most Popular</option>
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 pointer-events-none" />
-                </div>
-              </div>
-            </div>
-
             {filteredProducts.length === 0 ? (
               <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-stone-300">
                 <div className="bg-stone-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">

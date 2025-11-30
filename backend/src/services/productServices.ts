@@ -24,8 +24,8 @@ export async function addProductService(
 
     const quantityNum =
       typeof quantity === "string" ? parseInt(quantity, 10) : quantity;
-    if (!Number.isInteger(quantityNum) || quantityNum < 0) {
-      throw new Error("Invalid quantity");
+    if (!Number.isInteger(quantityNum) || quantityNum <= 0) {
+      throw new Error("Quantity must be a positive integer greater than 0");
     }
 
     // Round prices to 2 decimals and keep as numbers
@@ -345,7 +345,8 @@ export async function getApprovedProducts(
 export async function decreaseProductQuantity(
   productId: string,
   quantity: number,
-  session: any = null
+  session: any = null,
+  allowZero: boolean = false
 ) {
   let newSession = false;
 
@@ -368,8 +369,8 @@ export async function decreaseProductQuantity(
     if (quantity < 0) {
       throw new Error("Quantity cannot be negative");
     }
-    if (quantity === 0) {
-      throw new Error("Quantity cannot be zero");
+    if (!allowZero && quantity === 0) {
+      throw new Error("Quantity cannot be zero. Use allowZero=true for order processing.");
     }
 
     const updatedProduct = await Product.findOneAndUpdate(
@@ -416,6 +417,11 @@ export async function updateProduct(
   try {
     if (!mongoose.Types.ObjectId.isValid(productId)) {
       throw new Error("Invalid product ID");
+    }
+
+    // Validate quantity for regular product updates (must be > 0)
+    if (!Number.isInteger(quantity) || quantity <= 0) {
+      throw new Error("Quantity must be a positive integer greater than 0");
     }
 
     const updatedProduct = await Product.findOneAndUpdate(
