@@ -34,6 +34,7 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
       manager: "/manager",
       artisan: "/artisan",
       customer: "/customer",
+      delivery: "/delivery",
     };
     const redirectTo = dashboardRoutes[user.role] || "/";
     return <Navigate to={redirectTo} replace />;

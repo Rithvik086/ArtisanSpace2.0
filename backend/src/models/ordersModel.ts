@@ -6,6 +6,11 @@ const orderSchema = new mongoose.Schema({
     required: true,
     ref: "User",
   },
+  deliveryPersonId: {
+    type: Types.ObjectId,
+    ref: "User",
+    default: null,
+  },
   products: [
     {
       productId: {
@@ -39,7 +44,7 @@ const orderSchema = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    enum: ["pending", "delivered", "cancelled"],
+    enum: ["pending", "shipped", "delivered", "cancelled"],
   },
   createdAt: {
     type: String,
