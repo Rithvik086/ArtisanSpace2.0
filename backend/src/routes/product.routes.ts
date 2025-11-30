@@ -24,17 +24,24 @@ router.get(
   getProducts
 );
 
-router.get(
-  "/:id",
-  authorizerole("customer", "artisan", "manager", "admin"),
-  getProductById
-);
-
-// Artisan+ routes
+// Artisan+ routes - Must come before /:id to avoid conflicts
 router.get(
   "/my",
   authorizerole("artisan", "manager", "admin"),
   getUserProducts
+);
+
+// Manager+ routes - all products
+router.get(
+  "/all",
+  authorizerole("manager", "admin"),
+  getAllProducts
+);
+
+router.get(
+  "/:id",
+  authorizerole("customer", "artisan", "manager", "admin"),
+  getProductById
 );
 
 router.post(
@@ -58,7 +65,5 @@ router.post(
   authorizerole("manager", "admin"),
   productsModeration
 );
-
-router.get("/all", authorizerole("manager", "admin"), getAllProducts);
 
 export default router;
