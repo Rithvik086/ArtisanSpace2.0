@@ -12,7 +12,7 @@
   "dependencies": {
     "@fontsource/kranky": "^5.2.7",
     "@reduxjs/toolkit": "^2.9.1",
-    "@tailwindcss/vite": "^4.1.14",
+    "@tailwindcss/vite": "^4.1.17",
     "axios": "^1.13.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

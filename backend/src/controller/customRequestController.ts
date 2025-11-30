@@ -5,7 +5,11 @@ import {
   approveRequest,
   deleteRequest,
   getRequests,
+    getRequestsByUserId
 } from "../services/customRequestService.js";
+
+
+
 
 export const getCustomRequests = async (req: Request, res: Response) => {
   try {
@@ -32,6 +36,21 @@ export const getCustomRequests = async (req: Request, res: Response) => {
   } catch (error) {
     throw new Error("Error processing request: " + (error as Error).message);
   }
+};
+
+
+export const getUserCustomRequests = async (req: Request, res: Response) => {
+    try {
+        const userId = req.user.id;
+        const requests = await getRequestsByUserId(userId);
+
+        res.status(200).json({
+            success: true,
+            requests,
+        });
+    } catch (error) {
+        throw new Error("Error processing request: " + (error as Error).message);
+    }
 };
 
 export const reqCustomOrder = async (req: Request, res: Response) => {

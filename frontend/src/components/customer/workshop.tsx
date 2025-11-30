@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import '../../assets/customer/workshop.css';
+import CustomerFooter from "@/components/customer/CustomerFooter.tsx";
+import CustomerHeader from "@/components/customer/CustomerHeader.tsx";
 
 const titleRegex = /^[a-zA-Z0-9\s\-]{10,60}$/;
 const descriptionRegex = /^[a-zA-Z0-9\s.,'"\-!?()]{10,500}$/;
@@ -73,75 +75,51 @@ const Workshop: React.FC = () => {
 	};
 
 	return (
-		<div className="workshop-page">
-			<header className="ws-header">
-				<div className="header-container2">
-					<div className="logonav2">ArtisanSpace</div>
-					<nav className="nav2">
-						<ul className="nav2ul">
-							<li><a href="/customer">Home</a></li>
-							<li><a href="/customer/store">Store</a></li>
-							<li><a href="/customer/cart">Cart</a></li>
-							<li><a href="/customer/workshop">Workshops</a></li>
-							<li><a href="/customer/customorder">Custom Order</a></li>
-							<li className="dropdown" onClick={(e) => { e.stopPropagation(); setDropdownOpen(open => !open); }}>
-								<i className="fa-solid fa-bars fa-lg" />
-								<div className={`dropdown-menu ${dropdownOpen ? 'open' : ''}`} onClick={(e) => e.stopPropagation()}>
-									<a href="/customer/settings" className="dropdown-item settings-btn">
-										<i className="fa-solid fa-gear" />
-										<p>Settings</p>
-									</a>
-									<a href="/logout" className="dropdown-item logout-btn">
-										<i className="fa-solid fa-right-from-bracket" />
-										<p>Logout</p>
-									</a>
-								</div>
-							</li>
-						</ul>
-					</nav>
-				</div>
-			</header>
+        <>
+            < CustomerHeader/>
+            <div className="workshop-page">
+                <main>
+                    <div className="page-title">
+                        <h1>Book a Workshop</h1>
+                        <p>Experience the joy of creation with our skilled artisans</p>
+                    </div>
 
-			<main>
-				<div className="page-title">
-					<h1>Book a Workshop</h1>
-					<p>Experience the joy of creation with our skilled artisans</p>
-				</div>
+                    <div className="form-container">
+                        <form id="booking-form" className="form" onSubmit={submit}>
+                            <div className="form-group">
+                                <label htmlFor="workshop-title">Workshop Title</label>
+                                <input id="workshop-title" name="workshopTitle" placeholder="Enter workshop title" value={title} onChange={e => setTitle(e.target.value)} required />
+                                {titleError && <p className="error-message">{titleError}</p>}
+                            </div>
 
-				<div className="form-container">
-					<form id="booking-form" className="form" onSubmit={submit}>
-						<div className="form-group">
-							<label htmlFor="workshop-title">Workshop Title</label>
-							<input id="workshop-title" name="workshopTitle" placeholder="Enter workshop title" value={title} onChange={e => setTitle(e.target.value)} required />
-							{titleError && <p className="error-message">{titleError}</p>}
-						</div>
+                            <div className="form-group">
+                                <label htmlFor="workshop-description">Workshop Description</label>
+                                <textarea id="workshop-description" name="workshopDesc" placeholder="Enter workshop details, requirements, or any special instructions" value={description} onChange={e => setDescription(e.target.value)} required />
+                                {descriptionError && <p className="error-message">{descriptionError}</p>}
+                            </div>
 
-						<div className="form-group">
-							<label htmlFor="workshop-description">Workshop Description</label>
-							<textarea id="workshop-description" name="workshopDesc" placeholder="Enter workshop details, requirements, or any special instructions" value={description} onChange={e => setDescription(e.target.value)} required />
-							{descriptionError && <p className="error-message">{descriptionError}</p>}
-						</div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label htmlFor="date">Workshop Date</label>
+                                    <input id="date" name="date" type="date" value={date} onChange={e => setDate(e.target.value)} required />
+                                </div>
 
-						<div className="form-row">
-							<div className="form-group">
-								<label htmlFor="date">Workshop Date</label>
-								<input id="date" name="date" type="date" value={date} onChange={e => setDate(e.target.value)} required />
-							</div>
+                                <div className="form-group">
+                                    <label htmlFor="time">Workshop Time</label>
+                                    <input id="time" name="time" type="time" value={time} onChange={e => setTime(e.target.value)} required />
+                                </div>
+                            </div>
 
-							<div className="form-group">
-								<label htmlFor="time">Workshop Time</label>
-								<input id="time" name="time" type="time" value={time} onChange={e => setTime(e.target.value)} required />
-							</div>
-						</div>
+                            <button type="submit">Book Now</button>
+                            <div id="status-message" className={statusSuccess ? 'success' : ''} style={{ display: statusMessage ? 'block' : 'none' }}>{statusMessage}</div>
+                        </form>
+                    </div>
+                </main>
 
-						<button type="submit">Book Now</button>
-						<div id="status-message" className={statusSuccess ? 'success' : ''} style={{ display: statusMessage ? 'block' : 'none' }}>{statusMessage}</div>
-					</form>
-				</div>
-			</main>
-
-			<div id="footer-container" />
-		</div>
+                <div id="footer-container" />
+            </div>
+            <CustomerFooter/>
+            \</>
 	);
 };
 

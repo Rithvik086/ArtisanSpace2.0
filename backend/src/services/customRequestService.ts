@@ -39,6 +39,20 @@ export async function addRequest(
 //   }
 // }
 
+
+export async function getRequestsByUserId(userId: string) {
+    try {
+        const request = await Request.find({ userId, isValid: true });
+        if (!request) {
+            throw new Error("Request not found!");
+        }
+
+        return request;
+    } catch (err) {
+        throw new Error("Error in getting request by ID: " + (err as Error).message);
+    }
+}
+
 export async function getRequests(
   isAccepted: boolean | null = null,
   artisanId: string | null = null

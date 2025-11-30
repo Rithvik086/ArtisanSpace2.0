@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { ChangeEvent, FormEvent } from 'react';
-import '../assets/customer/customOrder.css';
+import '../../assets/customer/customOrder.css';
+import CustomerFooter from "@/components/customer/CustomerFooter.tsx";
+import CustomerHeader from "@/components/customer/CustomerHeader.tsx";
 
 interface FormData {
   title: string;
@@ -142,149 +144,155 @@ const CustomOrder: React.FC = () => {
   };
 
   return (
-    <div className="custom-order-body">
-      <main>
-        <div className="form-container">
-          <div className="form-header">
-            <h1>Request a Custom Handcrafted Item</h1>
-            <p>Describe your dream creation and our skilled artisans will bring it to life</p>
-          </div>
 
-          <div className="note-box">
-            <p>Your request will be visible to all artisans on our platform. Interested artisans will contact you with proposals.</p>
-          </div>
+    <>
+        <CustomerHeader />
+        <div className="custom-order-body">
+            <main>
+                <div className="form-container">
+                    <div className="form-header">
+                        <h1>Request a Custom Handcrafted Item</h1>
+                        <p>Describe your dream creation and our skilled artisans will bring it to life</p>
+                    </div>
 
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="title" className="form-label required">Request Title</label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                className={`form-input ${errors.title ? 'error-input' : ''}`}
-                placeholder="Give your request a name"
-                value={formData.title}
-                onChange={handleInputChange}
-                required
-              />
-              {errors.title && (
-                <p className="error-message">Title is only alphanumeric</p>
-              )}
-            </div>
+                    <div className="note-box">
+                        <p>Your request will be visible to all artisans on our platform. Interested artisans will contact you with proposals.</p>
+                    </div>
 
-            <div className="form-group">
-              <label htmlFor="type" className="form-label required">Type of Product</label>
-              <select
-                id="type"
-                name="type"
-                className="form-select"
-                value={formData.type}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="" disabled>Select product type</option>
-                <option value="statue">Statue</option>
-                <option value="painting">Painting</option>
-                <option value="footware">Footware</option>
-                <option value="pottery">Pottery</option>
-                <option value="toys">Toys</option>
-                <option value="headware">Headware</option>
-                <option value="musical instrument">Musical instrument</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-group">
+                            <label htmlFor="title" className="form-label required">Request Title</label>
+                            <input
+                                type="text"
+                                id="title"
+                                name="title"
+                                className={`form-input ${errors.title ? 'error-input' : ''}`}
+                                placeholder="Give your request a name"
+                                value={formData.title}
+                                onChange={handleInputChange}
+                                required
+                            />
+                            {errors.title && (
+                                <p className="error-message">Title is only alphanumeric</p>
+                            )}
+                        </div>
 
-            <div className="form-group">
-              <label htmlFor="description" className="form-label required">Detailed Description</label>
-              <textarea
-                id="description"
-                name="description"
-                className={`form-textarea ${errors.description ? 'error-input' : ''}`}
-                placeholder="Please describe your custom item in detail. Include size, color preferences, materials, design elements, intended use, etc."
-                value={formData.description}
-                onChange={handleInputChange}
-                required
-              />
-              {errors.description && (
-                <p className="error-message">Description must be 10-300 words and contain only letters, numbers, spaces, and basic punctuation</p>
-              )}
-            </div>
+                        <div className="form-group">
+                            <label htmlFor="type" className="form-label required">Type of Product</label>
+                            <select
+                                id="type"
+                                name="type"
+                                className="form-select"
+                                value={formData.type}
+                                onChange={handleInputChange}
+                                required
+                            >
+                                <option value="" disabled>Select product type</option>
+                                <option value="statue">Statue</option>
+                                <option value="painting">Painting</option>
+                                <option value="footware">Footware</option>
+                                <option value="pottery">Pottery</option>
+                                <option value="toys">Toys</option>
+                                <option value="headware">Headware</option>
+                                <option value="musical instrument">Musical instrument</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
 
-            <div className="form-group">
-              <label htmlFor="image" className="form-label">Reference Image</label>
-              <div className="file-upload">
-                <p>Drag & drop an image here or click to upload</p>
-                <p>(Max 5MB)</p>
-                <input
-                  type="file"
-                  id="image"
-                  name="image"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
-              </div>
-              {imagePreview && (
-                <div className="image-preview">
-                  <img src={imagePreview} alt="Preview" />
+                        <div className="form-group">
+                            <label htmlFor="description" className="form-label required">Detailed Description</label>
+                            <textarea
+                                id="description"
+                                name="description"
+                                className={`form-textarea ${errors.description ? 'error-input' : ''}`}
+                                placeholder="Please describe your custom item in detail. Include size, color preferences, materials, design elements, intended use, etc."
+                                value={formData.description}
+                                onChange={handleInputChange}
+                                required
+                            />
+                            {errors.description && (
+                                <p className="error-message">Description must be 10-300 words and contain only letters, numbers, spaces, and basic punctuation</p>
+                            )}
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="image" className="form-label">Reference Image</label>
+                            <div className="file-upload">
+                                <p>Drag & drop an image here or click to upload</p>
+                                <p>(Max 5MB)</p>
+                                <input
+                                    type="file"
+                                    id="image"
+                                    name="image"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                />
+                            </div>
+                            {imagePreview && (
+                                <div className="image-preview">
+                                    <img src={imagePreview} alt="Preview" />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label htmlFor="budget" className="form-label required">Budget</label>
+                                <input
+                                    type="text"
+                                    id="budget"
+                                    name="budget"
+                                    className={`form-input ${errors.budget ? 'error-input' : ''}`}
+                                    value={formData.budget}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                                {errors.budget && (
+                                    <p className="error-message">Invalid budget (1-100,000)</p>
+                                )}
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="requiredBy" className="form-label required">Required By</label>
+                                <input
+                                    type="date"
+                                    id="requiredBy"
+                                    name="requiredBy"
+                                    className="form-input"
+                                    value={formData.requiredBy}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="submit-button"
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <span className="loading"></span>
+                                    Submitting...
+                                </>
+                            ) : (
+                                'Submit Custom Order Request'
+                            )}
+                        </button>
+
+                        {statusMessage && (
+                            <div className={`status-message ${statusMessage.type}`}>
+                                {statusMessage.text}
+                            </div>
+                        )}
+                    </form>
                 </div>
-              )}
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="budget" className="form-label required">Budget</label>
-                <input
-                  type="text"
-                  id="budget"
-                  name="budget"
-                  className={`form-input ${errors.budget ? 'error-input' : ''}`}
-                  value={formData.budget}
-                  onChange={handleInputChange}
-                  required
-                />
-                {errors.budget && (
-                  <p className="error-message">Invalid budget (1-100,000)</p>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="requiredBy" className="form-label required">Required By</label>
-                <input
-                  type="date"
-                  id="requiredBy"
-                  name="requiredBy"
-                  className="form-input"
-                  value={formData.requiredBy}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="submit-button"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <span className="loading"></span>
-                  Submitting...
-                </>
-              ) : (
-                'Submit Custom Order Request'
-              )}
-            </button>
-
-            {statusMessage && (
-              <div className={`status-message ${statusMessage.type}`}>
-                {statusMessage.text}
-              </div>
-            )}
-          </form>
+            </main>
         </div>
-      </main>
-    </div>
+
+        <CustomerFooter />
+    </>
   );
 };
 

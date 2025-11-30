@@ -5,7 +5,7 @@ import App from "./App.tsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import SignUp from "./components/auth/SignUp";
 import Login from "./components/auth/Login";
-import CustomerRoutes from "../routes/CustomerRoutes.js";
+import CustomerRoutes from "../routes/CustomerRoutes";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
 
@@ -22,10 +22,10 @@ const router = createBrowserRouter([
     path: "/login",
     element: <Login />,
   },
-  {
-    path: "/customer",
-    element: <CustomerRoutes />,
-  },
+    {
+        path: "/customer/*",
+        element: <CustomerRoutes />,
+    },
 ]);
 
 createRoot(document.getElementById("root")!).render(

@@ -123,17 +123,17 @@ export async function getOrders() {
   }
 }
 
-// export async function getOrdersById(userId: string) {
-//   try {
-//     const orders = await Order.find({ userId });
-//     if (!orders) {
-//       throw new Error("Orders not found!");
-//     }
-//     return orders;
-//   } catch (err) {
-//     throw new Error("Error in getting order by ID: " + (err as Error).message);
-//   }
-// }
+export async function getOrdersByUserId(userId: string) {
+    try {
+        const orders = await Order.find({ userId, isValid: true }).populate("userId");
+        if (!orders) {
+            throw new Error("Orders not found!");
+        }
+        return orders;
+    } catch (err) {
+        throw new Error("Error in getting order by ID: " + (err as Error).message);
+    }
+}
 
 export async function getOrderByOrderId(orderId: string) {
   try {

@@ -1,282 +1,288 @@
-import React, { useEffect, useRef, useState } from 'react';
-import '../../assets/customer/customerHome.css';
-import OrderCard from './OrderCard';
+import React, { useEffect, useRef, useState } from "react";
+import OrderCard from "./OrderCard";
+import CustomerHeader from "../customer/CustomerHeader";
+import CustomerFooter from "../customer/CustomerFooter";
 
 type ProductItem = {
-	productId: {
-		_id?: string;
-		name?: string;
-		image?: string;
-		newPrice?: number;
-	} | null;
-	quantity?: number;
+    productId: {
+        _id?: string;
+        name?: string;
+        image?: string;
+        newPrice?: number;
+    } | null;
+    quantity?: number;
 };
 
 type Order = {
-	_id: string;
-	products: ProductItem[];
-	status: string;
-	purchasedAt?: string | number;
-	money?: number;
+    _id: string;
+    products: ProductItem[];
+    status: string;
+    purchasedAt?: string | number;
+    money?: number;
 };
 
 type Request = {
-	_id?: string;
-	title?: string;
-	isAccepted?: boolean;
-	image?: string;
-	type?: string;
-	description?: string;
-	budget?: string | number;
-	requiredBy?: string;
+    _id?: string;
+    title?: string;
+    isAccepted?: boolean;
+    image?: string;
+    type?: string;
+    description?: string;
+    budget?: string | number;
+    requiredBy?: string;
 };
 
 type Workshop = {
-	_id?: string;
-	workshopTitle?: string;
-	workshopDescription?: string;
-	date?: string;
-	time?: string;
-	status?: number;
-	acceptedAt?: string;
+    _id?: string;
+    workshopTitle?: string;
+    workshopDescription?: string;
+    date?: string;
+    time?: string;
+    status?: number;
+    acceptedAt?: string;
 };
 
 type Product = {
-	_id?: string;
-	name?: string;
-	image?: string;
+    _id?: string;
+    name?: string;
+    image?: string;
 };
 
-const Home: React.FC = () => {
-	const [orders, setOrders] = useState<Order[]>([]);
-	const [requests, setRequests] = useState<Request[]>([]);
-	const [workshops, setWorkshops] = useState<Workshop[]>([]);
-	const [products, setProducts] = useState<Product[]>([]);
-	const [activeTab, setActiveTab] = useState<'orders' | 'requests' | 'workshops'>('orders');
-	const sliderRef = useRef<HTMLDivElement | null>(null);
+export default function Home() {
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [requests, setRequests] = useState<Request[]>([]);
+    const [workshops, setWorkshops] = useState<Workshop[]>([]);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [activeTab, setActiveTab] = useState<
+        "orders" | "requests" | "workshops"
+    >("orders");
 
-	useEffect(() => {
-		// Fetch orders
-		(async () => {
-			try {
-				const res = await fetch('/customer/api/orders');
-				if (res.ok) setOrders(await res.json());
-			} catch (err) {
-				console.error('Error fetching orders', err);
-			}
-		})();
+    const sliderRef = useRef<HTMLDivElement | null>(null);
 
-		// Fetch requests
-		(async () => {
-			try {
-				const res = await fetch('/customer/api/requests');
-				if (res.ok) setRequests(await res.json());
-			} catch (err) {
-				console.error('Error fetching requests', err);
-			}
-		})();
+    // Dummy Data
+    const dummyOrders: Order[] = [
+        {
+            _id: "dummy1",
+            status: "Delivered",
+            money: 599,
+            purchasedAt: "2025-01-01",
+            products: [
+                {
+                    productId: {
+                        _id: "p1",
+                        name: "Handmade Vase",
+                        image: "/images/dummy/vase.jpg",
+                        newPrice: 599,
+                    },
+                    quantity: 1,
+                },
+            ],
+        },
+    ];
 
-		// Fetch workshops
-		(async () => {
-			try {
-				const res = await fetch('/customer/api/workshops');
-				if (res.ok) setWorkshops(await res.json());
-			} catch (err) {
-				console.error('Error fetching workshops', err);
-			}
-		})();
+    const dummyRequests: Request[] = [
+        {
+            _id: "req1",
+            title: "Custom Painting",
+            type: "Art",
+            description: "A portrait style painting",
+            budget: 1000,
+            requiredBy: "2025-03-12",
+            isAccepted: false,
+            image: "/images/dummy/painting.jpg",
+        },
+    ];
 
-		// Fetch slider products
-		(async () => {
-			try {
-				const res = await fetch('/customer/api/products');
-				if (res.ok) setProducts(await res.json());
-			} catch (err) {
-				console.error('Error fetching products', err);
-			}
-		})();
-	}, []);
+    const dummyWorkshops: Workshop[] = [
+        {
+            _id: "ws1",
+            workshopTitle: "Clay Art Workshop",
+            workshopDescription: "Learn shaping, carving & coloring",
+            date: "2025-02-20",
+            time: "3:00 PM",
+            status: 1,
+            acceptedAt: "2025-02-01",
+        },
+    ];
 
-	// Slider animation
-	useEffect(() => {
-		const slider = sliderRef.current;
-		if (!slider) return;
-		let interval: number | undefined;
+    const dummyProducts: Product[] = [
+        { _id: "prod1", name: "Handmade Lamp", image: "/images/dummy/lamp.jpg" },
+        { _id: "prod2", name: "Decor Plate", image: "/images/dummy/plate.jpg" },
+    ];
 
-		const moveSlider = () => {
-			const first = slider.firstElementChild as HTMLElement | null;
-			if (!first) return;
-			const imgWidth = first.offsetWidth + 20;
-			slider.style.transition = 'transform 0.7s ease-in-out';
-			slider.style.transform = `translateX(-${imgWidth}px)`;
-			window.setTimeout(() => {
-				if (first.parentElement) slider.appendChild(first);
-				slider.style.transition = 'none';
-				slider.style.transform = 'translateX(0)';
-			}, 700);
-		};
+    const fetchOrDummy = async <T,>(
+        url: string,
+        dummy: T,
+        setter: (d: T) => void
+    ) => {
+        try {
+            const res = await fetch(url);
+            if (res.ok) {
+                const d = await res.json();
+                setter(d);
+                console.log(d)
+            }else {
+                console.log("dummy is set")
+                setter(dummy)
+            }
+        } catch(err) {
+            console.log("dummy is set,error",err)
+            setter(dummy);
+        }
+    };
 
-		interval = window.setInterval(moveSlider, 4000) as unknown as number;
-		return () => {
-			if (interval) window.clearInterval(interval);
-		};
-	}, [products]);
+    useEffect(() => {
+        fetchOrDummy("/customer/api/orders", dummyOrders, setOrders);
+        fetchOrDummy("/customer/api/requests", dummyRequests, setRequests);
+        fetchOrDummy("/customer/api/workshops", dummyWorkshops, setWorkshops);
+        fetchOrDummy("/api/v1/products/approved", dummyProducts, setProducts);
+        console.log("effect")
+    },[]);
 
-	return (
-		<main className="customer-home">
-			<div className="mainimage">
-				<h3>We Make Things With love</h3>
-				<h1>HANDMADE</h1>
-				<p>
-					Lorem ipsum, dolor sit amet consectetur adipisicing elit. Sapiente
-					eligendi repudiandae vero quis? Nostrum provident repellendus alias
-					incidunt, perferendis aut blanditiis dicta nisi, magni enim sint
-					magnam quidem eius temporibus maxime facere?
-				</p>
-			</div>
+    // Slider rotation
+    useEffect(() => {
+        const slider = sliderRef.current;
+        if (!slider) return;
 
-			<div className="seconelem">
-				<img src="/images/landingpage/artisan.jpg" alt="artisan" />
-				<div className="welcomecontent">
-					<h1>Welcome To ArtisanSpace</h1>
-					<p>
-						It is a long established fact that a reader will be distracted by
-						the readable content of a page when looking at its layout. The point
-						of using Lorem Ipsum is that it has a more-or-less normal
-						distribution of letters, as opposed to using 'Content here, content
-						here', making it look like readable English. Many desktop publishing
-						packages and web page editors now use Lorem Ipsum as their default
-						model text, and a search for 'lorem ipsum' will uncover.
-					</p>
-				</div>
-			</div>
+        const interval = setInterval(() => {
+            const first = slider.firstElementChild as HTMLElement | null;
+            if (!first) return;
 
-			<div className="slider-container">
-				<div className="slider" ref={sliderRef}>
-					{products.map((p) => (
-						<a key={p._id} href={`/products/${p._id}`}>
-							<img src={p.image} alt={p.name} />
-						</a>
-					))}
-				</div>
-			</div>
+            const width = first.offsetWidth + 20;
 
-			<div className="statusTab">
-				<div className="tabs">
-					<button className={`tab-btn ${activeTab === 'orders' ? 'active' : ''}`} onClick={() => setActiveTab('orders')}>
-						<i className="fas fa-box" /> Orders
-					</button>
-					<button className={`tab-btn ${activeTab === 'requests' ? 'active' : ''}`} onClick={() => setActiveTab('requests')}>
-						<i className="fas fa-palette" /> Custom Requests
-					</button>
-					<button className={`tab-btn ${activeTab === 'workshops' ? 'active' : ''}`} onClick={() => setActiveTab('workshops')}>
-						<i className="fas fa-chalkboard-teacher" /> Workshops
-					</button>
-				</div>
+            slider.style.transition = "transform .7s ease-in-out";
+            slider.style.transform = `translateX(-${width}px)`;
 
-				<section className={`tab-content ${activeTab === 'orders' ? 'active' : ''}`} id="orders">
-					<h2>
-						<i className="fas fa-shopping-bag" /> Your Orders
-					</h2>
-					<div className="cards-container">
-						{orders.length > 0 ? (
-							orders.map((order, index) => (
-								<OrderCard key={order._id} order={order} index={index} onNavigate={(id?: string) => { if (id) window.location.href = `/customer/orders/${id}`; }} />
-							))
-						) : (
-							<div className="empty-state">
-								<i className="fas fa-shopping-basket empty-icon" />
-								<p>You don't have any orders yet.</p>
-								<a href="/customer/store">
-									<button className="btn primary">
-										<i className="fas fa-store" /> Shop Now
-									</button>
-								</a>
-							</div>
-						)}
-					</div>
-				</section>
+            setTimeout(() => {
+                slider.appendChild(first);
+                slider.style.transition = "none";
+                slider.style.transform = "translateX(0)";
+            }, 700);
+        }, 4000);
 
-				<section className={`tab-content ${activeTab === 'requests' ? 'active' : ''}`} id="requests">
-					<h2>
-						<i className="fas fa-palette" /> Your Custom Requests
-					</h2>
-					<div className="cards-container">
-						{requests.length > 0 ? (
-							requests.map((request) => (
-								<article key={request._id || Math.random()} className="card">
-									<div className="card-header">
-										<h3>
-											<i className="fas fa-paint-brush" /> {request.title}
-										</h3>
-										<span className={`status ${request.isAccepted ? 'accepted' : 'pending'}`}>
-											{request.isAccepted ? 'Accepted' : 'Pending'}
-										</span>
-									</div>
-									{request.image && (
-										<div className="card-image">
-											<img src={request.image} alt={request.title} />
-										</div>
-									)}
-									<div className="card-body">
-										<p><strong><i className="fas fa-tag" /> Type:</strong> {request.type}</p>
-										<p><strong><i className="fas fa-align-left" /> Description:</strong> {request.description}</p>
-										<p><strong><i className="fas fa-rupee-sign" /> Budget:</strong> {request.budget}</p>
-										<p><strong><i className="fas fa-calendar-check" /> Required By:</strong> {request.requiredBy}</p>
-									</div>
-									<div className="card-footer" />
-								</article>
-							))
-						) : (
-							<div className="empty-state">
-								<i className="fas fa-paint-brush empty-icon" />
-								<p>You don't have any custom requests yet.</p>
-								<a href="/customer/customorder">
-									<button className="btn primary"><i className="fas fa-plus-circle" /> Create Request</button>
-								</a>
-							</div>
-						)}
-					</div>
-				</section>
+        return () => clearInterval(interval);
+    }, [products]);
 
-				<section className={`tab-content ${activeTab === 'workshops' ? 'active' : ''}`} id="workshops">
-					<h2>
-						<i className="fas fa-chalkboard-teacher" /> Your Workshops
-					</h2>
-					<div className="cards-container">
-						{workshops.length > 0 ? (
-							workshops.map((workshop) => (
-								<article key={workshop._id || Math.random()} className="card">
-									<div className="card-header">
-										<h3><i className="fas fa-graduation-cap" /> {workshop.workshopTitle}</h3>
-										<span className={`status ${workshop.status === 1 ? 'accepted' : 'pending'}`}>
-											{workshop.status === 1 ? 'Accepted' : 'Pending'}
-										</span>
-									</div>
-									<div className="card-body">
-										<p><strong><i className="fas fa-align-left" /> Description:</strong> {workshop.workshopDescription}</p>
-										<p><strong><i className="fas fa-calendar-day" /> Date:</strong> {workshop.date}</p>
-										<p><strong><i className="fas fa-clock" /> Time:</strong> {workshop.time}</p>
-										{workshop.status === 1 && workshop.acceptedAt && (
-											<p><strong><i className="fas fa-check-circle" /> Accepted On:</strong> {workshop.acceptedAt}</p>
-										)}
-									</div>
-									<div className="card-footer" />
-								</article>
-							))
-						) : (
-							<div className="empty-state">
-								<i className="fas fa-chalkboard empty-icon" />
-								<p>You don't have any workshops yet.</p>
-								<a href="/customer/workshop"><button className="btn primary"><i className="fas fa-plus-circle" /> Book Workshop</button></a>
-							</div>
-						)}
-					</div>
-				</section>
-			</div>
-		</main>
-	);
-};
+    return (
+        <>
+            <CustomerHeader />
 
-export default Home;
+            <main className="w-full m-0 bg-[#f8f5f2] pt-28 px-4 md:px-8 pb-20 text-amber-900" style={{width:'100%'}}>
 
+                {/* WRAP EVERYTHING IN CENTERED CONTAINER */}
+                <div className="max-w-5xl mx-auto flex flex-col gap-20">
+
+                    {/* HERO */}
+                    <div className="bg-white p-10 rounded-lg text-center shadow">
+                        <h3 className="text-lg mb-2">We Make Things With Love</h3>
+                        <h1 className="text-5xl font-bold text-amber-950">HANDMADE</h1>
+                        <p className="mt-3 text-gray-700 max-w-xl mx-auto">
+                            Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+                        </p>
+                    </div>
+
+                    {/* WELCOME ROW */}
+                    <div className="flex flex-col md:flex-row items-center gap-10">
+                        <img
+                            src="/images/landingpage/artisan.jpg"
+                            className="w-72 h-48 object-cover rounded-xl shadow"
+                        />
+                        <div>
+                            <h1 className="text-3xl font-bold text-amber-950">
+                                Welcome To ArtisanSpace
+                            </h1>
+                            <p className="mt-3 text-gray-700 max-w-md">
+                                It is a long established fact that a reader will be distracted.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* SLIDER */}
+                    <div className="overflow-hidden">
+                        <div ref={sliderRef} className="flex gap-6 items-center">
+                            {products.map((p) => (
+                                <img
+                                    src={p.image}
+                                    key={p._id}
+                                    className="w-40 h-28 object-cover rounded-lg shadow"
+                                />
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* TABS */}
+                    <div className="flex flex-col gap-10">
+
+                        <div className="flex gap-4 border-b pb-3 justify-center">
+                            {["orders", "requests", "workshops"].map((tab) => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setActiveTab(tab as any)}
+                                    className={`px-5 py-2 rounded-md font-semibold ${
+                                        activeTab === tab
+                                            ? "bg-amber-300 text-amber-950"
+                                            : "bg-white"
+                                    }`}
+                                >
+                                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* CONTENT SECTION */}
+                        <div className="space-y-6">
+                            {/* ORDERS */}
+                            {activeTab === "orders" &&
+                                (orders.length > 0 ? (
+                                    orders.map((order, i) => (
+                                        <OrderCard key={order._id} order={order} index={i} />
+                                    ))
+                                ) : (
+                                    <p className="text-center text-gray-600 py-10">
+                                        No orders found
+                                    </p>
+                                ))}
+
+                            {/* REQUESTS */}
+                            {activeTab === "requests" &&
+                                requests.map((r) => (
+                                    <div
+                                        key={r._id}
+                                        className="bg-white shadow p-5 rounded-lg border-l-4 border-amber-900"
+                                    >
+                                        <h3 className="text-lg font-semibold">{r.title}</h3>
+                                        {r.image && (
+                                            <img
+                                                src={r.image}
+                                                className="w-full h-40 object-cover rounded mt-3"
+                                            />
+                                        )}
+                                        <p className="mt-2 text-sm"><b>Type:</b> {r.type}</p>
+                                        <p className="text-sm"><b>Description:</b> {r.description}</p>
+                                        <p className="text-sm"><b>Budget:</b> ₹{r.budget}</p>
+                                        <p className="text-sm"><b>Required By:</b> {r.requiredBy}</p>
+                                    </div>
+                                ))}
+
+                            {/* WORKSHOPS */}
+                            {activeTab === "workshops" &&
+                                workshops.map((w) => (
+                                    <div
+                                        key={w._id}
+                                        className="bg-white shadow p-5 rounded-lg border-l-4 border-amber-900"
+                                    >
+                                        <h3 className="text-lg font-semibold">{w.workshopTitle}</h3>
+                                        <p className="mt-2 text-sm"><b>Description:</b> {w.workshopDescription}</p>
+                                        <p className="text-sm"><b>Date:</b> {w.date}</p>
+                                        <p className="text-sm"><b>Time:</b> {w.time}</p>
+                                    </div>
+                                ))}
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <CustomerFooter />
+        </>
+    );
+}

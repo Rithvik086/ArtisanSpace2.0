@@ -9,6 +9,16 @@ import {
   updateProduct,
 } from "../services/productServices.js";
 import cloudinary from "../config/cloudinary.js";
+import Product from "../models/productModel.js";
+
+export const getAll = async (req: Request, res: Response) => {
+    try{
+       const p =  Product.find({ status: "approved", isValid: true })
+        return res.json({p});
+    }catch(err){
+        console.log(err)
+    }
+}
 
 export const getProducts = async (req: Request, res: Response) => {
   try {

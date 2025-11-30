@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import '../assets/customer/orderDetails.css';
+import '../../assets/customer/orderDetails.css';
 
 interface Product {
   _id: string;

@@ -1,13 +1,20 @@
 import express from "express";
 import {
-  changeStatus,
-  deleteOrder,
-  getOrderById,
-  placeOrder,
+    changeStatus,
+    deleteOrder,
+    getOrderById,
+    getUserOrders, // <-- IMPORT THE NEW CONTROLLER
+    placeOrder
 } from "../controller/orderController.js";
 import authorizerole from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
+
+router.get(
+    "/my-orders", // <-- ADD THIS NEW ROUTE
+    authorizerole("customer", "artisan", "manager", "admin"),
+    getUserOrders
+);
 
 router.get(
   "/:orderId",

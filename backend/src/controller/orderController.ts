@@ -24,6 +24,25 @@ export const getOrderById = async (req: Request, res: Response) => {
   }
 };
 
+import {
+    getOrdersByUserId
+} from "../services/orderServices.js";
+
+export const getUserOrders = async (req: Request, res: Response) => {
+    try {
+        const userId = req.user.id;
+        const orders = await getOrdersByUserId(userId);
+
+        if (!orders) {
+            return res.status(404).send("Orders not found");
+        }
+
+        res.status(200).json({ success: true, orders });
+    } catch (e) {
+        throw new Error("Error in getting user orders: " + (e as Error).message);
+    }
+};
+
 export const placeOrder = async (req: Request, res: Response) => {
   try {
     const userId = req.user.id;

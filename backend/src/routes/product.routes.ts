@@ -15,7 +15,7 @@ const router = express.Router();
 
 // Public routes - accessible by all authenticated users
 router.get(
-  "/approved",
+  "/getAll",
   authorizerole("customer", "artisan", "manager", "admin"),
   getProducts
 );
@@ -26,6 +26,8 @@ router.get(
   authorizerole("artisan", "manager", "admin"),
   getUserProducts
 );
+
+
 
 router.post(
   "/",

@@ -1,96 +1,371 @@
-:root{
-  --primary:#5c4033;
-  --muted:#666;
-  --bg:#f8f5f2;
+:root {
+    --primary: #5c4033;
+    --muted: #666;
+    --bg: #f8f5f2;
+    --card-bg: #ffffff;
 }
 
-.customer-home{
-  padding:20px;
-  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+/* -------------------------
+   GLOBAL FIX – FULL WIDTH
+--------------------------*/
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    background: var(--bg);
+    font-family: Inter, system-ui, sans-serif;
 }
 
-.mainimage{
-  background: linear-gradient(180deg, rgba(92,64,51,0.06), rgba(92,64,51,0.02));
-  padding:32px;
-  border-radius:8px;
-  text-align:center;
-  margin-bottom:20px;
+#root, main, .App {
+    width: 100%;
 }
 
-.mainimage h1{
-  font-size:48px;
-  margin:4px 0;
-  color:var(--primary);
+main {
+    flex: 1; /* fixes layout if header/sidebar uses flex */
 }
 
-.seconelem{
-  display:flex;
-  gap:20px;
-  align-items:center;
-  margin:24px 0;
+/* -------------------------
+   PAGE CONTAINER
+--------------------------*/
+.customer-home {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-.seconelem img{
-  width:260px;
-  height:180px;
-  object-fit:cover;
-  border-radius:8px;
+/* -------------------------
+   HERO SECTION
+--------------------------*/
+.mainimage {
+    background: linear-gradient(180deg, rgba(92,64,51,0.10), rgba(92,64,51,0.03));
+    padding: 32px;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 28px;
 }
 
-.welcomecontent h1{margin:0 0 8px 0}
+.mainimage h1 {
+    font-size: 46px;
+    margin: 4px 0;
+    color: var(--primary);
+}
 
-.slider-container{overflow:hidden; margin:18px 0}
-.slider{display:flex; gap:20px; align-items:center}
-.slider a img{width:160px; height:100px; object-fit:cover; border-radius:6px}
+/* -------------------------
+   WELCOME SECTION
+--------------------------*/
+.seconelem {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    margin: 28px 0;
+}
 
-.statusTab{margin-top:20px}
-.tabs{display:flex; gap:8px; margin-bottom:12px}
-.tab-btn{padding:8px 12px; border-radius:6px; border:1px solid transparent; background:#fff; cursor:pointer}
-.tab-btn.active{background:var(--bg); border-color:var(--primary); color:var(--primary)}
+.seconelem img {
+    width: 260px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
 
-.tab-content{display:none}
-.tab-content.active{display:block}
+.welcomecontent h1 {
+    margin: 0 0 10px 0;
+}
 
-.cards-container{display:flex; flex-direction:column; gap:12px}
-.card{position:relative; cursor:pointer; border-left:4px solid var(--primary); background:#fff; padding:12px; border-radius:6px; box-shadow:0 1px 3px rgba(0,0,0,0.04)}
-.card-header{display:flex; justify-content:space-between; align-items:center; padding-bottom:8px; border-bottom:1px solid #f0f0f0}
-.card-header h3{font-size:1.05rem; color:var(--primary); margin:0}
-.card-body{padding:12px 0}
-.card-footer{display:flex; gap:8px; align-items:center; margin-top:8px}
+/* -------------------------
+   SLIDER
+--------------------------*/
+.slider-container {
+    overflow: hidden;
+    margin: 24px 0;
+}
 
-.order-products-list{list-style:none; margin:0; padding:0; max-height:250px; overflow-y:auto}
-.order-products-list::-webkit-scrollbar{width:6px}
-.order-products-list::-webkit-scrollbar-thumb{background:rgba(92,64,51,0.3); border-radius:10px}
+.slider {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
 
-.product-item{display:flex; align-items:center; padding:10px 0; border-bottom:1px solid #f7f7f7}
-.product-image{width:60px; height:60px; border-radius:6px; overflow:hidden; margin-right:12px; border:1px solid #eee}
-.product-image img{width:100%; height:100%; object-fit:cover}
-.product-details{flex:1; display:flex; flex-direction:column; gap:4px}
-.product-details strong{display:block; font-size:0.9rem; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px}
-.quantity{font-size:0.85rem; color:var(--muted); padding:2px 6px; background:#f3f3f3; border-radius:12px; display:inline-block}
-.price{font-weight:600; color:var(--primary); margin-left:auto; font-size:0.95rem}
+.slider a img {
+    width: 160px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+}
 
-.order-summary{margin-top:15px; padding-top:15px; border-top:1px dashed #e0e0e0; display:grid; grid-template-columns:1fr 1fr; gap:8px}
-.order-status-info{background:#f8f5f2; padding:10px; border-radius:6px; text-align:center; font-size:0.9rem}
-.card-badge{position:absolute; top:-8px; right:-8px; background:var(--primary); color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; box-shadow:0 2px 5px rgba(0,0,0,0.15)}
+/* -------------------------
+   TAB SECTION
+--------------------------*/
+.statusTab {
+    margin-top: 24px;
+}
 
-.btn{padding:8px 10px; border-radius:6px; border:1px solid transparent; cursor:pointer}
-.btn.primary{background:var(--primary); color:#fff; border-color:var(--primary)}
-.btn.primary:hover{background:#4a3328}
-.btn.outline{background:transparent; border:1px solid var(--primary); color:var(--primary)}
-.btn.outline:hover{background:var(--bg)}
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
 
-.status{font-size:0.8rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; padding:6px 8px; border-radius:6px}
-.status.pending{background:#fff3c5; color:#92400e}
-.status.accepted,.status.delivered{background:#dcfce7; color:#166534}
-.status.processing{background:#e0f2fe; color:#0369a1}
-.status.shipped{background:#e0e7ff; color:#4338ca}
-.status.cancelled{background:#fee2e2; color:#b91c1c}
+.tab-btn {
+    padding: 8px 14px;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    font-weight: 500;
+    transition: 0.25s;
+}
 
-.empty-state{text-align:center; padding:28px; color:#777}
-.empty-icon{font-size:3rem; color:#ccc; margin-bottom:1rem}
+.tab-btn:hover {
+    background: #f1ece9;
+}
 
-@media (max-width:800px){
-  .seconelem{flex-direction:column}
-  .slider a img{width:120px;height:80px}
+.tab-btn.active {
+    background: var(--bg);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* -------------------------
+   TAB CONTENT
+--------------------------*/
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* -------------------------
+   CARD
+--------------------------*/
+.card {
+    border-left: 4px solid var(--primary);
+    background: var(--card-bg);
+    padding: 14px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    position: relative;
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+/* HEADER */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.card-header h3 {
+    font-size: 1.1rem;
+    color: var(--primary);
+    margin: 0;
+}
+
+/* BODY */
+.card-body {
+    padding: 14px 0;
+}
+
+/* FOOTER */
+.card-footer {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+/* -------------------------
+   ORDER PRODUCTS LIST
+--------------------------*/
+.order-products-list {
+    list-style: none;
+    padding: 0;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.order-products-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.order-products-list::-webkit-scrollbar-thumb {
+    background: rgba(92, 64, 51, 0.4);
+    border-radius: 8px;
+}
+
+.product-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.product-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fafafa;
+    margin-right: 14px;
+    border: 1px solid #eee;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-details strong {
+    font-size: 0.9rem;
+    color: #333;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.quantity {
+    font-size: 0.85rem;
+    color: var(--muted);
+    padding: 3px 8px;
+    background: #f3f3f3;
+    border-radius: 12px;
+}
+
+.price {
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 0.95rem;
+}
+
+/* -------------------------
+   STATUS BADGES
+--------------------------*/
+.status {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 6px;
+    text-transform: uppercase;
+}
+
+.status.pending {
+    background: #fff3c5;
+    color: #92400e;
+}
+
+.status.accepted,
+.status.delivered {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status.processing {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.status.shipped {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+
+.status.cancelled {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+/* -------------------------
+   EMPTY STATE
+--------------------------*/
+.empty-state {
+    text-align: center;
+    padding: 30px;
+    color: #666;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    color: #ccc;
+    margin-bottom: 1rem;
+}
+
+/* -------------------------
+   BUTTONS
+--------------------------*/
+.btn {
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-weight: 500;
+}
+
+.btn.primary {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+
+.btn.primary:hover {
+    background: #4a3328;
+}
+
+.btn.outline {
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+}
+
+.btn.outline:hover {
+    background: var(--bg);
+}
+
+/* -------------------------
+   RESPONSIVE
+--------------------------*/
+@media (max-width: 900px) {
+    .seconelem {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .seconelem img {
+        width: 100%;
+        height: 200px;
+    }
+
+    .slider a img {
+        width: 120px;
+        height: 80px;
+    }
+}
+
+@media (max-width: 600px) {
+    .mainimage h1 {
+        font-size: 36px;
+    }
+
+    .tabs {
+        flex-wrap: wrap;
+    }
 }

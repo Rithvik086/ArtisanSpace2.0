@@ -5,6 +5,7 @@ import {
   deleteCustomRequest,
   getCustomRequests,
   reqCustomOrder,
+    getUserCustomRequests
 } from "../controller/customRequestController.js";
 import authorizerole from "../middleware/roleMiddleware.js";
 
@@ -24,6 +25,13 @@ router.post(
 );
 
 router.put("/", authorizerole("manager", "admin"), approveCustomRequest);
+
+
+router.get(
+    "/my-requests", // <-- ADD THIS NEW ROUTE
+    authorizerole("customer", "artisan", "manager", "admin"),
+    getUserCustomRequests
+);
 
 router.delete(
   "/:requestId",
