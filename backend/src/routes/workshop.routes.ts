@@ -32,7 +32,7 @@ router.post(
 
 router.put(
   "/:action/:workshopId",
-  authorizerole("manager", "admin"),
+  authorizerole("artisan", "manager", "admin"),
   handleWorksopAction
 );
 

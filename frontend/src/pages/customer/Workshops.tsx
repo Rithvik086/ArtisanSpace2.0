@@ -257,78 +257,156 @@ const Workshops: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="space-y-6">
-                <h2 className="text-3xl font-bold text-amber-900 mb-6">
-                  Your Workshop Requests
-                </h2>
-                {workshops.map((workshop) => (
-                  <Card
-                    key={workshop._id}
-                    className="bg-white/80 backdrop-blur-sm border-amber-200 hover:shadow-lg transition-shadow"
-                  >
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="text-xl text-amber-900 mb-2">
-                            {workshop.workshopTitle}
-                          </CardTitle>
-                          <div className="flex items-center gap-4 text-sm text-stone-600">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              {new Date(workshop.date).toLocaleDateString()}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
-                              {workshop.time}
-                            </div>
-                          </div>
-                        </div>
-                        {getStatusBadge(workshop.status)}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div>
-                          <h4 className="font-semibold text-amber-900 mb-2 flex items-center gap-2">
-                            <MessageSquare className="h-4 w-4" />
-                            Description
-                          </h4>
-                          <p className="text-stone-700">
-                            {workshop.workshopDescription}
-                          </p>
-                        </div>
-                        {workshop.status === 1 && workshop.artisanId && (
-                          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                            <h4 className="font-semibold text-green-900 mb-2">
-                              Accepted by Artisan
-                            </h4>
-                            <p className="text-green-800">
-                              Artisan: {workshop.artisanId.username}
-                            </p>
-                            {workshop.artisanId.email && (
-                              <p className="text-green-800">
-                                Email: {workshop.artisanId.email}
-                              </p>
-                            )}
-                            {workshop.artisanId.mobile_no && (
-                              <p className="text-green-800">
-                                Phone: {workshop.artisanId.mobile_no}
-                              </p>
-                            )}
-                            {workshop.acceptedAt && (
-                              <p className="text-green-800 text-sm">
-                                Accepted on:{" "}
-                                {new Date(
-                                  workshop.acceptedAt
-                                ).toLocaleDateString()}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+              <div className="space-y-12">
+                <div>
+                  <h2 className="text-3xl font-bold text-amber-900 mb-6">
+                    Pending Workshop Requests
+                  </h2>
+                  {workshops.filter((w) => w.status === 0).length === 0 ? (
+                    <div className="text-center py-10 bg-white rounded-2xl border border-dashed border-stone-300">
+                      <User className="mx-auto h-12 w-12 text-amber-400 mb-4" />
+                      <p className="text-stone-500">
+                        No pending workshop requests.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {workshops
+                        .filter((w) => w.status === 0)
+                        .map((workshop) => (
+                          <Card
+                            key={workshop._id}
+                            className="bg-white/80 backdrop-blur-sm border-amber-200 hover:shadow-lg transition-shadow"
+                          >
+                            <CardHeader>
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <CardTitle className="text-xl text-amber-900 mb-2">
+                                    {workshop.workshopTitle}
+                                  </CardTitle>
+                                  <div className="flex items-center gap-4 text-sm text-stone-600">
+                                    <div className="flex items-center gap-1">
+                                      <Calendar className="h-4 w-4" />
+                                      {new Date(
+                                        workshop.date
+                                      ).toLocaleDateString()}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Clock className="h-4 w-4" />
+                                      {workshop.time}
+                                    </div>
+                                  </div>
+                                </div>
+                                {getStatusBadge(workshop.status)}
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-4">
+                                <div>
+                                  <h4 className="font-semibold text-amber-900 mb-2 flex items-center gap-2">
+                                    <MessageSquare className="h-4 w-4" />
+                                    Description
+                                  </h4>
+                                  <p className="text-stone-700">
+                                    {workshop.workshopDescription}
+                                  </p>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <h2 className="text-3xl font-bold text-amber-900 mb-6">
+                    Accepted Workshops
+                  </h2>
+                  {workshops.filter((w) => w.status === 1).length === 0 ? (
+                    <div className="text-center py-10 bg-white rounded-2xl border border-dashed border-stone-300">
+                      <User className="mx-auto h-12 w-12 text-green-400 mb-4" />
+                      <p className="text-stone-500">
+                        No accepted workshops yet.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {workshops
+                        .filter((w) => w.status === 1)
+                        .map((workshop) => (
+                          <Card
+                            key={workshop._id}
+                            className="bg-white/80 backdrop-blur-sm border-green-200 hover:shadow-lg transition-shadow"
+                          >
+                            <CardHeader>
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <CardTitle className="text-xl text-green-900 mb-2">
+                                    {workshop.workshopTitle}
+                                  </CardTitle>
+                                  <div className="flex items-center gap-4 text-sm text-stone-600">
+                                    <div className="flex items-center gap-1">
+                                      <Calendar className="h-4 w-4" />
+                                      {new Date(
+                                        workshop.date
+                                      ).toLocaleDateString()}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Clock className="h-4 w-4" />
+                                      {workshop.time}
+                                    </div>
+                                  </div>
+                                </div>
+                                {getStatusBadge(workshop.status)}
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-4">
+                                <div>
+                                  <h4 className="font-semibold text-green-900 mb-2 flex items-center gap-2">
+                                    <MessageSquare className="h-4 w-4" />
+                                    Description
+                                  </h4>
+                                  <p className="text-stone-700">
+                                    {workshop.workshopDescription}
+                                  </p>
+                                </div>
+                                {workshop.artisanId && (
+                                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                                    <h4 className="font-semibold text-green-900 mb-2">
+                                      Accepted by Artisan
+                                    </h4>
+                                    <p className="text-green-800">
+                                      Artisan: {workshop.artisanId.username}
+                                    </p>
+                                    {workshop.artisanId.email && (
+                                      <p className="text-green-800">
+                                        Email: {workshop.artisanId.email}
+                                      </p>
+                                    )}
+                                    {workshop.artisanId.mobile_no && (
+                                      <p className="text-green-800">
+                                        Phone: {workshop.artisanId.mobile_no}
+                                      </p>
+                                    )}
+                                    {workshop.acceptedAt && (
+                                      <p className="text-green-800 text-sm">
+                                        Accepted on:{" "}
+                                        {new Date(
+                                          workshop.acceptedAt
+                                        ).toLocaleDateString()}
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </motion.div>

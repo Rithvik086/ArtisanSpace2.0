@@ -145,7 +145,10 @@ export const handleWorksopAction = async (req: Request, res: Response) => {
         res.status(200).json({ success: true });
       }
     } else if (req.params.action === "remove") {
-      const result = await removeWorkshop(req.params.workshopId as string);
+      const result = await removeWorkshop(
+        req.params.workshopId as string,
+        req.user.id
+      );
       if (result.success) {
         res.status(200).json({ success: true });
       }
