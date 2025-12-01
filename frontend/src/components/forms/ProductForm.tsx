@@ -215,7 +215,7 @@ export function ProductForm({
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <Palette className="w-8 h-8 text-amber-600 mr-3" />
+            <Palette className="w-8 h-8 text-amber-800 mr-3" />
             <h1 className="text-4xl font-bold text-amber-900 font-serif">Craft Your Listing</h1>
           </div>
           <p className="text-lg text-amber-700">Share your handmade treasures with the world</p>
@@ -225,7 +225,7 @@ export function ProductForm({
         <div className="bg-white rounded-2xl shadow-xl border-2 border-amber-200 overflow-hidden">
           <div className="bg-linear-to-r from-amber-100 to-orange-100 px-8 py-6 border-b border-amber-200">
             <div className="flex items-center">
-              <Sparkles className="w-6 h-6 text-amber-600 mr-3" />
+              <Sparkles className="w-6 h-6 text-amber-800 mr-3" />
               <div>
                 <h2 className="text-2xl font-bold text-amber-900 font-serif">Product Details</h2>
                 <p className="text-amber-700 mt-1">Tell us about your beautiful creation</p>
@@ -381,7 +381,7 @@ export function ProductForm({
                     errors.image ? "border-red-500 bg-red-50" : "border-amber-300 bg-white"
                   )}
                 >
-                  <FileUp className="mr-3 h-6 w-6 text-amber-600" />
+                  <FileUp className="mr-3 h-6 w-6 text-amber-800" />
                   <span className="text-lg font-medium text-amber-900">
                     {imageFile ? imageFile.name : "Upload your creation's photo"}
                   </span>

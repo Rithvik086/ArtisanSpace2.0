@@ -1,39 +1,32 @@
 import React, { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
-import Header from "./components/AdminHeader";
-import ContentModerationPage from "./ContentModerationPage";
-import SupportTicketPage from "./SupportTicketPage";
-const SettingsPage = lazy(() => import("../SettingsPage"));
-import {
-  AddUserModal,
-  AddProductModal,
-  DeleteModal,
-} from "./components/ModalComponents";
-import { useAppContext } from "./AppContext";
+import Header from "./ManagerHeader";
+import AdminFooter from "../admin/components/AdminFooter";
 import Loader from "../components/ui/Loader";
+import { AddUserModal, AddProductModal, DeleteModal } from "../admin/components/ModalComponents";
+import { useAppContext } from "../admin/AppContext";
 
-// Lazy load big pages
-const DashboardPage = lazy(() => import("./DashboardPage"));
+const ManagerDashboard = lazy(() => import("./ManagerDashboard"));
+const SettingsPage = lazy(() => import("../SettingsPage"));
+const ContentModeration = lazy(() => import("./ContentModeration"));
+const AddProduct = lazy(() => import("./AddProduct"));
 
-export default function AdminApp(): React.ReactElement {
+export default function ManagerApp(): React.ReactElement {
   const [modalState, setModalState] = React.useState<{
     type: string | null;
     isOpen: boolean;
     data: any;
   }>({ type: null, isOpen: false, data: null });
+
   const { dispatch } = useAppContext();
 
-  const closeModal = (): void =>
-    setModalState({ type: null, isOpen: false, data: null });
+  const closeModal = (): void => setModalState({ type: null, isOpen: false, data: null });
 
   const handleConfirmDelete = (): void => {
     const { type, data } = modalState;
-    if (type === "delete-user" && data?.id)
-      dispatch({ type: "DELETE_USER", payload: data.id });
-    if (type === "delete-product" && data?.id)
-      dispatch({ type: "DELETE_PRODUCT", payload: data.id });
-    if (type === "delete-order" && data?.id)
-      dispatch({ type: "DELETE_ORDER", payload: data.id });
+    if (type === "delete-user" && data?.id) dispatch({ type: "DELETE_USER", payload: data.id });
+    if (type === "delete-product" && data?.id) dispatch({ type: "DELETE_PRODUCT", payload: data.id });
+    if (type === "delete-order" && data?.id) dispatch({ type: "DELETE_ORDER", payload: data.id });
     closeModal();
   };
 
@@ -57,26 +50,18 @@ export default function AdminApp(): React.ReactElement {
             }
           >
             <Routes>
-              <Route
-                path="/"
-                element={<DashboardPage setModalState={setModalState} />}
-              />
+              <Route path="/" element={<ManagerDashboard setModalState={setModalState} />} />
+              <Route path="listings" element={<AddProduct />} />
+              <Route path="moderation" element={<ContentModeration />} />
               <Route path="settings" element={<SettingsPage />} />
-              <Route path="moderation" element={<ContentModerationPage />} />
-              <Route path="support" element={<SupportTicketPage />} />
             </Routes>
           </Suspense>
         </div>
       </main>
+      <AdminFooter />
 
-      <AddUserModal
-        isOpen={modalState.type === "add-user"}
-        onClose={closeModal}
-      />
-      <AddProductModal
-        isOpen={modalState.type === "add-product"}
-        onClose={closeModal}
-      />
+      <AddUserModal isOpen={modalState.type === "add-user"} onClose={closeModal} />
+      <AddProductModal isOpen={modalState.type === "add-product"} onClose={closeModal} />
       <DeleteModal
         isOpen={modalState.type?.startsWith("delete-") ?? false}
         onClose={closeModal}
