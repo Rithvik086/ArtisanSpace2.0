@@ -49,4 +49,8 @@ export const CustomerRoutes = [
     path: "custom-order",
     element: <div>Custom Order Page - Coming Soon</div>,
   },
+  {
+    path: "settings",
+    element: <SettingsPage />,
+  },
 ];

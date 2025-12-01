@@ -111,8 +111,8 @@ export const craftStyles = {
   // Button variants
     button: {
     primary: `
-      bg-linear-to-r from-amber-600 to-amber-700 
-      hover:from-amber-700 hover:to-amber-800 
+      bg-linear-to-r from-amber-900 to-amber-950 
+      hover:from-amber-700 hover:to-amber-850 
       text-white font-medium px-6 py-3 rounded-lg 
       shadow-md hover:shadow-lg transition-all duration-200
       border border-amber-600 hover:border-amber-700

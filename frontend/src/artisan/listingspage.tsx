@@ -93,11 +93,7 @@ export default function ListingsPage(): React.ReactElement {
 
   return (
     <div className={cn(craftStyles.layout.container, "py-6")}>
-      <div className="bg-white rounded-lg shadow  mb-8">
-        {/* <h2 className="text-2xl font-semibold text-amber-900 mb-4">Create a Listing</h2>
-        <p className="text-amber-700 mb-6">Fill the form to add a new product listing.</p> */}
-        <ProductForm onSubmit={handleCreate} submitButtonText="Create Listing" onSuccess={() => { /* no-op, UI updates from handler */ }} />
-      </div>
+      <ProductForm onSubmit={handleCreate} submitButtonText="Create Listing" onSuccess={() => { /* no-op, UI updates from handler */ }} />
 
       {/* <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-2xl font-semibold text-amber-900 mb-4">Your Listings</h2>
