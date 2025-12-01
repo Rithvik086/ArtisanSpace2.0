@@ -9,18 +9,19 @@ import {
 export const getOrderById = async (req: Request, res: Response) => {
   const orderId = req.params.orderId;
   if (!orderId) {
-    return res.status(400).send("Order ID is required");
+    return res.status(400).json({ success: false, message: "Order ID is required" });
   }
   try {
     const order = await getOrderByOrderId(orderId);
 
     if (!order) {
-      return res.status(404).send("Order not found");
+      return res.status(404).json({ success: false, message: "Order not found" });
     }
 
     res.status(200).json({ success: true, order });
   } catch (e) {
-    throw new Error("Error in getting order by ID: " + (e as Error).message);
+    console.error("Error in getting order by ID:", e);
+    res.status(500).json({ success: false, message: "Error fetching order" });
   }
 };
 
@@ -38,7 +39,9 @@ export const placeOrder = async (req: Request, res: Response) => {
         .json({ success: false, message: "Failed to place Order!" });
     }
   } catch (e) {
-    throw new Error("Error in placing order: " + (e as Error).message);
+    console.error("Error in placing order:", e);
+    const errorMessage = (e as Error).message || "Failed to place order";
+    res.status(500).json({ success: false, message: errorMessage });
   }
 };
 
@@ -57,9 +60,8 @@ export const changeStatus = async (req: Request, res: Response) => {
       message: response.message || "Failed to update status",
     });
   } catch (error) {
-    throw new Error(
-      "Error in changing order status: " + (error as Error).message
-    );
+    console.error("Error in changing order status:", error);
+    res.status(500).json({ success: false, message: "Error updating order status" });
   }
 };
 
@@ -78,6 +80,7 @@ export const deleteOrder = async (req: Request, res: Response) => {
       message: response.message || "Failed to delete order",
     });
   } catch (error) {
-    throw new Error("Error in deleting order: " + (error as Error).message);
+    console.error("Error in deleting order:", error);
+    res.status(500).json({ success: false, message: "Error deleting order" });
   }
 };

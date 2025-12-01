@@ -25,6 +25,7 @@ const Login = lazy(() => import("./components/auth/Login"));
 const ArtisanDashboard = lazy(() => import("./artisan/Dashboardpage"));
 const WorkshopsPage = lazy(() => import("./artisan/Workshopspage"));
 const ListingsPage = lazy(() => import("./artisan/listingspage"));
+const DeliveryDashboard = lazy(() => import("./delivery/DeliveryDashboard"));
 const SettingsPage = lazy(() => import("./SettingsPage"));
 const ManagerApp = lazy(() => import("./manager/ManagerApp"));
 const { AppProvider: ManagerAppProvider } = await import("./admin/AppContext");
@@ -94,6 +95,14 @@ const router = createBrowserRouter([
       { path: "settings", element: <SettingsPage /> },
       { path: "customrequests", element: <CustomRequestsPage /> },
     ],
+  },
+  {
+    path: "/delivery",
+    element: (
+      <ProtectedRoute allowedRoles={["delivery", "admin"]}>
+        <DeliveryDashboard />
+      </ProtectedRoute>
+    ),
   },
 ]);
 

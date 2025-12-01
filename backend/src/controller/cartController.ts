@@ -24,13 +24,13 @@ export const getCart = async (req: Request, res: Response) => {
       itemCount: cart.length,
     });
   } catch (error) {
-    throw new Error("Error processing request: " + (error as Error).message);
+    res.status(500).json({ success: false, message: "Error fetching cart" });
   }
 };
 
 export const addToCart = async (req: Request, res: Response) => {
   const userId = req.user.id;
-  const { productId, quantity } = req.query;
+  const { productId, quantity } = req.body;
   if (!userId || !productId) {
     return res
       .status(400)
@@ -43,16 +43,17 @@ export const addToCart = async (req: Request, res: Response) => {
       .json({ success: false, message: "quantity must be a positive number" });
   }
   try {
-    res.status(200).json(await addItem(userId as string, productId as string, qty));
+    const result = await addItem(userId as string, productId as string, qty);
+    res.status(200).json(result);
   } catch (error) {
-    throw new Error("Error processing request: " + (error as Error).message);
+    res.status(500).json({ success: false, message: "Error adding to cart" });
   }
 };
 
 export const editCart = async (req: Request, res: Response) => {
   try {
     const userId = req.user.id;
-    const { productId, action, amount } = req.query;
+    const { productId, action, amount } = req.body;
 
     if (!userId || !productId || !action) {
       return res.status(400).json({
@@ -95,6 +96,6 @@ export const editCart = async (req: Request, res: Response) => {
     }
     res.json(msg);
   } catch (error) {
-    throw new Error("Error processing request: " + (error as Error).message);
+    res.status(500).json({ success: false, message: "Error updating cart" });
   }
 };
