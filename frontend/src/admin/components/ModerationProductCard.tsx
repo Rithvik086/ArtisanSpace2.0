@@ -14,7 +14,7 @@ interface Product {
   status: 'approved' | 'pending' | 'disapproved';
 }
 
-export default function ModerationProductCard({ product }: { product: Product }): React.ReactElement {
+export default function ModerationProductCard({ product, onModerated }: { product: Product; onModerated?: (id: string, status: 'approved' | 'disapproved') => void }): React.ReactElement {
   const { dispatch } = useAppContext();
   const [loading, setLoading] = useState(false);
 
@@ -23,8 +23,13 @@ export default function ModerationProductCard({ product }: { product: Product })
       setLoading(true);
       const res = await api.post(`/products/moderation?action=${action}&productId=${encodeURIComponent(product.id)}`);
       if (res.status === 200 && res.data && res.data.success) {
-        if (action === 'approve') dispatch({ type: 'APPROVE_PRODUCT', payload: product.id });
-        else dispatch({ type: 'DISAPPROVE_PRODUCT', payload: product.id });
+        if (action === 'approve') {
+          dispatch({ type: 'APPROVE_PRODUCT', payload: product.id });
+          onModerated?.(product.id, 'approved');
+        } else {
+          dispatch({ type: 'DISAPPROVE_PRODUCT', payload: product.id });
+          onModerated?.(product.id, 'disapproved');
+        }
       } else {
         console.error('Moderation failed', { status: res.status, body: res.data });
         const errMsg = res.data?.error || res.data?.message || 'Failed to update product status.';

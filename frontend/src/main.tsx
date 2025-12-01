@@ -26,6 +26,8 @@ const ArtisanDashboard = lazy(() => import("./artisan/Dashboardpage"));
 const WorkshopsPage = lazy(() => import("./artisan/Workshopspage"));
 const ListingsPage = lazy(() => import("./artisan/listingspage"));
 const SettingsPage = lazy(() => import("./SettingsPage"));
+const ManagerApp = lazy(() => import("./manager/ManagerApp"));
+const { AppProvider: ManagerAppProvider } = await import("./admin/AppContext");
 
 const router = createBrowserRouter([
   {
@@ -68,10 +70,12 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/manager",
+    path: "/manager/*",
     element: (
       <ProtectedRoute allowedRoles={["admin", "manager"]}>
-        <div>Manager Dashboard - Coming Soon</div>
+        <ManagerAppProvider>
+          <ManagerApp />
+        </ManagerAppProvider>
       </ProtectedRoute>
     ),
   },
