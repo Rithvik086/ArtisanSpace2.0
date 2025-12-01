@@ -83,7 +83,11 @@ export default function DashboardPage({
   useEffect(() => {
     setOrdersChart(buildMonthlyCounts(orders || [], "purchasedAt", "orders"));
     setProductsChart(
-      buildMonthlyCounts(products || [], "createdAt", "products")
+      buildMonthlyCounts(
+        products?.filter((p) => p.status === "approved") || [],
+        "createdAt",
+        "products"
+      )
     );
     setUsersChart(buildMonthlyCounts(users || [], "createdAt", "users"));
   }, [orders, products, users]);
@@ -133,7 +137,9 @@ export default function DashboardPage({
             <div className="text-left">
               <div className="text-sm font-medium text-gray-600">Products</div>
               <div className="text-2xl font-bold text-stone-700">
-                {loadingData ? "—" : products.length}
+                {loadingData
+                  ? "—"
+                  : products.filter((p) => p.status === "approved").length}
               </div>
             </div>
           </button>
@@ -185,7 +191,10 @@ export default function DashboardPage({
               </button>
             </div>
             <div className="bg-white rounded-md shadow-sm p-4">
-              <ProductsTab setModalState={setModalState} />
+              <ProductsTab
+                setModalState={setModalState}
+                excludeRoles={["admin"]}
+              />
             </div>
           </div>
         ) : showTabView && activeTab === "Orders" ? (

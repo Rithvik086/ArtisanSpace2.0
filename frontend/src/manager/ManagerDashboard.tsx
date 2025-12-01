@@ -85,7 +85,11 @@ const ManagerDashboard: React.FC<{
   useEffect(() => {
     setOrdersChart(buildMonthlyCounts(orders || [], "purchasedAt", "orders"));
     setProductsChart(
-      buildMonthlyCounts(products || [], "createdAt", "products")
+      buildMonthlyCounts(
+        products?.filter((p) => p.status === "approved") || [],
+        "createdAt",
+        "products"
+      )
     );
     setUsersChart(buildMonthlyCounts(users || [], "createdAt", "users"));
   }, [orders, products, users]);
@@ -131,7 +135,9 @@ const ManagerDashboard: React.FC<{
                   Products
                 </div>
                 <div className="text-2xl font-bold text-stone-700">
-                  {loadingData ? "—" : products.length}
+                  {loadingData
+                    ? "—"
+                    : products.filter((p) => p.status === "approved").length}
                 </div>
               </div>
             </button>
@@ -186,7 +192,10 @@ const ManagerDashboard: React.FC<{
               </button>
             </div>
             <div className="bg-white rounded-md shadow-sm p-4">
-              <ProductsTab setModalState={setModalState} />
+              <ProductsTab
+                setModalState={setModalState}
+                excludeRoles={["admin"]}
+              />
             </div>
           </div>
         ) : showTabView && activeTab === "Orders" ? (

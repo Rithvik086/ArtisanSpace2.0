@@ -10,11 +10,17 @@ interface ModalState {
 
 export default function ProductsTab({
   setModalState,
+  excludeRoles = [],
 }: {
   setModalState: React.Dispatch<React.SetStateAction<ModalState>>;
+  excludeRoles?: string[];
 }) {
   const { state } = useAppContext();
-  const products = state.products;
+  const products = state.products.filter(
+    (product) =>
+      product.status === "approved" &&
+      !excludeRoles.includes(product.uploadedBy?.toLowerCase() || "")
+  );
   const [currentPage, setCurrentPage] = useState<number>(1);
   const ITEMS_PER_PAGE = 5;
 
