@@ -197,8 +197,8 @@ export async function changeOrderStatus(
 
 export async function deleteOrderById(orderId: string) {
   try {
-    const order = await Order.findByIdAndUpdate(
-      orderId,
+    const order = await Order.findOneAndUpdate(
+      { _id: orderId, isValid: true },
       { isValid: false },
       { new: true }
     );
@@ -213,7 +213,9 @@ export async function deleteOrderById(orderId: string) {
 
 export async function getAllOrdersForAdmin() {
   try {
-    const orders = await Order.find({}).populate("userId", "name email").lean();
+    const orders = await Order.find({ isValid: true })
+      .populate("userId", "name email")
+      .lean();
     return orders;
   } catch (err) {
     throw new Error(
@@ -225,6 +227,9 @@ export async function getAllOrdersForAdmin() {
 export async function getSalesData() {
   try {
     const agg = await Order.aggregate([
+      {
+        $match: { isValid: true },
+      },
       {
         $addFields: {
           _date: {

@@ -14,6 +14,7 @@ interface Props {
   workshops: Workshop[];
   onRemove: (workshopId: string) => void;
   removingWorkshops: Set<string>;
+  searchTerm?: string;
 }
 
 export function AcceptedWorkshopsTable({
@@ -27,11 +28,11 @@ export function AcceptedWorkshopsTable({
       <div className={cn(craftStyles.card.warm, "p-6")}>
         <div className="flex items-center space-x-3 mb-2">
           <CheckCircle className="w-6 h-6 text-green-600" />
-          <h2 className="text-2xl font-bold text-amber-900 font-serif">
+          <h2 className="text-2xl font-bold text-amber-900 font-baloo">
             Accepted Workshops
           </h2>
         </div>
-        <p className="text-amber-700">
+        <p className="text-amber-700 font-baloo">
           Manage your scheduled workshops and connect with clients
         </p>
       </div>
@@ -53,11 +54,11 @@ export function AcceptedWorkshopsTable({
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800 border border-green-200">
                       Accepted
                     </span>
-                    <h3 className="text-xl font-semibold text-amber-900 font-serif">
+                    <h3 className="text-xl font-semibold text-amber-900 font-baloo">
                       {workshop.workshopTitle}
                     </h3>
                   </div>
-                  <p className="text-amber-700 mb-4 leading-relaxed">
+                  <p className="text-amber-700 mb-4 leading-relaxed font-baloo">
                     {workshop.workshopDescription}
                   </p>
                 </div>
@@ -75,12 +76,12 @@ export function AcceptedWorkshopsTable({
                 <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
                   <div className="flex items-center space-x-2 mb-3">
                     <User className="w-4 h-4 text-amber-600" />
-                    <p className="text-xs text-amber-700 font-bold uppercase tracking-wide">
+                    <p className="text-xs text-amber-700 font-bold uppercase tracking-wide font-baloo">
                       Client Details
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-lg font-semibold text-amber-900">
+                    <p className="text-lg font-semibold text-amber-900 font-baloo">
                       {workshop.userId.username}
                     </p>
                     {workshop.userId.email && (
@@ -106,20 +107,20 @@ export function AcceptedWorkshopsTable({
                 <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                   <div className="flex items-center space-x-2 mb-3">
                     <Calendar className="w-4 h-4 text-blue-600" />
-                    <p className="text-xs text-blue-700 font-bold uppercase tracking-wide">
+                    <p className="text-xs text-blue-700 font-bold uppercase tracking-wide font-baloo">
                       Schedule
                     </p>
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
                       <Calendar className="w-4 h-4 text-blue-600" />
-                      <p className="text-lg font-semibold text-blue-900">
+                      <p className="text-lg font-semibold text-blue-900 font-baloo">
                         {new Date(workshop.date).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Clock className="w-4 h-4 text-blue-600" />
-                      <p className="text-lg font-semibold text-blue-900">
+                      <p className="text-lg font-semibold text-blue-900 font-baloo">
                         {workshop.time}
                       </p>
                     </div>
@@ -134,10 +135,10 @@ export function AcceptedWorkshopsTable({
           <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
-          <h3 className="text-xl font-semibold text-amber-900 mb-2">
+          <h3 className="text-xl font-semibold text-amber-900 mb-2 font-baloo">
             No Accepted Workshops
           </h3>
-          <p className="text-amber-700">
+          <p className="text-amber-700 font-baloo">
             You haven't accepted any workshops yet. Check available workshops to
             get started!
           </p>

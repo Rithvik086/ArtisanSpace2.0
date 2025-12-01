@@ -370,7 +370,9 @@ export async function decreaseProductQuantity(
       throw new Error("Quantity cannot be negative");
     }
     if (!allowZero && quantity === 0) {
-      throw new Error("Quantity cannot be zero. Use allowZero=true for order processing.");
+      throw new Error(
+        "Quantity cannot be zero. Use allowZero=true for order processing."
+      );
     }
 
     const updatedProduct = await Product.findOneAndUpdate(
@@ -446,7 +448,9 @@ export async function updateProduct(
 
 export async function getAllProductsForAdmin() {
   try {
-    const products = await Product.find({}).lean();
+    const products = await Product.find({
+      isValid: true,
+    }).lean();
     return products;
   } catch (e) {
     throw new Error(

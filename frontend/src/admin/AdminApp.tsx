@@ -11,6 +11,7 @@ import {
 } from "./components/ModalComponents";
 import { useAppContext } from "./AppContext";
 import Loader from "../components/ui/Loader";
+import AdminFooter from "./components/AdminFooter";
 
 // Lazy load big pages
 const DashboardPage = lazy(() => import("./DashboardPage"));
@@ -45,7 +46,7 @@ export default function AdminApp(): React.ReactElement {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-linear-to-br from-amber-50 via-orange-50 to-amber-100 font-serif">
+    <div className="min-h-screen flex flex-col bg-linear-to-br from-amber-50 via-orange-50 to-stone-100 font-baloo text-stone-800">
       <Header />
       <main className="grow p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
@@ -68,6 +69,7 @@ export default function AdminApp(): React.ReactElement {
           </Suspense>
         </div>
       </main>
+      <AdminFooter />
 
       <AddUserModal
         isOpen={modalState.type === "add-user"}

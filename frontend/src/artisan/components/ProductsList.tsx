@@ -1,8 +1,8 @@
-import { ProductTable } from '../../components/ui/ProductTable';
-import { EditProductModal } from '../../components/ui/EditProductModal';
-import { DeleteConfirmationModal } from '../../components/ui/DeleteConfirmationModal';
-import { craftStyles, cn } from '../../styles/theme';
-import type { Product as ProductType } from '../Dashboardpage';
+import { ProductTable } from "../../components/ui/ProductTable";
+import { EditProductModal } from "../../components/ui/EditProductModal";
+import { DeleteConfirmationModal } from "../../components/ui/DeleteConfirmationModal";
+import { craftStyles, cn } from "../../styles/theme";
+import type { Product as ProductType } from "../Dashboardpage";
 
 interface Props {
   products: ProductType[];
@@ -17,26 +17,61 @@ interface Props {
   onDeleteConfirm: () => void;
 }
 
-export default function ProductsList({ products, isEditOpen, selectedProduct, onEditOpen, onEditClose, onSave, onDeleteOpen, isDeleteOpen, onDeleteClose, onDeleteConfirm }: Props) {
+export default function ProductsList({
+  products,
+  isEditOpen,
+  selectedProduct,
+  onEditOpen,
+  onEditClose,
+  onSave,
+  onDeleteOpen,
+  isDeleteOpen,
+  onDeleteClose,
+  onDeleteConfirm,
+}: Props) {
   return (
     <section className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-amber-900 font-serif">Your Creations</h2>
-          <p className="text-amber-700 mt-1">Manage your handcrafted treasures</p>
+          <h2 className="text-2xl font-bold text-amber-900 font-baloo">
+            Your Creations
+          </h2>
+          <p className="text-amber-700 mt-1 font-baloo">
+            Manage your handcrafted treasures
+          </p>
         </div>
         <div className="flex items-center gap-3">
-          <span className={cn(craftStyles.heroButton.compact, 'px-4 py-2 rounded-full text-sm font-medium')}>{products.length} Products</span>
+          <span
+            className={cn(
+              craftStyles.heroButton.compact,
+              "px-4 py-2 rounded-full text-sm font-medium"
+            )}
+          >
+            {products.length} Products
+          </span>
         </div>
       </div>
 
-      <ProductTable products={products} onEdit={onEditOpen} onDelete={onDeleteOpen} />
+      <ProductTable
+        products={products}
+        onEdit={onEditOpen}
+        onDelete={onDeleteOpen}
+      />
 
       {selectedProduct && (
-        <EditProductModal isOpen={isEditOpen} onClose={onEditClose} product={selectedProduct} onSave={onSave} />
+        <EditProductModal
+          isOpen={isEditOpen}
+          onClose={onEditClose}
+          product={selectedProduct}
+          onSave={onSave}
+        />
       )}
 
-      <DeleteConfirmationModal isOpen={isDeleteOpen} onClose={onDeleteClose} onConfirm={onDeleteConfirm} />
+      <DeleteConfirmationModal
+        isOpen={isDeleteOpen}
+        onClose={onDeleteClose}
+        onConfirm={onDeleteConfirm}
+      />
     </section>
   );
 }
