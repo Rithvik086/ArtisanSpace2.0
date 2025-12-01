@@ -1,5 +1,3 @@
-import CustomerHeader from "@/components/customer/CustomerHeader";
-import CustomerFooter from "@/components/customer/CustomerFooter";
 import StaticThreeView from "@/components/StaticThreeView";
 import { TypingAnimation } from "@/components/ui/typing-animation";
 import { useSelector } from "react-redux";
@@ -52,7 +50,6 @@ const CustomerHome = () => {
 
   return (
     <>
-      <CustomerHeader />
       <div>
         {/* Tab Navigation */}
         <div className="bg-white border-b">
@@ -122,7 +119,6 @@ const CustomerHome = () => {
 
         {activeTab === "orders" && <CustomerOrders />}
       </div>
-      <CustomerFooter />
     </>
   );
 };

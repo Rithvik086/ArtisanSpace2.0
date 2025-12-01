@@ -7,6 +7,7 @@ import cartRoutes from "../routes/cart.routes.js";
 import ticketRoutes from "../routes/ticket.routes.js";
 import workshopRoutes from "../routes/workshop.routes.js";
 import customRequestRoutes from "./customRequest.routes.js";
+import { getUserSettings } from "../controller/userController.js";
 
 const router = express.Router();
 
@@ -20,5 +21,7 @@ router.use("/workshop", workshopRoutes);
 router.use("/custom-request", customRequestRoutes);
 
 router.use("/chart", dataRoutes);
+
+router.get("/settings", getUserSettings);
 
 export default router;

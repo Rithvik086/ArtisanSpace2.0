@@ -3,8 +3,6 @@ import axios from "../../lib/axios";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../redux/store";
 import { Link } from "react-router-dom";
-import CustomerHeader from "@/components/customer/CustomerHeader";
-import CustomerFooter from "@/components/customer/CustomerFooter";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useLoading } from "@/components/ui/LoadingProvider";
 import {
@@ -236,8 +234,6 @@ const Cart: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-amber-50">
-      <CustomerHeader />
-
       <main className="grow py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Page Header */}
@@ -461,8 +457,6 @@ const Cart: React.FC = () => {
           )}
         </div>
       </main>
-
-      <CustomerFooter />
     </div>
   );
 };

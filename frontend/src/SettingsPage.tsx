@@ -1,6 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { User, MapPin, Bell, CreditCard, Trash2, Save, Home, Briefcase, Plus } from 'lucide-react';
-import { cn, craftStyles } from './styles/theme';
+import React, { useState, useEffect } from "react";
+import {
+  User,
+  MapPin,
+  Trash2,
+  Save,
+  Home,
+  Settings,
+  Shield,
+  Eye,
+  EyeOff,
+  Loader,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
+import { cn } from "./styles/theme";
+import api from "./lib/axios";
 
 // TypeScript interfaces
 interface FormData {
@@ -18,10 +32,24 @@ interface FormData {
   workZip: string;
 }
 
-interface Notifications {
-  email: boolean;
-  sms: boolean;
-  push: boolean;
+interface ApiResponse {
+  profile: {
+    name: string;
+    username: string;
+    email: string;
+    mobile: string;
+  };
+  addresses: Array<{
+    street: string;
+    city: string;
+    state: string;
+    zip: string;
+  }>;
+  notifications: {
+    email: boolean;
+    sms: boolean;
+    push: boolean;
+  };
 }
 
 interface InputFieldProps {
@@ -37,9 +65,11 @@ interface InputFieldProps {
 interface ButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
-  variant?: 'primary' | 'secondary' | 'danger';
+  variant?: "primary" | "secondary" | "danger";
   icon?: React.ElementType;
   className?: string;
+  type?: "button" | "submit" | "reset";
+  disabled?: boolean;
 }
 
 interface ProfileSettingsProps {
@@ -52,11 +82,6 @@ interface AddressSettingsProps {
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-interface NotificationSettingsProps {
-  notifications: Notifications;
-  handleNotifChange: (key: keyof Notifications) => void;
-}
-
 interface Tab {
   id: string;
   label: string;
@@ -65,143 +90,286 @@ interface Tab {
 }
 
 // --- Reusable Input Component ---
-const InputField: React.FC<InputFieldProps> = ({ id, label, type = 'text', value, onChange, placeholder, icon: Icon }) => (
-  <div className="mb-6">
-    <label htmlFor={id} className="block text-sm font-semibold text-amber-900 mb-2">
-      {label}
-    </label>
-    <div className="relative rounded-lg shadow-sm">
-      {Icon && (
-        <div className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
-          <Icon className="h-5 w-5 text-amber-600" aria-hidden="true" />
-        </div>
-      )}
-      <input
-        type={type}
-        id={id}
-        name={id}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className={cn(
-          craftStyles.input.default,
-          Icon ? 'pl-10' : '',
-          'focus:ring-amber-500 focus:border-amber-500'
+const InputField: React.FC<InputFieldProps> = ({
+  id,
+  label,
+  type = "text",
+  value,
+  onChange,
+  placeholder,
+  icon: Icon,
+}) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const inputType = type === "password" && showPassword ? "text" : type;
+
+  return (
+    <div className="mb-6 group">
+      <label
+        htmlFor={id}
+        className="block text-sm font-semibold text-amber-900 mb-2 transition-colors group-focus-within:text-amber-700"
+      >
+        {label}
+      </label>
+      <div className="relative rounded-lg shadow-sm">
+        {Icon && (
+          <div className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
+            <Icon
+              className="h-5 w-5 text-amber-600 transition-colors group-focus-within:text-amber-700"
+              aria-hidden="true"
+            />
+          </div>
         )}
-      />
+        <input
+          type={inputType}
+          id={id}
+          name={id}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className={cn(
+            "w-full px-4 py-3 border border-amber-200 rounded-lg",
+            "focus:ring-2 focus:ring-amber-500 focus:border-amber-500",
+            "bg-white/80 backdrop-blur-sm text-amber-900 placeholder-amber-500",
+            "transition-all duration-200 hover:border-amber-300",
+            "shadow-sm hover:shadow-md focus:shadow-lg",
+            Icon ? "pl-10" : "",
+            type === "password" ? "pr-10" : ""
+          )}
+        />
+        {type === "password" && (
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute inset-y-0 right-0 pr-3 flex items-center"
+          >
+            {showPassword ? (
+              <EyeOff className="h-5 w-5 text-amber-600 hover:text-amber-700" />
+            ) : (
+              <Eye className="h-5 w-5 text-amber-600 hover:text-amber-700" />
+            )}
+          </button>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // --- Reusable Button Component ---
-const Button: React.FC<ButtonProps> = ({ children, onClick, variant = 'primary', icon: Icon, className = '' }) => {
+const Button: React.FC<ButtonProps> = ({
+  children,
+  onClick,
+  variant = "primary",
+  icon: Icon,
+  className = "",
+  type = "button",
+  disabled = false,
+}) => {
   const craftVariants = {
-    primary: craftStyles.button.primary,
-    secondary: craftStyles.button.secondary,
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 border border-red-600 rounded-lg px-4 py-2 font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2',
+    primary: cn(
+      "bg-gradient-to-r from-amber-600 to-amber-700",
+      "hover:from-amber-700 hover:to-amber-800",
+      "text-white font-semibold px-6 py-3 rounded-lg",
+      "shadow-md hover:shadow-xl transition-all duration-300",
+      "border border-amber-600 hover:border-amber-700",
+      "transform hover:-translate-y-0.5 active:translate-y-0",
+      "focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+    ),
+    secondary: cn(
+      "bg-white/90 backdrop-blur-sm border-2 border-amber-600 text-amber-700",
+      "hover:bg-amber-50 hover:border-amber-700 font-semibold px-6 py-3 rounded-lg",
+      "shadow-sm hover:shadow-lg transition-all duration-300",
+      "transform hover:-translate-y-0.5 active:translate-y-0",
+      "focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+    ),
+    danger: cn(
+      "bg-gradient-to-r from-red-600 to-red-700",
+      "hover:from-red-700 hover:to-red-800",
+      "text-white font-semibold px-6 py-3 rounded-lg",
+      "shadow-md hover:shadow-xl transition-all duration-300",
+      "border border-red-600 hover:border-red-700",
+      "transform hover:-translate-y-0.5 active:translate-y-0",
+      "focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+    ),
   };
 
   return (
     <button
-      type="button"
+      type={type}
       onClick={onClick}
-      className={cn(craftVariants[variant], className)}
+      disabled={disabled}
+      className={cn(
+        craftVariants[variant],
+        className,
+        "group flex items-center justify-center",
+        disabled && "opacity-50 cursor-not-allowed"
+      )}
     >
-      {Icon && <Icon className="h-5 w-5 mr-2 -ml-1" />}
+      {Icon && (
+        <Icon className="h-5 w-5 mr-2 -ml-1 transition-transform group-hover:scale-110 shrink-0" />
+      )}
       {children}
     </button>
   );
 };
 
 // --- Profile Settings Tab ---
-const ProfileSettings: React.FC<ProfileSettingsProps> = ({ formData, handleChange }) => (
-  <div className="animate-fadeIn">
-    <h2 className="text-3xl font-bold text-amber-900 mb-8 font-serif">Profile Information</h2>
-    <form>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField
-          id="name"
-          label="Full Name"
-          value={formData.name}
-          onChange={handleChange}
-          placeholder="John Doe"
-        />
-        <InputField
-          id="username"
-          label="Username"
-          value={formData.username}
-          onChange={handleChange}
-          placeholder="johndoe"
-        />
-        <InputField
-          id="email"
-          label="Email Address"
-          type="email"
-          value={formData.email}
-          onChange={handleChange}
-          placeholder="you@example.com"
-        />
-        <InputField
-          id="mobile"
-          label="Mobile Number"
-          type="tel"
-          value={formData.mobile}
-          onChange={handleChange}
-          placeholder="+1 (555) 123-4567"
-        />
+const ProfileSettings: React.FC<
+  ProfileSettingsProps & {
+    onSave: () => Promise<void>;
+    isLoading: boolean;
+    onReset: () => void;
+  }
+> = ({ formData, handleChange, onSave, isLoading, onReset }) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await onSave();
+  };
+
+  return (
+    <div className="animate-fadeIn min-h-[500px] flex flex-col">
+      <div className="mb-8">
+        <div className="flex items-center mb-4">
+          <div className="h-12 w-12 bg-linear-to-r from-amber-600 to-amber-700 rounded-full flex items-center justify-center shadow-lg">
+            <User className="h-6 w-6 text-white" />
+          </div>
+          <div className="ml-4">
+            <h2
+              className="text-3xl font-bold text-amber-900"
+              style={{ fontFamily: "Baloo Bhai 2, cursive" }}
+            >
+              Profile Information
+            </h2>
+            <p className="text-amber-700 mt-1">
+              Manage your personal details and preferences
+            </p>
+          </div>
+        </div>
       </div>
-      <div className="mt-8 text-right">
-        <Button variant="primary" icon={Save}>
-          Update Profile
-        </Button>
-      </div>
-    </form>
-  </div>
-);
+
+      <form className="grow" onSubmit={handleSubmit}>
+        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-amber-200 mb-6">
+          <h3 className="text-lg font-semibold text-amber-900 mb-6 flex items-center">
+            <Shield className="h-5 w-5 mr-2 text-amber-600" />
+            Personal Information
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <InputField
+              id="name"
+              label="Full Name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="John Doe"
+              icon={User}
+            />
+            <InputField
+              id="username"
+              label="Username"
+              value={formData.username}
+              onChange={handleChange}
+              placeholder="johndoe"
+            />
+            <InputField
+              id="email"
+              label="Email Address"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+            />
+            <InputField
+              id="mobile"
+              label="Mobile Number"
+              type="tel"
+              value={formData.mobile}
+              onChange={handleChange}
+              placeholder="+1 (555) 123-4567"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-4">
+          <Button
+            variant="secondary"
+            className="px-8"
+            onClick={onReset}
+            type="button"
+            disabled={isLoading}
+          >
+            Reset Changes
+          </Button>
+          <Button
+            variant="primary"
+            icon={isLoading ? Loader : Save}
+            className="px-8"
+            type="submit"
+            disabled={isLoading}
+          >
+            {isLoading ? "Updating..." : "Update Profile"}
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+};
 
 // --- Address Settings Tab ---
-const AddressSettings: React.FC<AddressSettingsProps> = ({ formData, handleChange }) => {
-  const [addressType, setAddressType] = useState<'home' | 'work'>('home');
-  
+const AddressSettings: React.FC<
+  AddressSettingsProps & {
+    onSave: () => Promise<void>;
+    isLoading: boolean;
+    onReset: () => void;
+  }
+> = ({ formData, handleChange, onSave, isLoading, onReset }) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await onSave();
+  };
+
   return (
-    <div className="animate-fadeIn">
-      <h2 className="text-3xl font-bold text-amber-900 mb-8 font-serif">Manage Addresses</h2>
-      
-      {/* Address Type Toggle */}
-      <div className="flex rounded-lg bg-amber-100 p-1 mb-8 max-w-xs border border-amber-300">
-        <button
-          onClick={() => setAddressType('home')}
-          className={`w-1/2 py-3 px-4 rounded-lg font-semibold transition ${
-            addressType === 'home' 
-              ? 'bg-amber-600 text-white shadow-lg' 
-              : 'text-amber-700 hover:bg-amber-200'
-          }`}
-        >
-          <Home className="h-5 w-5 inline mr-2" />
-          Home
-        </button>
-        <button
-          onClick={() => setAddressType('work')}
-          className={`w-1/2 py-3 px-4 rounded-lg font-semibold transition ${
-            addressType === 'work' 
-              ? 'bg-amber-600 text-white shadow-lg' 
-              : 'text-amber-700 hover:bg-amber-200'
-          }`}
-        >
-          <Briefcase className="h-5 w-5 inline mr-2" />
-          Work
-        </button>
+    <div className="animate-fadeIn min-h-[500px] flex flex-col">
+      <div className="mb-8">
+        <div className="flex items-center mb-4">
+          <div className="h-12 w-12 bg-linear-to-r from-amber-600 to-amber-700 rounded-full flex items-center justify-center shadow-lg">
+            <MapPin className="h-6 w-6 text-white" />
+          </div>
+          <div className="ml-4">
+            <h2
+              className="text-3xl font-bold text-amber-900"
+              style={{ fontFamily: "Baloo Bhai 2, cursive" }}
+            >
+              Manage Addresses
+            </h2>
+            <p className="text-amber-700 mt-1">
+              Update your delivery and billing addresses
+            </p>
+          </div>
+        </div>
       </div>
 
-      <form>
-        {addressType === 'home' && (
-          <div className="animate-fadeIn">
+      {/* Note about single address */}
+      <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+        <p className="text-amber-800 text-sm">
+          <AlertCircle className="h-4 w-4 inline mr-1" />
+          Currently, only one primary address is supported. You can update your
+          main address below.
+        </p>
+      </div>
+
+      <form className="grow" onSubmit={handleSubmit}>
+        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-amber-200 mb-6">
+          <h3 className="text-lg font-semibold text-amber-900 mb-6 flex items-center">
+            <Home className="h-5 w-5 mr-2 text-amber-600" />
+            Primary Address
+          </h3>
+
+          <div className="animate-fadeIn space-y-6">
             <InputField
               id="homeStreet"
-              label="Street Address (Home)"
+              label="Street Address"
               value={formData.homeStreet}
               onChange={handleChange}
               placeholder="123 Main St"
+              icon={MapPin}
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <InputField
@@ -227,45 +395,26 @@ const AddressSettings: React.FC<AddressSettingsProps> = ({ formData, handleChang
               />
             </div>
           </div>
-        )}
-        
-        {addressType === 'work' && (
-           <div className="animate-fadeIn">
-            <InputField
-              id="workStreet"
-              label="Street Address (Work)"
-              value={formData.workStreet}
-              onChange={handleChange}
-              placeholder="456 Business Ave"
-            />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <InputField
-                id="workCity"
-                label="City"
-                value={formData.workCity}
-                onChange={handleChange}
-                placeholder="Metropolis"
-              />
-              <InputField
-                id="workState"
-                label="State / Province"
-                value={formData.workState}
-                onChange={handleChange}
-                placeholder="NY"
-              />
-              <InputField
-                id="workZip"
-                label="Zip / Postal Code"
-                value={formData.workZip}
-                onChange={handleChange}
-                placeholder="67890"
-              />
-            </div>
-          </div>
-        )}
-        <div className="mt-8 text-right">
-          <Button variant="primary" icon={Save}>
-            Update {addressType === 'home' ? 'Home' : 'Work'} Address
+        </div>
+
+        <div className="flex justify-end space-x-4">
+          <Button
+            variant="secondary"
+            className="px-8"
+            onClick={onReset}
+            type="button"
+            disabled={isLoading}
+          >
+            Reset Changes
+          </Button>
+          <Button
+            variant="primary"
+            icon={isLoading ? Loader : Save}
+            className="px-8"
+            type="submit"
+            disabled={isLoading}
+          >
+            {isLoading ? "Updating..." : "Update Address"}
           </Button>
         </div>
       </form>
@@ -273,168 +422,153 @@ const AddressSettings: React.FC<AddressSettingsProps> = ({ formData, handleChang
   );
 };
 
-// --- Notification Settings Tab ---
-const NotificationSettings: React.FC<NotificationSettingsProps> = ({ notifications, handleNotifChange }) => (
-  <div className="animate-fadeIn">
-    <h2 className="text-3xl font-bold text-amber-900 mb-8 font-serif">Notification Preferences</h2>
-    <p className="text-amber-700 mb-8 text-lg">Choose how you'd like to be notified.</p>
-    <div className="space-y-6">
-      <div className={cn(craftStyles.card.default, "flex items-center justify-between p-6 border border-amber-200")}>
-        <div>
-          <h3 className="font-semibold text-amber-900 text-lg">Email Notifications</h3>
-          <p className="text-amber-700 mt-1">Get order updates and newsletters via email.</p>
-        </div>
-        <input
-          type="checkbox"
-          checked={notifications.email}
-          onChange={() => handleNotifChange('email')}
-          className="h-6 w-6 text-amber-600 border-amber-300 rounded focus:ring-amber-500 cursor-pointer"
-        />
-      </div>
-      <div className={cn(craftStyles.card.default, "flex items-center justify-between p-6 border border-amber-200")}>
-        <div>
-          <h3 className="font-semibold text-amber-900 text-lg">SMS Notifications</h3>
-          <p className="text-amber-700 mt-1">Receive critical alerts and delivery updates via text.</p>
-        </div>
-        <input
-          type="checkbox"
-          checked={notifications.sms}
-          onChange={() => handleNotifChange('sms')}
-          className="h-6 w-6 text-amber-600 border-amber-300 rounded focus:ring-amber-500 cursor-pointer"
-        />
-      </div>
-      <div className={cn(craftStyles.card.default, "flex items-center justify-between p-6 border border-amber-200")}>
-        <div>
-          <h3 className="font-semibold text-amber-900 text-lg">Push Notifications</h3>
-          <p className="text-amber-700 mt-1">Get app notifications for flash sales and updates.</p>
-        </div>
-        <input
-          type="checkbox"
-          checked={notifications.push}
-          onChange={() => handleNotifChange('push')}
-          className="h-6 w-6 text-amber-600 border-amber-300 rounded focus:ring-amber-500 cursor-pointer"
-        />
-      </div>
-    </div>
-    <div className="mt-8 text-right">
-      <Button variant="primary" icon={Save}>
-        Update Preferences
-      </Button>
-    </div>
-  </div>
-);
+// Notification settings removed per request
 
-// --- Payment Settings Tab ---
-const PaymentSettings: React.FC = () => (
-  <div className="animate-fadeIn">
-    <h2 className="text-3xl font-bold text-amber-900 mb-8 font-serif">Payment Methods</h2>
-    <div className="space-y-6">
-      {/* Mocked Saved Card */}
-      <div className={cn(craftStyles.card.default, "flex items-center justify-between p-6 border border-amber-200")}>
-        <div className="flex items-center">
-          <img src="https://placehold.co/40x24/blue/white?text=VISA" alt="Visa" className="h-6 w-10 mr-4 rounded" />
-          <div>
-            <h3 className="font-semibold text-amber-900">Visa ending in 1234</h3>
-            <p className="text-amber-700">Expires 12/2026</p>
-          </div>
-        </div>
-        <button className="text-red-600 hover:text-red-800 font-medium px-3 py-1 rounded-lg hover:bg-red-50 transition-colors">
-          Remove
-        </button>
-      </div>
-      
-      {/* Mocked Saved Card */}
-      <div className={cn(craftStyles.card.default, "flex items-center justify-between p-6 border border-amber-200")}>
-        <div className="flex items-center">
-          <img src="https://placehold.co/40x24/orange/white?text=MC" alt="Mastercard" className="h-6 w-10 mr-4 rounded" />
-          <div>
-            <h3 className="font-semibold text-amber-900">Mastercard ending in 5678</h3>
-            <p className="text-amber-700">Expires 08/2025</p>
-          </div>
-        </div>
-        <button className="text-red-600 hover:text-red-800 font-medium px-3 py-1 rounded-lg hover:bg-red-50 transition-colors">
-          Remove
-        </button>
-      </div>
-    </div>
-    <div className="mt-8">
-      <Button variant="secondary" icon={Plus}>
-        Add New Payment Method
-      </Button>
-    </div>
-  </div>
-);
+// Payment settings removed per request
 
 // --- Delete Account Section ---
-const DeleteAccount: React.FC = () => (
-  <div className="mt-12 p-8 bg-red-50 border-l-4 border-red-500 rounded-xl">
-    <h2 className="text-2xl font-bold text-red-800 mb-4 font-serif">Delete Account</h2>
-    <p className="text-red-700 mb-6 leading-relaxed">
-      Once you delete your account, there is no going back. All your data, including order history and saved addresses, will be permanently removed. Please be certain.
-    </p>
-    <Button variant="danger" icon={Trash2} className="shadow-lg">
-      Delete My Account
-    </Button>
-  </div>
-);
+const DeleteAccount: React.FC = () => {
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
+  return (
+    <div className="mt-12 p-8 bg-linear-to-br from-red-50 to-red-100 border border-red-300 rounded-2xl shadow-lg">
+      <div className="flex items-start mb-6">
+        <div className="h-12 w-12 bg-linear-to-r from-red-600 to-red-700 rounded-full flex items-center justify-center shadow-lg shrink-0">
+          <Trash2 className="h-6 w-6 text-white" />
+        </div>
+        <div className="ml-4">
+          <h2
+            className="text-2xl font-bold text-red-800 mb-2"
+            style={{ fontFamily: "Baloo Bhai 2, cursive" }}
+          >
+            Danger Zone
+          </h2>
+          <p className="text-red-700 leading-relaxed">
+            Once you delete your account, there is no going back. All your data,
+            including order history and saved addresses, will be permanently
+            removed. Please be certain before proceeding.
+          </p>
+        </div>
+      </div>
+
+      {!showConfirmation ? (
+        <Button
+          variant="danger"
+          icon={Trash2}
+          className="shadow-lg"
+          onClick={() => setShowConfirmation(true)}
+        >
+          Delete My Account
+        </Button>
+      ) : (
+        <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 border border-red-300">
+          <p className="text-red-800 font-semibold mb-4">
+            Are you absolutely sure? This action cannot be undone.
+          </p>
+          <div className="flex space-x-4">
+            <Button
+              variant="secondary"
+              onClick={() => setShowConfirmation(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="danger" icon={Trash2}>
+              Yes, Delete My Account
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 // --- Main App Component ---
 export default function App(): React.ReactElement {
-  const [activeTab, setActiveTab] = useState<string>('profile');
+  const [activeTab, setActiveTab] = useState<string>("profile");
   const [formData, setFormData] = useState<FormData>({
-    name: 'John Doe',
-    username: 'johndoe',
-    email: 'john.doe@example.com',
-    mobile: '+1 (555) 123-4567',
-    homeStreet: '123 Main St',
-    homeCity: 'Anytown',
-    homeState: 'CA',
-    homeZip: '12345',
-    workStreet: '',
-    workCity: '',
-    workState: '',
-    workZip: '',
-  });
-  
-  const [notifications, setNotifications] = useState<Notifications>({
-    email: true,
-    sms: false,
-    push: true,
+    name: "",
+    username: "",
+    email: "",
+    mobile: "",
+    homeStreet: "",
+    homeCity: "",
+    homeState: "",
+    homeZip: "",
+    workStreet: "",
+    workCity: "",
+    workState: "",
+    workZip: "",
   });
 
-  // Try to hydrate from backend demo endpoint if available. If backend isn't running
-  // the fetch will fail and we keep the local defaults above so the page still renders.
+  const [originalData, setOriginalData] = useState<FormData>({
+    name: "",
+    username: "",
+    email: "",
+    mobile: "",
+    homeStreet: "",
+    homeCity: "",
+    homeState: "",
+    homeZip: "",
+    workStreet: "",
+    workCity: "",
+    workState: "",
+    workZip: "",
+  });
+
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
+  // Fetch user settings from backend
   useEffect(() => {
-    fetch('/api/settings')
-      .then((res) => {
-        if (!res.ok) throw new Error('no settings');
-        return res.json();
-      })
-      .then((data) => {
-        if (!data) return;
-        setFormData((prev) => ({
-          ...prev,
-          name: data.profile?.name ?? prev.name,
-          username: data.profile?.username ?? prev.username,
-          email: data.profile?.email ?? prev.email,
-          mobile: data.profile?.mobile ?? prev.mobile,
-          homeStreet: data.addresses?.[0]?.street ?? prev.homeStreet,
-          homeCity: data.addresses?.[0]?.city ?? prev.homeCity,
-          homeState: data.addresses?.[0]?.state ?? prev.homeState,
-          homeZip: data.addresses?.[0]?.zip ?? prev.homeZip,
-          workStreet: data.addresses?.[1]?.street ?? prev.workStreet,
-          workCity: data.addresses?.[1]?.city ?? prev.workCity,
-          workState: data.addresses?.[1]?.state ?? prev.workState,
-          workZip: data.addresses?.[1]?.zip ?? prev.workZip,
-        }));
+    const fetchUserData = async () => {
+      try {
+        setIsLoading(true);
+        const response = await api.get("/settings");
+        const data: ApiResponse = response.data;
 
-        setNotifications((prev) => ({ ...prev, ...data.notifications }));
-      })
-      .catch(() => {
-        // keep local defaults when backend is unavailable
-      });
+        const userData: FormData = {
+          name: data.profile?.name || "",
+          username: data.profile?.username || "",
+          email: data.profile?.email || "",
+          mobile: data.profile?.mobile || "",
+          homeStreet: data.addresses?.[0]?.street || "",
+          homeCity: data.addresses?.[0]?.city || "",
+          homeState: data.addresses?.[0]?.state || "",
+          homeZip: data.addresses?.[0]?.zip || "",
+          workStreet: data.addresses?.[1]?.street || "",
+          workCity: data.addresses?.[1]?.city || "",
+          workState: data.addresses?.[1]?.state || "",
+          workZip: data.addresses?.[1]?.zip || "",
+        };
+
+        setFormData(userData);
+        setOriginalData(userData);
+        setMessage(null);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setMessage({
+          type: "error",
+          text: "Failed to load user data. Please refresh the page.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
   }, []);
+
+  // Clear messages after 5 seconds
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => setMessage(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { id, value } = e.target;
@@ -442,70 +576,191 @@ export default function App(): React.ReactElement {
       ...prevData,
       [id]: value,
     }));
-  };
-  
-  const handleNotifChange = (key: keyof Notifications): void => {
-    setNotifications((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+    // Clear any existing messages when user starts typing
+    if (message) setMessage(null);
   };
 
+  const handleSaveProfile = async (): Promise<void> => {
+    try {
+      setIsSaving(true);
+      setMessage(null);
+
+      // Prepare data for API call
+      const updateData = {
+        name: formData.name.trim(),
+        mobile_no: formData.mobile.trim(),
+        address: {
+          street: formData.homeStreet.trim(),
+          city: formData.homeCity.trim(),
+          state: formData.homeState.trim(),
+          zip: formData.homeZip.trim(),
+        },
+      };
+
+      await api.post("/auth/update-profile", updateData);
+
+      // Update original data to reflect saved changes
+      setOriginalData({ ...formData });
+      setMessage({
+        type: "success",
+        text: "Profile updated successfully!",
+      });
+    } catch (error: unknown) {
+      console.error("Error updating profile:", error);
+      let errorMessage = "Failed to update profile. Please try again.";
+
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as {
+          response?: { data?: { message?: string } };
+        };
+        errorMessage = axiosError.response?.data?.message || errorMessage;
+      }
+
+      setMessage({
+        type: "error",
+        text: errorMessage,
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleReset = (): void => {
+    setFormData({ ...originalData });
+    setMessage(null);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-amber-100 flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="h-8 w-8 animate-spin text-amber-600 mx-auto mb-4" />
+          <p className="text-amber-800 text-lg">Loading your settings...</p>
+        </div>
+      </div>
+    );
+  }
+
   const tabs: Tab[] = [
-    { id: 'profile', label: 'Profile', icon: User, component: <ProfileSettings formData={formData} handleChange={handleChange} /> },
-    { id: 'address', label: 'Address', icon: MapPin, component: <AddressSettings formData={formData} handleChange={handleChange} /> },
-    { id: 'notifications', label: 'Notifications', icon: Bell, component: <NotificationSettings notifications={notifications} handleNotifChange={handleNotifChange} /> },
-    { id: 'payment', label: 'Payment', icon: CreditCard, component: <PaymentSettings /> },
+    {
+      id: "profile",
+      label: "Profile",
+      icon: User,
+      component: (
+        <ProfileSettings
+          formData={formData}
+          handleChange={handleChange}
+          onSave={handleSaveProfile}
+          isLoading={isSaving}
+          onReset={handleReset}
+        />
+      ),
+    },
+    {
+      id: "address",
+      label: "Address",
+      icon: MapPin,
+      component: (
+        <AddressSettings
+          formData={formData}
+          handleChange={handleChange}
+          onSave={handleSaveProfile}
+          isLoading={isSaving}
+          onReset={handleReset}
+        />
+      ),
+    },
+    // Notifications and Payment tabs removed per request
   ];
 
   return (
-    <div className="bg-linear-to-br from-amber-50 via-orange-50 to-amber-100 min-h-screen p-4 md:p-8">
-      <div className={cn(craftStyles.card.warm, "max-w-6xl mx-auto rounded-2xl shadow-2xl overflow-hidden border-2 border-amber-200")}>
-        <div className="md:flex">
-          {/* --- Sidebar Navigation --- */}
-          <div className="w-full md:w-1/4 bg-linear-to-b from-amber-100 to-orange-100 border-b md:border-b-0 md:border-r border-amber-300">
-            <h1 className="text-2xl font-bold text-amber-900 p-6 border-b border-amber-300 font-serif">Settings</h1>
-            <nav className="flex flex-row md:flex-col overflow-x-auto md:overflow-x-visible p-4 md:p-6 space-x-3 md:space-x-0 md:space-y-3">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center w-full min-w-max md:min-w-full space-x-3 p-4 rounded-lg font-semibold text-left transition-all duration-200 ${
-                    activeTab === tab.id
-                      ? 'bg-amber-600 text-white shadow-lg border border-amber-700'
-                      : 'text-amber-800 hover:bg-amber-200 hover:text-amber-900 border border-transparent'
-                  }`}
-                >
-                  <tab.icon className="h-5 w-5" />
-                  <span>{tab.label}</span>
-                </button>
-              ))}
-            </nav>
-          </div>
+    <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-amber-100 py-8 px-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Page Header */}
+        <div className="text-center mb-12">
+          <h1
+            className="text-4xl md:text-5xl font-bold text-amber-900 mb-4"
+            style={{ fontFamily: "Baloo Bhai 2, cursive" }}
+          >
+            Account Settings
+          </h1>
+          <p className="text-amber-700 text-lg max-w-2xl mx-auto">
+            Manage your personal information, addresses, and account preferences
+          </p>
+        </div>
 
-          {/* --- Content Area --- */}
-          <div className="w-full md:w-3/4 p-8 md:p-12">
-            {/* Render the active tab's component */}
-            {tabs.find(tab => tab.id === activeTab)?.component}
-            
-            {/* Delete Account Section (only show on profile tab) */}
-            {activeTab === 'profile' && <DeleteAccount />}
+        {/* Success/Error Messages */}
+        {message && (
+          <div
+            className={cn(
+              "mb-6 p-4 rounded-xl shadow-lg flex items-center animate-fadeIn",
+              message.type === "success"
+                ? "bg-green-50 border border-green-200 text-green-800"
+                : "bg-red-50 border border-red-200 text-red-800"
+            )}
+          >
+            {message.type === "success" ? (
+              <CheckCircle className="h-5 w-5 mr-3 text-green-600" />
+            ) : (
+              <AlertCircle className="h-5 w-5 mr-3 text-red-600" />
+            )}
+            <span className="font-medium">{message.text}</span>
+          </div>
+        )}
+
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border-2 border-amber-200">
+          <div className="md:flex min-h-[700px]">
+            {/* --- Sidebar Navigation --- */}
+            <div className="w-full md:w-1/4 bg-linear-to-b from-amber-100/90 to-orange-100/90 backdrop-blur-sm border-b md:border-b-0 md:border-r border-amber-300">
+              <div className="p-6 border-b border-amber-300">
+                <h2
+                  className="text-xl font-bold text-amber-900 flex items-center"
+                  style={{ fontFamily: "Baloo Bhai 2, cursive" }}
+                >
+                  <Settings className="h-5 w-5 mr-2" />
+                  Navigation
+                </h2>
+              </div>
+              <nav className="flex flex-row md:flex-col overflow-x-auto md:overflow-x-visible p-4 md:p-6 space-x-3 md:space-x-0 md:space-y-3">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={cn(
+                      "flex items-center w-full min-w-max md:min-w-full space-x-3 p-4 rounded-xl font-semibold text-left",
+                      "transition-all duration-300 group",
+                      activeTab === tab.id
+                        ? "bg-linear-to-r from-amber-700 to-amber-800 text-white shadow-lg transform scale-105 border border-amber-800"
+                        : "text-amber-800 hover:bg-amber-200/80 hover:text-amber-900 border border-transparent hover:scale-102"
+                    )}
+                  >
+                    <tab.icon
+                      className={cn(
+                        "h-5 w-5 transition-transform duration-300",
+                        activeTab === tab.id
+                          ? "scale-110"
+                          : "group-hover:scale-110"
+                      )}
+                    />
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
+              </nav>
+            </div>
+
+            {/* --- Content Area --- */}
+            <div className="w-full md:w-3/4 p-8 md:p-12 min-h-[600px] flex flex-col bg-linear-to-br from-white/60 to-amber-50/60 backdrop-blur-sm">
+              {/* Render the active tab's component */}
+              <div className="grow">
+                {tabs.find((tab) => tab.id === activeTab)?.component}
+              </div>
+
+              {/* Delete Account Section (only show on profile tab) */}
+              {activeTab === "profile" && <DeleteAccount />}
+            </div>
           </div>
         </div>
       </div>
-      
-      {/* CSS for animations */}
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
-        }
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
-      `}</style>
     </div>
   );
 }

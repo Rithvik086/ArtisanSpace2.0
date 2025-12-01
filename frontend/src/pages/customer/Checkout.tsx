@@ -3,8 +3,6 @@ import axios from "../../lib/axios";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../redux/store";
 import { Link, useNavigate } from "react-router-dom";
-import CustomerHeader from "@/components/customer/CustomerHeader";
-import CustomerFooter from "@/components/customer/CustomerFooter";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useLoading } from "@/components/ui/LoadingProvider";
 import {
@@ -160,7 +158,6 @@ const Checkout: React.FC = () => {
   if (cart.length === 0) {
     return (
       <div className="min-h-screen flex flex-col bg-amber-50">
-        <CustomerHeader />
         <main className="grow flex items-center justify-center py-12 px-4">
           <div className="text-center">
             <Package className="w-16 h-16 text-amber-800 mx-auto mb-4" />
@@ -179,15 +176,12 @@ const Checkout: React.FC = () => {
             </Link>
           </div>
         </main>
-        <CustomerFooter />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen flex flex-col bg-amber-50">
-      <CustomerHeader />
-
       <main className="grow py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -420,8 +414,6 @@ const Checkout: React.FC = () => {
           </div>
         </div>
       </main>
-
-      <CustomerFooter />
     </div>
   );
 };

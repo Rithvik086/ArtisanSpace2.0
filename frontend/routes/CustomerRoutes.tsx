@@ -9,6 +9,7 @@ const ProductDetails = lazy(
   () => import("../src/pages/customer/ProductDetails")
 );
 const OrderDetails = lazy(() => import("../src/pages/customer/OrderDetails"));
+const SettingsPage = lazy(() => import("../src/SettingsPage"));
 
 export const CustomerRoutes = [
   {
@@ -34,6 +35,10 @@ export const CustomerRoutes = [
   {
     path: "orders/:orderId",
     element: <OrderDetails />,
+  },
+  {
+    path: "settings",
+    element: <SettingsPage />,
   },
   {
     path: "workshop",
