@@ -8,6 +8,7 @@ const Checkout = lazy(() => import("../src/pages/customer/Checkout"));
 const ProductDetails = lazy(
   () => import("../src/pages/customer/ProductDetails")
 );
+const OrderDetails = lazy(() => import("../src/pages/customer/OrderDetails"));
 
 export const CustomerRoutes = [
   {
@@ -29,6 +30,10 @@ export const CustomerRoutes = [
   {
     path: "checkout",
     element: <Checkout />,
+  },
+  {
+    path: "orders/:orderId",
+    element: <OrderDetails />,
   },
   {
     path: "workshop",
