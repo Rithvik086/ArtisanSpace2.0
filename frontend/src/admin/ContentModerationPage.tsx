@@ -18,19 +18,6 @@ export default function ContentModerationPage(): React.ReactElement {
     (p) => p.status === "disapproved"
   );
 
-  const normalize = (items: any[]) =>
-    items.map((p) => ({
-      id: String(p._id || p.id),
-      image: p.image ?? p.images?.[0] ?? p.thumbnail ?? "",
-      name: p.name ?? p.title ?? "Untitled",
-      uploadedBy: p.uploadedBy ?? (p.userId ? String(p.userId) : ""),
-      quantity: Number(p.quantity ?? p.number ?? p.stock ?? 0),
-      oldPrice: Number(p.oldPrice ?? p.price ?? 0),
-      newPrice: Number(p.newPrice ?? p.price ?? 0),
-      category: p.category ?? "",
-      status: (p.status as "approved" | "pending" | "disapproved") ?? "pending",
-    }));
-
   const fetchProducts = async () => {
     setLoading(true);
     try {

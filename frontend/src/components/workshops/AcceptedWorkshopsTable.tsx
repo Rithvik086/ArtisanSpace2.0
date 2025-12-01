@@ -21,7 +21,6 @@ export function AcceptedWorkshopsTable({
   workshops,
   onRemove,
   removingWorkshops,
-  searchTerm = "",
 }: Props) {
   return (
     <div className="space-y-6">

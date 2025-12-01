@@ -1,6 +1,6 @@
 import React from "react";
 import { craftStyles, cn } from "../styles/theme";
-import { MessageSquare, Clock, User } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 
 export default function CustomRequestsPage(): React.ReactElement {
   return (

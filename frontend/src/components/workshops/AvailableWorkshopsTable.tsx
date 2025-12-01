@@ -13,7 +13,6 @@ export function AvailableWorkshopsTable({
   workshops,
   onAccept,
   acceptingWorkshops,
-  searchTerm = "",
 }: Props) {
   return (
     <div className="space-y-6">
