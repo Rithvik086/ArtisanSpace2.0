@@ -115,7 +115,9 @@ export async function getAcceptedWorkshops(artisanId: string | null = null) {
 
 export async function getWorkshopByUserId(userId: string) {
   try {
-    const workshops = await Workshop.find({ userId, isValid: true });
+    const workshops = await Workshop.find({ userId, isValid: true }).populate(
+      "artisanId"
+    );
     if (!workshops) {
       throw new Error("Workshops not found");
     }

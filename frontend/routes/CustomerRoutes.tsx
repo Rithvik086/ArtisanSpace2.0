@@ -9,6 +9,7 @@ const ProductDetails = lazy(
   () => import("../src/pages/customer/ProductDetails")
 );
 const OrderDetails = lazy(() => import("../src/pages/customer/OrderDetails"));
+const Workshops = lazy(() => import("../src/pages/customer/Workshops"));
 const SettingsPage = lazy(() => import("../src/SettingsPage"));
 
 export const CustomerRoutes = [
@@ -42,7 +43,7 @@ export const CustomerRoutes = [
   },
   {
     path: "workshop",
-    element: <div>Workshop Page - Coming Soon</div>,
+    element: <Workshops />,
   },
   {
     path: "custom-order",

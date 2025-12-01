@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, User, LogOut } from "lucide-react";
 import { useSelector } from "react-redux";
@@ -6,7 +6,7 @@ import { useDispatch } from "../../redux/store";
 import { logoutUser } from "../../redux/slices/authThunks";
 import type { RootState } from "../../redux/store";
 
-export default function CustomerHeader() {
+function CustomerHeader() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -128,3 +128,5 @@ export default function CustomerHeader() {
     </header>
   );
 }
+
+export default memo(CustomerHeader);

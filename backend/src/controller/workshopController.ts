@@ -38,6 +38,23 @@ export const getUserWorkshops = async (req: Request, res: Response) => {
   }
 };
 
+export const getAcceptedWorkshopsForCustomers = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const acceptedWorkshops = await getAcceptedWorkshops();
+    res.status(200).json({
+      success: true,
+      workshops: acceptedWorkshops,
+    });
+  } catch (error) {
+    throw new Error(
+      "Error fetching accepted workshops: " + (error as Error).message
+    );
+  }
+};
+
 export const bookUserWorkshop = async (req: Request, res: Response) => {
   const { workshopTitle, workshopDesc, date, time } = req.body;
   console.log(workshopTitle, workshopDesc);
