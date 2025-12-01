@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Calendar, Clock, User, MessageSquare, Plus, List } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,13 +36,8 @@ const Workshops: React.FC = () => {
   const user = useSelector((state: RootState) => state.auth.user);
   const { showToast } = useToast();
 
-  useEffect(() => {
-    if (activeTab === "list" && user) {
-      fetchWorkshops();
-    }
-  }, [activeTab, user]);
-
-  const fetchWorkshops = async () => {
+  const fetchWorkshops = useCallback(async () => {
+    if (!user) return;
     try {
       setLoading(true);
       const response = await api.get(`/workshop/user/${user.id}`);
@@ -55,7 +50,13 @@ const Workshops: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, showToast]);
+
+  useEffect(() => {
+    if (activeTab === "list" && user) {
+      fetchWorkshops();
+    }
+  }, [activeTab, user, fetchWorkshops]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
