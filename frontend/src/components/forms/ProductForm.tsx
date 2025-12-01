@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { FileUp, Loader2, Palette, Sparkles } from "lucide-react";
+import { FileUp, Loader2, Sparkles } from "lucide-react";
 import { craftStyles, cn } from "../../styles/theme";
 
 // TypeScript interfaces
@@ -53,16 +53,6 @@ const productTypes: ProductType[] = [
   { value: "other", label: "Other" },
 ];
 
-/**
- * A reusable form for adding or editing a product.
- *
- * @param {object} props
- * @param {function(FormData): Promise<any>} props.onSubmit - Async function to handle form submission. Receives FormData.
- * @param {object} [props.initialData={}] - Pre-populates the form for editing.
- * @param {string} [props.submitButtonText="Add Product"] - Text for the submit button.
- * @param {string} [props.successMessage="Product added successfully!"] - Message on success.
- * @param {function} [props.onSuccess=()=>{}] - Callback function to run on successful submission (e.g., for redirection).
- */
 export function ProductForm({
   onSubmit,
   initialData = {},
@@ -79,9 +69,14 @@ export function ProductForm({
     quantity: initialData.quantity || "",
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(initialData.image || null);
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    initialData.image || null
+  );
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const [statusMessage, setStatusMessage] = useState<StatusMessage>({ type: "", message: "" });
+  const [statusMessage, setStatusMessage] = useState<StatusMessage>({
+    type: "",
+    message: "",
+  });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -122,16 +117,18 @@ export function ProductForm({
       const error = validateField(key, formData[key as keyof ProductFormData]);
       if (error) newErrors[key] = error;
     });
-    
+
     // Validate image separately
     const imageError = validateField("image", "");
     if (imageError) newErrors.image = imageError;
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value.trimStart() }));
     // Clear error on change
@@ -160,7 +157,12 @@ export function ProductForm({
 
   const resetForm = (): void => {
     setFormData({
-      productName: "", type: "", material: "", price: "", description: "", quantity: "",
+      productName: "",
+      type: "",
+      material: "",
+      price: "",
+      description: "",
+      quantity: "",
     });
     setImageFile(null);
     setImagePreview(null);
@@ -170,7 +172,9 @@ export function ProductForm({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ): Promise<void> => {
     e.preventDefault();
     setStatusMessage({ type: "", message: "" });
 
@@ -181,10 +185,10 @@ export function ProductForm({
     setIsSubmitting(true);
     const data = new FormData();
     // Append all text data, trimming whitespace
-    Object.keys(formData).forEach(key => {
+    Object.keys(formData).forEach((key) => {
       data.append(key, formData[key as keyof ProductFormData].trim());
     });
-    
+
     // Only append image if a new one was selected
     if (imageFile) {
       data.append("image", imageFile);
@@ -194,11 +198,10 @@ export function ProductForm({
       await onSubmit(data); // Call the flexible submit function
       setStatusMessage({ type: "success", message: successMessage });
       resetForm();
-      
+
       setTimeout(() => {
         onSuccess(); // Call the flexible success callback
       }, 2000);
-
     } catch (error: any) {
       setStatusMessage({
         type: "error",
@@ -210,25 +213,20 @@ export function ProductForm({
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50 ">
+    <div>
       <div className="max-w-4xl mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <Palette className="w-8 h-8 text-amber-800 mr-3" />
-            <h1 className="text-4xl font-bold text-amber-900 font-serif">Craft Your Listing</h1>
-          </div>
-          <p className="text-lg text-amber-700">Share your handmade treasures with the world</p>
-        </div>
-
         {/* Form Card */}
         <div className="bg-white rounded-2xl shadow-xl border-2 border-amber-200 overflow-hidden">
           <div className="bg-linear-to-r from-amber-100 to-orange-100 px-8 py-6 border-b border-amber-200">
             <div className="flex items-center">
               <Sparkles className="w-6 h-6 text-amber-800 mr-3" />
               <div>
-                <h2 className="text-2xl font-bold text-amber-900 font-serif">Product Details</h2>
-                <p className="text-amber-700 mt-1">Tell us about your beautiful creation</p>
+                <h2 className="text-2xl font-bold text-amber-900 font-serif">
+                  Product Details
+                </h2>
+                <p className="text-amber-700 mt-1">
+                  Tell us about your beautiful creation
+                </p>
               </div>
             </div>
           </div>
@@ -237,7 +235,10 @@ export function ProductForm({
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Product Name */}
               <div className="space-y-3">
-                <label htmlFor="product-name" className="block text-sm font-semibold text-amber-900 uppercase tracking-wide">
+                <label
+                  htmlFor="product-name"
+                  className="block text-sm font-semibold text-amber-900 uppercase tracking-wide"
+                >
                   Creation Name
                 </label>
                 <input
@@ -263,7 +264,10 @@ export function ProductForm({
               {/* Type and Material Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <label htmlFor="product-type" className="block text-sm font-semibold text-amber-900 uppercase tracking-wide">
+                  <label
+                    htmlFor="product-type"
+                    className="block text-sm font-semibold text-amber-900 uppercase tracking-wide"
+                  >
                     Craft Category
                   </label>
                   <select
@@ -284,12 +288,17 @@ export function ProductForm({
                     ))}
                   </select>
                   {errors.type && (
-                    <p className="text-sm text-red-600 font-medium">{errors.type}</p>
+                    <p className="text-sm text-red-600 font-medium">
+                      {errors.type}
+                    </p>
                   )}
                 </div>
 
                 <div className="space-y-3">
-                  <label htmlFor="material" className="block text-sm font-semibold text-amber-900 uppercase tracking-wide">
+                  <label
+                    htmlFor="material"
+                    className="block text-sm font-semibold text-amber-900 uppercase tracking-wide"
+                  >
                     Materials Used
                   </label>
                   <input
@@ -306,7 +315,9 @@ export function ProductForm({
                     )}
                   />
                   {errors.material && (
-                    <p className="text-sm text-red-600 font-medium">{errors.material}</p>
+                    <p className="text-sm text-red-600 font-medium">
+                      {errors.material}
+                    </p>
                   )}
                 </div>
               </div>
@@ -314,7 +325,10 @@ export function ProductForm({
               {/* Price and Quantity Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <label htmlFor="original-price" className="block text-sm font-semibold text-amber-900 uppercase tracking-wide">
+                  <label
+                    htmlFor="original-price"
+                    className="block text-sm font-semibold text-amber-900 uppercase tracking-wide"
+                  >
                     Price (₹)
                   </label>
                   <input
@@ -331,12 +345,17 @@ export function ProductForm({
                     )}
                   />
                   {errors.price && (
-                    <p className="text-sm text-red-600 font-medium">{errors.price}</p>
+                    <p className="text-sm text-red-600 font-medium">
+                      {errors.price}
+                    </p>
                   )}
                 </div>
 
                 <div className="space-y-3">
-                  <label htmlFor="quantity" className="block text-sm font-semibold text-amber-900 uppercase tracking-wide">
+                  <label
+                    htmlFor="quantity"
+                    className="block text-sm font-semibold text-amber-900 uppercase tracking-wide"
+                  >
                     Available Quantity
                   </label>
                   <input
@@ -354,7 +373,9 @@ export function ProductForm({
                     )}
                   />
                   {errors.quantity && (
-                    <p className="text-sm text-red-600 font-medium">{errors.quantity}</p>
+                    <p className="text-sm text-red-600 font-medium">
+                      {errors.quantity}
+                    </p>
                   )}
                 </div>
               </div>
@@ -378,16 +399,22 @@ export function ProductForm({
                   onClick={() => fileInputRef.current?.click()}
                   className={cn(
                     "w-full px-6 py-4 border-2 border-dashed rounded-xl hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500 flex items-center justify-center transition-all duration-200",
-                    errors.image ? "border-red-500 bg-red-50" : "border-amber-300 bg-white"
+                    errors.image
+                      ? "border-red-500 bg-red-50"
+                      : "border-amber-300 bg-white"
                   )}
                 >
                   <FileUp className="mr-3 h-6 w-6 text-amber-800" />
                   <span className="text-lg font-medium text-amber-900">
-                    {imageFile ? imageFile.name : "Upload your creation's photo"}
+                    {imageFile
+                      ? imageFile.name
+                      : "Upload your creation's photo"}
                   </span>
                 </button>
                 {errors.image && (
-                  <p className="text-sm text-red-600 font-medium">{errors.image}</p>
+                  <p className="text-sm text-red-600 font-medium">
+                    {errors.image}
+                  </p>
                 )}
               </div>
 
@@ -409,7 +436,10 @@ export function ProductForm({
 
               {/* Description */}
               <div className="space-y-3">
-                <label htmlFor="description" className="block text-sm font-semibold text-amber-900 uppercase tracking-wide">
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-semibold text-amber-900 uppercase tracking-wide"
+                >
                   Your Story
                 </label>
                 <textarea
@@ -426,7 +456,9 @@ export function ProductForm({
                   )}
                 />
                 {errors.description && (
-                  <p className="text-sm text-red-600 font-medium">{errors.description}</p>
+                  <p className="text-sm text-red-600 font-medium">
+                    {errors.description}
+                  </p>
                 )}
               </div>
 
@@ -445,9 +477,9 @@ export function ProductForm({
               )}
 
               {/* Submit Button */}
-              <button 
-                type="submit" 
-                disabled={isSubmitting} 
+              <button
+                type="submit"
+                disabled={isSubmitting}
                 className={cn(
                   craftStyles.button.primary,
                   "w-full text-xl py-4 disabled:opacity-50 disabled:cursor-not-allowed",

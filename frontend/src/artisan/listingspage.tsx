@@ -89,7 +89,10 @@ export default function ListingsPage(): React.ReactElement {
         window.dispatchEvent(
           new CustomEvent("artisan:product-created", { detail: normalized })
         );
-      } catch (e) {}
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (e) {
+        /* empty */
+      }
       setSuccess("Listing created successfully!");
       return res.data;
     } catch (e) {
@@ -142,7 +145,7 @@ export default function ListingsPage(): React.ReactElement {
         {success && (
           <div className="mb-6 flex items-center justify-center">
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-3 max-w-md">
-              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+              <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />
               <p className="text-green-800 font-baloo text-sm">{success}</p>
               <button
                 onClick={() => setSuccess(null)}
@@ -158,7 +161,7 @@ export default function ListingsPage(): React.ReactElement {
         {error && (
           <div className="mb-6 flex items-center justify-center">
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-3 max-w-md">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+              <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
               <p className="text-red-800 font-baloo text-sm">{error}</p>
               <button
                 onClick={() => setError(null)}
