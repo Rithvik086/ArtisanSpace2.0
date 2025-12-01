@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import GraphCard from '../admin/components/GraphCard';
-import { DollarSign, BarChart2, PackageCheck, Users2, Users, Package, ShoppingCart, PlusSquare } from 'lucide-react';
+import { DollarSign, BarChart2, PackageCheck, Users2, Users, Package, ShoppingCart } from 'lucide-react';
 import UsersTab from '../admin/tabs/UsersTab';
 import ProductsTab from '../admin/tabs/ProductsTab';
 import OrdersTab from '../admin/tabs/OrdersTab';

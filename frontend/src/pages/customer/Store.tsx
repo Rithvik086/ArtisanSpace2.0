@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   Filter,
-  ChevronDown,
   SlidersHorizontal,
   Check,
 } from "lucide-react";
