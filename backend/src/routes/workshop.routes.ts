@@ -1,6 +1,7 @@
 import express from "express";
 import {
   bookUserWorkshop,
+  getAcceptedWorkshopsForCustomers,
   getUserWorkshops,
   getWorkshops,
   handleWorksopAction,
@@ -10,6 +11,12 @@ import authorizerole from "../middleware/roleMiddleware.js";
 const router = express.Router();
 
 router.get("/", authorizerole("artisan", "manager", "admin"), getWorkshops);
+
+router.get(
+  "/accepted",
+  authorizerole("customer", "artisan", "manager", "admin"),
+  getAcceptedWorkshopsForCustomers
+);
 
 router.get(
   "/user/:userId",
@@ -25,7 +32,7 @@ router.post(
 
 router.put(
   "/:action/:workshopId",
-  authorizerole("manager", "admin"),
+  authorizerole("artisan", "manager", "admin"),
   handleWorksopAction
 );
 

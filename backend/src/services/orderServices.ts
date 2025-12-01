@@ -150,6 +150,19 @@ export async function getOrderByOrderId(orderId: string) {
   }
 }
 
+export async function getOrdersByUserId(userId: string) {
+  try {
+    const orders = await Order.find({ userId, isValid: true }).sort({
+      purchasedAt: -1,
+    });
+    return orders;
+  } catch (err) {
+    throw new Error(
+      "Error in getting orders by user ID: " + (err as Error).message
+    );
+  }
+}
+
 export async function changeOrderStatus(
   orderId: string,
   status: "pending" | "delivered" | "cancelled"

@@ -8,6 +8,8 @@ const Checkout = lazy(() => import("../src/pages/customer/Checkout"));
 const ProductDetails = lazy(
   () => import("../src/pages/customer/ProductDetails")
 );
+const OrderDetails = lazy(() => import("../src/pages/customer/OrderDetails"));
+const Workshops = lazy(() => import("../src/pages/customer/Workshops"));
 const SettingsPage = lazy(() => import("../src/SettingsPage"));
 
 export const CustomerRoutes = [
@@ -32,8 +34,16 @@ export const CustomerRoutes = [
     element: <Checkout />,
   },
   {
+    path: "orders/:orderId",
+    element: <OrderDetails />,
+  },
+  {
+    path: "settings",
+    element: <SettingsPage />,
+  },
+  {
     path: "workshop",
-    element: <div>Workshop Page - Coming Soon</div>,
+    element: <Workshops />,
   },
   {
     path: "custom-order",

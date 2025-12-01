@@ -1,12 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Search,
-  Filter,
-  SlidersHorizontal,
-  Check,
-} from "lucide-react";
-// Header/Footer provided by `CustomerLayout`
+import { Search, Filter, SlidersHorizontal, Check } from "lucide-react";
 import StoreCard from "@/components/customer/StoreCard";
 import api from "@/lib/axios";
 import { useToast } from "@/components/ui/ToastProvider";
@@ -186,8 +180,7 @@ const Store: React.FC = () => {
   };
 
   return (
-    <div className="bg-linear-to-br from-amber-50 via-orange-50 to-stone-100 font-baloo text-stone-800">
-
+    <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-stone-100 font-baloo text-stone-800">
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 px-4 overflow-hidden">
         <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-amber-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>

@@ -3,25 +3,41 @@ import {
   changeOrderStatus,
   deleteOrderById,
   getOrderByOrderId,
+  getOrdersByUserId,
   placeUserOrder,
 } from "../services/orderServices.js";
 
 export const getOrderById = async (req: Request, res: Response) => {
   const orderId = req.params.orderId;
   if (!orderId) {
-    return res.status(400).json({ success: false, message: "Order ID is required" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Order ID is required" });
   }
   try {
     const order = await getOrderByOrderId(orderId);
 
     if (!order) {
-      return res.status(404).json({ success: false, message: "Order not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
     }
 
     res.status(200).json({ success: true, order });
   } catch (e) {
     console.error("Error in getting order by ID:", e);
     res.status(500).json({ success: false, message: "Error fetching order" });
+  }
+};
+
+export const getUserOrders = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.id;
+    const orders = await getOrdersByUserId(userId);
+    res.status(200).json({ success: true, orders });
+  } catch (e) {
+    console.error("Error in getting user orders:", e);
+    res.status(500).json({ success: false, message: "Error fetching orders" });
   }
 };
 
@@ -61,7 +77,9 @@ export const changeStatus = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error in changing order status:", error);
-    res.status(500).json({ success: false, message: "Error updating order status" });
+    res
+      .status(500)
+      .json({ success: false, message: "Error updating order status" });
   }
 };
 

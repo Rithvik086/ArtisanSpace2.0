@@ -68,15 +68,15 @@ export async function acceptWorkshop(workshopId: string, artisanId: string) {
   }
 }
 
-export async function removeWorkshop(workshopId: string) {
+export async function removeWorkshop(workshopId: string, artisanId: string) {
   try {
     const workshop = await Workshop.findOneAndUpdate(
-      { _id: workshopId, isValid: true },
+      { _id: workshopId, isValid: true, artisanId },
       { isValid: false },
       { new: true }
     );
     if (!workshop) {
-      throw new Error("Workshop not found");
+      throw new Error("Workshop not found or not authorized");
     }
     return { success: true, message: "Workshop removed successfully!" };
   } catch (e) {
@@ -115,7 +115,9 @@ export async function getAcceptedWorkshops(artisanId: string | null = null) {
 
 export async function getWorkshopByUserId(userId: string) {
   try {
-    const workshops = await Workshop.find({ userId, isValid: true });
+    const workshops = await Workshop.find({ userId, isValid: true }).populate(
+      "artisanId"
+    );
     if (!workshops) {
       throw new Error("Workshops not found");
     }

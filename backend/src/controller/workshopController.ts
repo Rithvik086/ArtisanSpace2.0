@@ -38,6 +38,23 @@ export const getUserWorkshops = async (req: Request, res: Response) => {
   }
 };
 
+export const getAcceptedWorkshopsForCustomers = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const acceptedWorkshops = await getAcceptedWorkshops();
+    res.status(200).json({
+      success: true,
+      workshops: acceptedWorkshops,
+    });
+  } catch (error) {
+    throw new Error(
+      "Error fetching accepted workshops: " + (error as Error).message
+    );
+  }
+};
+
 export const bookUserWorkshop = async (req: Request, res: Response) => {
   const { workshopTitle, workshopDesc, date, time } = req.body;
   console.log(workshopTitle, workshopDesc);
@@ -128,7 +145,10 @@ export const handleWorksopAction = async (req: Request, res: Response) => {
         res.status(200).json({ success: true });
       }
     } else if (req.params.action === "remove") {
-      const result = await removeWorkshop(req.params.workshopId as string);
+      const result = await removeWorkshop(
+        req.params.workshopId as string,
+        req.user.id
+      );
       if (result.success) {
         res.status(200).json({ success: true });
       }

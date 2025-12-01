@@ -3,11 +3,18 @@ import {
   changeStatus,
   deleteOrder,
   getOrderById,
+  getUserOrders,
   placeOrder,
 } from "../controller/orderController.js";
 import authorizerole from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
+
+router.get(
+  "/user",
+  authorizerole("customer", "artisan", "manager", "admin"),
+  getUserOrders
+);
 
 router.get(
   "/:orderId",
