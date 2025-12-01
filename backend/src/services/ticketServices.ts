@@ -34,8 +34,8 @@ export async function getTickets() {
 
 export async function removeTicket(ticketId: string) {
   try {
-    const ticket = await Ticket.findByIdAndUpdate(
-      ticketId,
+    const ticket = await Ticket.findOneAndUpdate(
+      { _id: ticketId, isValid: true },
       { isValid: false },
       { new: true }
     );
@@ -67,9 +67,13 @@ export async function updateTicketStatus(
 
 export async function getAllTicketsForAdmin() {
   try {
-    const tickets = await Ticket.find({}).populate('userId', 'name').lean();
+    const tickets = await Ticket.find({ isValid: true })
+      .populate("userId", "name")
+      .lean();
     return tickets;
   } catch (e) {
-    throw new Error("Error getting all tickets for admin: " + (e as Error).message);
+    throw new Error(
+      "Error getting all tickets for admin: " + (e as Error).message
+    );
   }
 }

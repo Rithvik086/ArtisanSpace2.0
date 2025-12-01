@@ -3,7 +3,11 @@ import { Routes, Route } from "react-router-dom";
 import Header from "./ManagerHeader";
 import AdminFooter from "../admin/components/AdminFooter";
 import Loader from "../components/ui/Loader";
-import { AddUserModal, AddProductModal, DeleteModal } from "../admin/components/ModalComponents";
+import {
+  AddUserModal,
+  AddProductModal,
+  DeleteModal,
+} from "../admin/components/ModalComponents";
 import { useAppContext } from "../admin/AppContext";
 
 const ManagerDashboard = lazy(() => import("./ManagerDashboard"));
@@ -20,13 +24,17 @@ export default function ManagerApp(): React.ReactElement {
 
   const { dispatch } = useAppContext();
 
-  const closeModal = (): void => setModalState({ type: null, isOpen: false, data: null });
+  const closeModal = (): void =>
+    setModalState({ type: null, isOpen: false, data: null });
 
   const handleConfirmDelete = (): void => {
     const { type, data } = modalState;
-    if (type === "delete-user" && data?.id) dispatch({ type: "DELETE_USER", payload: data.id });
-    if (type === "delete-product" && data?.id) dispatch({ type: "DELETE_PRODUCT", payload: data.id });
-    if (type === "delete-order" && data?.id) dispatch({ type: "DELETE_ORDER", payload: data.id });
+    if (type === "delete-user" && data?.id)
+      dispatch({ type: "DELETE_USER", payload: data.id });
+    if (type === "delete-product" && data?.id)
+      dispatch({ type: "DELETE_PRODUCT", payload: data.id });
+    if (type === "delete-order" && data?.id)
+      dispatch({ type: "DELETE_ORDER", payload: data.id });
     closeModal();
   };
 
@@ -38,7 +46,7 @@ export default function ManagerApp(): React.ReactElement {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-linear-to-br from-amber-50 via-orange-50 to-amber-100 font-serif">
+    <div className="min-h-screen flex flex-col bg-linear-to-br from-amber-50 via-orange-50 to-stone-100 font-baloo text-stone-800">
       <Header />
       <main className="grow p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
@@ -50,7 +58,10 @@ export default function ManagerApp(): React.ReactElement {
             }
           >
             <Routes>
-              <Route path="/" element={<ManagerDashboard setModalState={setModalState} />} />
+              <Route
+                path="/"
+                element={<ManagerDashboard setModalState={setModalState} />}
+              />
               <Route path="listings" element={<AddProduct />} />
               <Route path="moderation" element={<ContentModeration />} />
               <Route path="settings" element={<SettingsPage />} />
@@ -60,8 +71,14 @@ export default function ManagerApp(): React.ReactElement {
       </main>
       <AdminFooter />
 
-      <AddUserModal isOpen={modalState.type === "add-user"} onClose={closeModal} />
-      <AddProductModal isOpen={modalState.type === "add-product"} onClose={closeModal} />
+      <AddUserModal
+        isOpen={modalState.type === "add-user"}
+        onClose={closeModal}
+      />
+      <AddProductModal
+        isOpen={modalState.type === "add-product"}
+        onClose={closeModal}
+      />
       <DeleteModal
         isOpen={modalState.type?.startsWith("delete-") ?? false}
         onClose={closeModal}

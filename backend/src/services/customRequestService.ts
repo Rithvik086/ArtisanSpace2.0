@@ -61,8 +61,8 @@ export async function getRequests(
 
 export async function approveRequest(requestId: string, artisanId: string) {
   try {
-    const request = await Request.findByIdAndUpdate(
-      requestId,
+    const request = await Request.findOneAndUpdate(
+      { _id: requestId, isValid: true },
       { artisanId, isAccepted: true },
       { new: true, runValidators: true }
     );
@@ -81,8 +81,8 @@ export async function approveRequest(requestId: string, artisanId: string) {
 
 export async function deleteRequest(requestId: string) {
   try {
-    const request = await Request.findByIdAndUpdate(
-      requestId,
+    const request = await Request.findOneAndUpdate(
+      { _id: requestId, isValid: true },
       { isValid: false },
       { new: true, runValidators: true }
     );

@@ -221,7 +221,7 @@ export function ProductForm({
             <div className="flex items-center">
               <Sparkles className="w-6 h-6 text-amber-800 mr-3" />
               <div>
-                <h2 className="text-2xl font-bold text-amber-900 font-serif">
+                <h2 className="text-2xl font-bold text-amber-900 font-baloo">
                   Product Details
                 </h2>
                 <p className="text-amber-700 mt-1">
