@@ -9,6 +9,7 @@ import StatsOverview from "./components/StatsOverview";
 import ChartsSection from "./components/ChartsSection";
 import ProductsList from "./components/ProductsList";
 import api from "../lib/axios";
+import { useToast } from "../components/ui/ToastProvider";
 import { Search, AlertCircle } from "lucide-react";
 
 // TypeScript interfaces
@@ -157,15 +158,23 @@ export default function ArtisanDashboard() {
     setProductToDeleteId(null);
   };
 
-  const handleConfirmDelete = (): void => {
-    // In a real app, send this to your API
-    // await fetch(`/api/artisan/products/${productToDeleteId}`, {
-    //   method: 'DELETE'
-    // });
+  const { showToast } = useToast();
 
-    setProducts(products.filter((p) => p._id !== productToDeleteId));
-    console.log("Deleting product:", productToDeleteId);
-    handleCloseDeleteModal();
+  const handleConfirmDelete = async (): Promise<void> => {
+    if (!productToDeleteId) return;
+    try {
+      setLoading(true);
+      await api.delete(`/products/${productToDeleteId}`);
+      setProducts(products.filter((p) => p._id !== productToDeleteId));
+      showToast("Product deleted successfully", "success");
+    } catch (e) {
+      console.error("Failed to delete product", e);
+      setError("Failed to delete product. Please try again.");
+      showToast("Failed to delete product", "error");
+    } finally {
+      setLoading(false);
+      handleCloseDeleteModal();
+    }
   };
 
   const filteredProducts = useMemo(() => {

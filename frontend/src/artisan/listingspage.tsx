@@ -7,6 +7,7 @@ import { craftStyles, cn } from "../styles/theme";
 import type { Product as ProductType } from "./Dashboardpage";
 import { ProductForm } from "../components/forms/ProductForm";
 import api from "../lib/axios";
+import { useToast } from "../components/ui/ToastProvider";
 import { CheckCircle, AlertCircle } from "lucide-react";
 
 export default function ListingsPage(): React.ReactElement {
@@ -118,10 +119,24 @@ export default function ListingsPage(): React.ReactElement {
     setSelectedProduct(null);
   };
 
-  const handleConfirmDelete = () => {
-    setProducts((prev) => prev.filter((p) => p._id !== productToDeleteId));
-    setIsDeleteOpen(false);
-    setProductToDeleteId(null);
+  const { showToast } = useToast();
+
+  const handleConfirmDelete = async () => {
+    if (!productToDeleteId) return;
+    setLoading(true);
+    try {
+      await api.delete(`/products/${productToDeleteId}`);
+      setProducts((prev) => prev.filter((p) => p._id !== productToDeleteId));
+      showToast("Listing deleted successfully", "success");
+    } catch (e) {
+      console.error("Failed to delete listing", e);
+      setError("Failed to delete listing. Please try again.");
+      showToast("Failed to delete listing", "error");
+    } finally {
+      setLoading(false);
+      setIsDeleteOpen(false);
+      setProductToDeleteId(null);
+    }
   };
 
   return (
