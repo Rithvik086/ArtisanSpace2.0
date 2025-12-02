@@ -73,7 +73,7 @@ export default function UsersTab({
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <button
                     onClick={() => openDeleteModal(user.id)}
-                    className="text-red-600 hover:text-red-900 flex items-center gap-1"
+                    className="text-red-600 hover:text-red-900 flex items-center gap-1 cursor-pointer"
                   >
                     <Trash2 size={16} /> <span>Delete</span>
                   </button>

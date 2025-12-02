@@ -330,7 +330,7 @@ function Footer() {
               />
               <button
                 type="submit"
-                className="mt-0 sm:mt-3 ml-3 sm:ml-0 w-auto px-4 py-2 bg-amber-950 text-white rounded-md font-semibold hover:bg-amber-900"
+                className="mt-0 sm:mt-3 ml-3 sm:ml-0 w-auto px-4 py-2 bg-amber-950 text-white rounded-md font-semibold hover:bg-amber-900 cursor-pointer"
               >
                 Subscribe
               </button>

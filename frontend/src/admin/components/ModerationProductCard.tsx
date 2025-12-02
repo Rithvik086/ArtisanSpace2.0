@@ -98,7 +98,9 @@ export default function ModerationProductCard({
             onClick={handleApprove}
             disabled={loading}
             className={`px-3 py-1 bg-green-500 text-white rounded-md ${
-              loading ? "opacity-50 cursor-not-allowed" : "hover:brightness-95"
+              loading
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:brightness-95 cursor-pointer"
             }`}
           >
             Approve
@@ -109,7 +111,9 @@ export default function ModerationProductCard({
             onClick={handleDisapprove}
             disabled={loading}
             className={`px-3 py-1 bg-red-500 text-white rounded-md ${
-              loading ? "opacity-50 cursor-not-allowed" : "hover:brightness-95"
+              loading
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:brightness-95 cursor-pointer"
             }`}
           >
             Disapprove
