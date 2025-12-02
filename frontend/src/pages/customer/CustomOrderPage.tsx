@@ -17,6 +17,7 @@ import {
 } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
 import api from "../../lib/axios";
+import { useForm } from "react-hook-form";
 
 interface CustomRequest {
   _id: string;
@@ -46,17 +47,27 @@ interface CustomRequest {
 
 export default function CustomOrderPage(): React.ReactElement {
   const [activeTab, setActiveTab] = useState<"form" | "requests">("form");
-  const [formData, setFormData] = useState({
-    title: "",
-    type: "",
-    description: "",
-    budget: "",
-    requiredBy: "",
-  });
-  const [image, setImage] = useState<File | null>(null);
   const [requests, setRequests] = useState<CustomRequest[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [image, setImage] = useState<File | null>(null);
+  const [imageError, setImageError] = useState<string>("");
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({
+    mode: "onBlur",
+    defaultValues: {
+      title: "",
+      type: "",
+      description: "",
+      budget: "",
+      requiredBy: "",
+    },
+  });
 
   useEffect(() => {
     if (activeTab === "requests") {
@@ -78,34 +89,30 @@ export default function CustomOrderPage(): React.ReactElement {
     }
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setImage(e.target.files[0]);
+      setImageError("");
+    } else {
+      setImage(null);
+      setImageError("Reference image is required");
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: any) => {
     if (!image) {
-      alert("Please upload an image");
+      setImageError("Reference image is required");
       return;
     }
 
     try {
       setSubmitting(true);
       const formDataToSend = new FormData();
-      formDataToSend.append("title", formData.title);
-      formDataToSend.append("type", formData.type);
-      formDataToSend.append("description", formData.description);
-      formDataToSend.append("budget", formData.budget);
-      formDataToSend.append("requiredBy", formData.requiredBy);
+      formDataToSend.append("title", data.title);
+      formDataToSend.append("type", data.type);
+      formDataToSend.append("description", data.description);
+      formDataToSend.append("budget", data.budget);
+      formDataToSend.append("requiredBy", data.requiredBy);
       formDataToSend.append("image", image);
 
       const response = await api.post("/custom-request", formDataToSend, {
@@ -116,13 +123,7 @@ export default function CustomOrderPage(): React.ReactElement {
 
       if (response.data.success) {
         alert("Custom order submitted successfully!");
-        setFormData({
-          title: "",
-          type: "",
-          description: "",
-          budget: "",
-          requiredBy: "",
-        });
+        reset();
         setImage(null);
         setActiveTab("requests");
       }
@@ -201,20 +202,33 @@ export default function CustomOrderPage(): React.ReactElement {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-stone-700 mb-2">
                       Order Title
                     </label>
                     <input
                       type="text"
-                      name="title"
-                      value={formData.title}
-                      onChange={handleInputChange}
+                      {...register("title", {
+                        required: "Order title is required",
+                        minLength: {
+                          value: 3,
+                          message: "Title must be at least 3 characters",
+                        },
+                        pattern: {
+                          value: /^[a-zA-Z0-9\s\-']+$/,
+                          message:
+                            "Title can only contain letters, numbers, spaces, hyphens, and apostrophes",
+                        },
+                      })}
                       placeholder="e.g., Custom Wooden Table"
                       className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder:text-stone-400"
-                      required
                     />
+                    {errors.title && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.title.message}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-stone-700 mb-2">
@@ -222,27 +236,43 @@ export default function CustomOrderPage(): React.ReactElement {
                     </label>
                     <input
                       type="text"
-                      name="type"
-                      value={formData.type}
-                      onChange={handleInputChange}
+                      {...register("type", {
+                        required: "Craft type is required",
+                        minLength: {
+                          value: 2,
+                          message: "Type must be at least 2 characters",
+                        },
+                      })}
                       placeholder="e.g., Furniture, Jewelry, Pottery"
                       className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder:text-stone-400"
-                      required
                     />
+                    {errors.type && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.type.message}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-stone-700 mb-2">
                       Description
                     </label>
                     <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
+                      {...register("description", {
+                        required: "Description is required",
+                        minLength: {
+                          value: 10,
+                          message: "Description must be at least 10 characters",
+                        },
+                      })}
                       placeholder="Describe your custom order in detail..."
                       rows={4}
                       className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder:text-stone-400"
-                      required
                     />
+                    {errors.description && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.description.message}
+                      </p>
+                    )}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -251,13 +281,22 @@ export default function CustomOrderPage(): React.ReactElement {
                       </label>
                       <input
                         type="text"
-                        name="budget"
-                        value={formData.budget}
-                        onChange={handleInputChange}
+                        {...register("budget", {
+                          required: "Budget is required",
+                          pattern: {
+                            value: /^\$?\d+(\.\d{2})?$/,
+                            message:
+                              "Please enter a valid budget (e.g., $500 or 500)",
+                          },
+                        })}
                         placeholder="e.g., $500 - $1000"
                         className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder:text-stone-400"
-                        required
                       />
+                      {errors.budget && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.budget.message}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-stone-700 mb-2">
@@ -265,12 +304,25 @@ export default function CustomOrderPage(): React.ReactElement {
                       </label>
                       <input
                         type="date"
-                        name="requiredBy"
-                        value={formData.requiredBy}
-                        onChange={handleInputChange}
+                        {...register("requiredBy", {
+                          required: "Required by date is required",
+                          validate: (value) => {
+                            const selectedDate = new Date(value);
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            return (
+                              selectedDate >= today ||
+                              "Date must be today or in the future"
+                            );
+                          },
+                        })}
                         className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder:text-stone-400"
-                        required
                       />
+                      {errors.requiredBy && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.requiredBy.message}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div>
@@ -297,6 +349,9 @@ export default function CustomOrderPage(): React.ReactElement {
                         alt="Preview"
                         className="w-16 h-16 object-cover rounded-md mt-2"
                       />
+                    )}
+                    {imageError && (
+                      <p className="text-red-500 text-sm mt-1">{imageError}</p>
                     )}
                   </div>
                   <button

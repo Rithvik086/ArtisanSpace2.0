@@ -110,7 +110,6 @@ const signup = async (req: Request, res: Response) => {
       isVerified: true,
     });
 
-    /*
     // Email verification logic (commented out for development)
     const token = crypto.randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
@@ -119,8 +118,9 @@ const signup = async (req: Request, res: Response) => {
       tokenExpiresAt: expiresAt,
     });
     // TODO: Need to change the frontend URL here later when get the actual frontend URL
-    const verificationLink = `${process.env.FRONTEND_URL || "http://localhost:3000"
-      }/api/v1/verify-email?token=${token}`;
+    const verificationLink = `${
+      process.env.FRONTEND_URL || "http://localhost:3000"
+    }/api/v1/verify-email?token=${token}`;
     try {
       await sendMail(
         email,
@@ -132,7 +132,6 @@ const signup = async (req: Request, res: Response) => {
       await removeUser(user._id.toString());
       throw new Error("Failed to send verification email. Please try again.");
     }
-    */
 
     res.status(201).json({
       message: "User registered successfully.",

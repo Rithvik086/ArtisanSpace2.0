@@ -7,6 +7,7 @@ import api from "@/lib/axios";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../redux/store";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useForm } from "react-hook-form";
 
 interface Workshop {
   _id: string;
@@ -27,14 +28,23 @@ const Workshops: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"book" | "list">("book");
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    workshopTitle: "",
-    workshopDesc: "",
-    date: "",
-    time: "",
-  });
   const user = useSelector((state: RootState) => state.auth.user);
   const { showToast } = useToast();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({
+    mode: "onBlur",
+    defaultValues: {
+      workshopTitle: "",
+      workshopDesc: "",
+      date: "",
+      time: "",
+    },
+  });
 
   const fetchWorkshops = useCallback(async () => {
     if (!user) return;
@@ -58,35 +68,12 @@ const Workshops: React.FC = () => {
     }
   }, [activeTab, user, fetchWorkshops]);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (
-      !formData.workshopTitle ||
-      !formData.workshopDesc ||
-      !formData.date ||
-      !formData.time
-    ) {
-      showToast("Please fill in all fields", "error");
-      return;
-    }
-
+  const onSubmit = async (data: any) => {
     try {
-      const response = await api.post("/workshop", formData);
+      const response = await api.post("/workshop", data);
       if (response.data.success) {
         showToast("Workshop booked successfully!", "success");
-        setFormData({
-          workshopTitle: "",
-          workshopDesc: "",
-          date: "",
-          time: "",
-        });
+        reset();
         setActiveTab("list");
       } else {
         showToast(response.data.message || "Failed to book workshop", "error");
@@ -161,32 +148,55 @@ const Workshops: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-stone-700 mb-2">
                       Workshop Title
                     </label>
                     <input
                       type="text"
-                      name="workshopTitle"
-                      value={formData.workshopTitle}
-                      onChange={handleInputChange}
+                      {...register("workshopTitle", {
+                        required: "Workshop title is required",
+                        minLength: {
+                          value: 3,
+                          message: "Title must be at least 3 characters",
+                        },
+                        pattern: {
+                          value: /^[a-zA-Z0-9\s\-']+$/,
+                          message:
+                            "Title can only contain letters, numbers, spaces, hyphens, and apostrophes",
+                        },
+                      })}
                       placeholder="e.g., Pottery Making Basics"
                       className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder:text-stone-400"
                     />
+                    {errors.workshopTitle && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.workshopTitle.message}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-stone-700 mb-2">
                       Description
                     </label>
                     <textarea
-                      name="workshopDesc"
-                      value={formData.workshopDesc}
-                      onChange={handleInputChange}
+                      {...register("workshopDesc", {
+                        required: "Description is required",
+                        minLength: {
+                          value: 10,
+                          message: "Description must be at least 10 characters",
+                        },
+                      })}
                       placeholder="Describe what you'd like to learn or create..."
                       rows={4}
                       className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder:text-stone-400"
                     />
+                    {errors.workshopDesc && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.workshopDesc.message}
+                      </p>
+                    )}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -195,11 +205,25 @@ const Workshops: React.FC = () => {
                       </label>
                       <input
                         type="date"
-                        name="date"
-                        value={formData.date}
-                        onChange={handleInputChange}
+                        {...register("date", {
+                          required: "Date is required",
+                          validate: (value) => {
+                            const selectedDate = new Date(value);
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            return (
+                              selectedDate >= today ||
+                              "Date must be today or in the future"
+                            );
+                          },
+                        })}
                         className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder:text-stone-400"
                       />
+                      {errors.date && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.date.message}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-stone-700 mb-2">
@@ -207,11 +231,14 @@ const Workshops: React.FC = () => {
                       </label>
                       <input
                         type="time"
-                        name="time"
-                        value={formData.time}
-                        onChange={handleInputChange}
+                        {...register("time", { required: "Time is required" })}
                         className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder:text-stone-400"
                       />
+                      {errors.time && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.time.message}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <button
