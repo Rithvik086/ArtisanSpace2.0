@@ -75,8 +75,11 @@ export default function SignUp() {
       const message = error.response?.data?.message || "Signup failed";
       if (message.includes("Username")) {
         setError("username", { message: "Username already exists" });
-      } else if (message.includes("email")) {
-        setError("email", { message: "Email already exists" });
+      } else if (
+        message.includes("email") ||
+        message === "Invalid email format"
+      ) {
+        setError("email", { message });
       } else {
         setError("username", { message });
       }
@@ -149,7 +152,8 @@ export default function SignUp() {
                       },
                       pattern: {
                         value: /^[a-zA-Z0-9_]+$/,
-                        message: "Username can only contain letters, numbers, and underscores",
+                        message:
+                          "Username can only contain letters, numbers, and underscores",
                       },
                     })}
                     placeholder="e.g. riya_sharma"
@@ -167,7 +171,7 @@ export default function SignUp() {
                     {...register("email", {
                       required: "Email is required",
                       pattern: {
-                        value: /^\S+@\S+$/i,
+                        value: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
                         message: "Invalid email address",
                       },
                     })}
@@ -294,19 +298,6 @@ export default function SignUp() {
                 >
                   {isSubmitting ? "Creating Account..." : "Create Account"}
                 </button>
-              </div>
-            </Step>
-
-            {/* --- STEP 4: Completion Screen --- */}
-            <Step>
-              <div className="text-center space-y-2 py-8">
-                <h2 className="text-2xl font-bold text-[#4b2e2b]">
-                  You're all set!
-                </h2>
-                <p className="text-stone-700">
-                  Welcome to ArtisanSpace. We'll take you to your dashboard now.
-                </p>
-                {/* You could add a link or auto-redirect here */}
               </div>
             </Step>
           </Stepper>

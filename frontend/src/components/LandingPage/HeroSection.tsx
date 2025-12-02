@@ -1,7 +1,16 @@
+import { useNavigate } from "react-router-dom";
 import ThreeView from "../ThreeView";
 
 // --- 2. Hero Section (Your Component, adapted) ---
 function HeroSection() {
+  const navigate = useNavigate();
+
+  const scrollToTestimonials = () => {
+    const element = document.getElementById("testimonials");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
   return (
     // THIS is the corrected line:
     <section className="pt-20 md:pt-0 md:h-screen grid grid-cols-1 md:grid-cols-2 bg-linear-to-r from-[#d4b996] to-[#5c4033] w-full">
@@ -17,10 +26,16 @@ function HeroSection() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start mt-10 space-y-4 sm:space-y-0 sm:space-x-6">
-            <button className="w-full sm:w-auto px-10 py-4 bg-amber-950 text-amber-100 rounded-lg font-semibold text-lg hover:bg-amber-900 transition-colors duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+            <button
+              onClick={() => navigate("/signup")}
+              className="w-full sm:w-auto px-10 py-4 bg-amber-950 text-amber-100 rounded-lg font-semibold text-lg hover:bg-amber-900 transition-colors duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 hover:cursor-pointer"
+            >
               Get Started Free
             </button>
-            <button className="w-full sm:w-auto px-10 py-4 bg-transparent border-2 border-amber-950 text-amber-950 rounded-lg font-semibold text-lg hover:bg-amber-950 hover:text-amber-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+            <button
+              onClick={scrollToTestimonials}
+              className="w-full sm:w-auto px-10 py-4 bg-transparent border-2 border-amber-950 text-amber-950 rounded-lg font-semibold text-lg hover:bg-amber-950 hover:text-amber-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 hover:cursor-pointer"
+            >
               How it Works
             </button>
           </div>

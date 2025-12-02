@@ -36,10 +36,7 @@ export default function ListingsPage(): React.ReactElement {
         const normalized = (list as any[]).map((p: any) => ({
           _id: String(p._id ?? p.id ?? `${Date.now()}-${Math.random()}`),
           category: p.category ?? p.type ?? "",
-          image:
-            p.image ??
-            (Array.isArray(p.images) ? p.images[0] : p.thumbnail) ??
-            "",
+          image: p.image,
           name: p.name ?? p.title ?? "Untitled",
           oldPrice: Number(p.oldPrice ?? p.price ?? 0),
           newPrice: Number(p.newPrice ?? p.price ?? 0),
@@ -69,10 +66,7 @@ export default function ListingsPage(): React.ReactElement {
       const normalized = {
         _id: String(p._id ?? p.id ?? `${Date.now()}-${Math.random()}`),
         category: p.category ?? p.type ?? "",
-        image:
-          p.image ??
-          (Array.isArray(p.images) ? p.images[0] : p.thumbnail) ??
-          "",
+        image: p.image,
         name: p.name ?? p.title ?? "Untitled",
         oldPrice: Number(p.oldPrice ?? p.price ?? 0),
         newPrice: Number(p.newPrice ?? p.price ?? 0),

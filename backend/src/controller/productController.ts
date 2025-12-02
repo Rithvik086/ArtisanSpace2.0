@@ -13,6 +13,7 @@ import cloudinary from "../config/cloudinary.js";
 
 export const getProducts = async (req: Request, res: Response) => {
   try {
+    console.log("getProducts called - fetching approved products");
     const { category, material } = req.query;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 12;
@@ -42,12 +43,15 @@ export const getProducts = async (req: Request, res: Response) => {
       limit
     );
 
+    console.log("getProducts result:", result);
+
     res.status(200).json({
       success: true,
       products: result.products,
       pagination: result.pagination,
     });
   } catch (error) {
+    console.error("Error in getProducts:", error);
     throw new Error("Error loading store page: " + (error as Error).message);
   }
 };

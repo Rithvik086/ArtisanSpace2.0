@@ -15,6 +15,7 @@ import {
 import Navbar from "./components/LandingPage/Navbar";
 import HeroSection from "./components/LandingPage/HeroSection";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "./lib/axios";
 /*
 --- FONT NOTE ---
@@ -229,6 +230,8 @@ function TestimonialsSection() {
 
 // --- 6. Final CTA Section ---
 function CTASection() {
+  const navigate = useNavigate();
+
   return (
     <section className="bg-linear-to-r from-[#5c4033] to-[#4a3227] py-20 md:py-32">
       <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
@@ -240,7 +243,10 @@ function CTASection() {
           ArtisanSpace today and start selling.
         </p>
         <div className="mt-10">
-          <button className="px-12 py-5 bg-white text-amber-950 rounded-lg font-semibold text-xl hover:bg-amber-50 transition-colors duration-300 shadow-2xl hover:shadow-xl transform hover:-translate-y-1 hover:cursor-pointer">
+          <button
+            onClick={() => navigate("/signup")}
+            className="px-12 py-5 bg-white text-amber-950 rounded-lg font-semibold text-xl hover:bg-amber-50 transition-colors duration-300 shadow-2xl hover:shadow-xl transform hover:-translate-y-1 hover:cursor-pointer"
+          >
             Sign Up for Free
             <ArrowRight className="inline-block ml-2" size={20} />
           </button>
@@ -363,7 +369,9 @@ export default function App() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await api.get("/products/approved");
+        console.log("Fetching products from /products/public...");
+        const res = await api.get("/products/public");
+        console.log("Products response:", res.data);
         setProducts(res.data.products || []);
       } catch (error) {
         console.error("Failed to fetch products", error);
@@ -378,51 +386,7 @@ export default function App() {
       : [
           {
             image: `https://picsum.photos/seed/1/800/600?grayscale`,
-            text: "Bridge",
-          },
-          {
-            image: `https://picsum.photos/seed/2/800/600?grayscale`,
-            text: "Desk Setup",
-          },
-          {
-            image: `https://picsum.photos/seed/3/800/600?grayscale`,
-            text: "Waterfall",
-          },
-          {
-            image: `https://picsum.photos/seed/4/800/600?grayscale`,
-            text: "Strawberries",
-          },
-          {
-            image: `https://picsum.photos/seed/5/800/600?grayscale`,
-            text: "Deep Diving",
-          },
-          {
-            image: `https://picsum.photos/seed/16/800/600?grayscale`,
-            text: "Train Track",
-          },
-          {
-            image: `https://picsum.photos/seed/17/800/600?grayscale`,
-            text: "Santorini",
-          },
-          {
-            image: `https://picsum.photos/seed/8/800/600?grayscale`,
-            text: "Blurry Lights",
-          },
-          {
-            image: `https://picsum.photos/seed/9/800/600?grayscale`,
-            text: "New York",
-          },
-          {
-            image: `https://picsum.photos/seed/10/800/600?grayscale`,
-            text: "Good Boy",
-          },
-          {
-            image: `https://picsum.photos/seed/21/800/600?grayscale`,
-            text: "Coastline",
-          },
-          {
-            image: `https://picsum.photos/seed/12/800/600?grayscale`,
-            text: "Palm Trees",
+            text: "Loading...",
           },
         ];
 
