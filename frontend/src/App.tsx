@@ -14,6 +14,9 @@ import {
 } from "lucide-react";
 import Navbar from "./components/LandingPage/Navbar";
 import HeroSection from "./components/LandingPage/HeroSection";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "./lib/axios";
 /*
 --- FONT NOTE ---
 To use the 'Kranky' font, you'll need to:
@@ -227,6 +230,8 @@ function TestimonialsSection() {
 
 // --- 6. Final CTA Section ---
 function CTASection() {
+  const navigate = useNavigate();
+
   return (
     <section className="bg-linear-to-r from-[#5c4033] to-[#4a3227] py-20 md:py-32">
       <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
@@ -238,7 +243,10 @@ function CTASection() {
           ArtisanSpace today and start selling.
         </p>
         <div className="mt-10">
-          <button className="px-12 py-5 bg-white text-amber-950 rounded-lg font-semibold text-xl hover:bg-amber-50 transition-colors duration-300 shadow-2xl hover:shadow-xl transform hover:-translate-y-1 hover:cursor-pointer">
+          <button
+            onClick={() => navigate("/signup")}
+            className="px-12 py-5 bg-white text-amber-950 rounded-lg font-semibold text-xl hover:bg-amber-50 transition-colors duration-300 shadow-2xl hover:shadow-xl transform hover:-translate-y-1 hover:cursor-pointer"
+          >
             Sign Up for Free
             <ArrowRight className="inline-block ml-2" size={20} />
           </button>
@@ -356,6 +364,32 @@ function Footer() {
 // --- Main App Component ---
 // This brings all the sections together.
 export default function App() {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        console.log("Fetching products from /products/public...");
+        const res = await api.get("/products/public");
+        console.log("Products response:", res.data);
+        setProducts(res.data.products || []);
+      } catch (error) {
+        console.error("Failed to fetch products", error);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const galleryItems =
+    products.length > 0
+      ? products.map((p: any) => ({ image: p.image, text: p.name }))
+      : [
+          {
+            image: `https://picsum.photos/seed/1/800/600?grayscale`,
+            text: "Loading...",
+          },
+        ];
+
   return (
     <div className="bg-amber-50 font-sans text-gray-900">
       <Navbar />
@@ -368,6 +402,7 @@ export default function App() {
             textColor="amber-900"
             borderRadius={0.2}
             scrollEase={0.02}
+            items={galleryItems}
           />
         </div>
 

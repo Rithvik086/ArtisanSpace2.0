@@ -10,7 +10,7 @@ function Navbar() {
 
   const navItems = [
     { name: "Features", href: "#features" },
-    { name: "How it Works", href: "#how-it-works" },
+    { name: "How it Works", href: "#testimonials" },
     { name: "Testimonials", href: "#testimonials" },
   ];
 

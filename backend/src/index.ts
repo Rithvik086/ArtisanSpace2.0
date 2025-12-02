@@ -9,6 +9,7 @@ import userRoutes from "./routes/user.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import deliveryRoutes from "./routes/delivery.routes.js";
 import managerRoutes from "./routes/manager.routes.js";
+import productRoutes from "./routes/product.routes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -41,6 +42,7 @@ app.use(express.json());
 const apiRouter = express.Router();
 
 apiRouter.use("/auth", authRoutes);
+apiRouter.use("/products", productRoutes);
 apiRouter.use("/admin", adminRoutes);
 apiRouter.use("/delivery", deliveryRoutes);
 apiRouter.use("/manager", managerRoutes);
