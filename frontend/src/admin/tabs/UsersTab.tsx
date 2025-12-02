@@ -23,6 +23,15 @@ export default function UsersTab({
     <div className="bg-white rounded-lg shadow-md">
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 p-6 border-b">
         <h3 className="text-xl font-semibold text-gray-900">Manage Users</h3>
+        <div className="flex items-center">
+          <button
+            onClick={openAddUserModal}
+            className="flex items-center gap-2 px-3 py-1 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+          >
+            <PlusCircle size={16} />
+            <span>Add User</span>
+          </button>
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
