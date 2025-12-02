@@ -10,6 +10,8 @@ import {
   DeleteModal,
 } from "./components/ModalComponents";
 import { useAppContext } from "./AppContext";
+import api from "../lib/axios";
+import { useToast } from "../components/ui/ToastProvider";
 import Loader from "../components/ui/Loader";
 import AdminFooter from "./components/AdminFooter";
 
@@ -17,24 +19,41 @@ import AdminFooter from "./components/AdminFooter";
 const DashboardPage = lazy(() => import("./DashboardPage"));
 
 export default function AdminApp(): React.ReactElement {
+  type ModalData = { id?: string } | null;
   const [modalState, setModalState] = React.useState<{
     type: string | null;
     isOpen: boolean;
-    data: any;
+    data: ModalData;
   }>({ type: null, isOpen: false, data: null });
   const { dispatch } = useAppContext();
 
   const closeModal = (): void =>
     setModalState({ type: null, isOpen: false, data: null });
 
-  const handleConfirmDelete = (): void => {
+  const { showToast } = useToast();
+
+  const handleConfirmDelete = async (): Promise<void> => {
     const { type, data } = modalState;
-    if (type === "delete-user" && data?.id)
-      dispatch({ type: "DELETE_USER", payload: data.id });
-    if (type === "delete-product" && data?.id)
-      dispatch({ type: "DELETE_PRODUCT", payload: data.id });
-    if (type === "delete-order" && data?.id)
-      dispatch({ type: "DELETE_ORDER", payload: data.id });
+    try {
+      if (type === "delete-user" && data?.id) {
+        await api.delete(`/auth/user/${data.id}`);
+        dispatch({ type: "DELETE_USER", payload: data.id });
+        showToast("User deleted successfully", "success");
+      }
+      if (type === "delete-product" && data?.id) {
+        await api.delete(`/products/${data.id}`);
+        dispatch({ type: "DELETE_PRODUCT", payload: data.id });
+        showToast("Product deleted successfully", "success");
+      }
+      if (type === "delete-order" && data?.id) {
+        await api.delete(`/orders/${data.id}`);
+        dispatch({ type: "DELETE_ORDER", payload: data.id });
+        showToast("Order deleted successfully", "success");
+      }
+    } catch (error) {
+      console.error("Failed to delete:", error);
+      showToast("Failed to delete item. Please try again.", "error");
+    }
     closeModal();
   };
 

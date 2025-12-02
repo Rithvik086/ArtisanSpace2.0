@@ -202,26 +202,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   React.useEffect(() => {
     const fetchInitial = async () => {
       try {
-        // Helper that tries primary endpoint and falls back to secondary if the first fails
-        const fetchWithFallback = async (primary: string, fallback: string) => {
-          try {
-            const res = await api.get(primary);
-            return res.data;
-          } catch (e) {
-            try {
-              const res = await api.get(fallback);
-              return res.data;
-            } catch (err) {
-              console.warn(`Both ${primary} and ${fallback} failed:`, err);
-              return null;
-            }
-          }
-        };
-
         const [uJson, pJson, oJson] = await Promise.all([
-          fetchWithFallback("/admin/users", "/manager/users"),
-          fetchWithFallback("/admin/products", "/manager/products"),
-          fetchWithFallback("/admin/orders", "/manager/orders"),
+          api
+            .get("/manager/users")
+            .then((r) => r.data)
+            .catch(() => []),
+          api
+            .get("/manager/products")
+            .then((r) => r.data)
+            .catch(() => []),
+          api
+            .get("/manager/orders")
+            .then((r) => r.data)
+            .catch(() => []),
         ]);
 
         const normalizeUsers = (Array.isArray(uJson) ? uJson : []).map(

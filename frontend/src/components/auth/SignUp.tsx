@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Stepper, { Step } from "../Stepper";
 import { useForm, type SubmitHandler } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import api from "../../lib/axios";
 
 // 1. Updated the Inputs type for all fields
@@ -18,6 +19,7 @@ export default function SignUp() {
   // 2. Added currentStep state to control footer visibility
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const {
     register,
@@ -68,8 +70,14 @@ export default function SignUp() {
     try {
       const response = await api.post("/auth/signup", data);
       console.log("Signup successful:", response.data);
-      // On success, advance to step 4
-      setCurrentStep(4);
+      // Redirect user to the appropriate dashboard based on selected role
+      // Use replace to avoid back-navigation to signup
+      if (data.role === "artisan") {
+        navigate("/artisan", { replace: true });
+      } else {
+        // default to customer dashboard
+        navigate("/customer", { replace: true });
+      }
     } catch (error: any) {
       console.error("Signup failed:", error);
       const message = error.response?.data?.message || "Signup failed";
