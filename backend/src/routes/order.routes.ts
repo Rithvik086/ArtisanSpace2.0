@@ -30,6 +30,6 @@ router.post(
 
 router.put("/:orderId/status", authorizerole("manager", "admin"), changeStatus);
 
-router.delete("/:orderId", authorizerole("admin"), deleteOrder);
+router.delete("/:orderId", authorizerole("manager", "admin"), deleteOrder);
 
 export default router;

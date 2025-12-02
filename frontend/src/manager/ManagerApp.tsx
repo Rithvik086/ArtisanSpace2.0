@@ -9,6 +9,7 @@ import {
   DeleteModal,
 } from "../admin/components/ModalComponents";
 import { useAppContext } from "../admin/AppContext";
+import api from "../lib/axios";
 
 const ManagerDashboard = lazy(() => import("./ManagerDashboard"));
 const SettingsPage = lazy(() => import("../SettingsPage"));
@@ -27,14 +28,25 @@ export default function ManagerApp(): React.ReactElement {
   const closeModal = (): void =>
     setModalState({ type: null, isOpen: false, data: null });
 
-  const handleConfirmDelete = (): void => {
+  const handleConfirmDelete = async (): Promise<void> => {
     const { type, data } = modalState;
-    if (type === "delete-user" && data?.id)
-      dispatch({ type: "DELETE_USER", payload: data.id });
-    if (type === "delete-product" && data?.id)
-      dispatch({ type: "DELETE_PRODUCT", payload: data.id });
-    if (type === "delete-order" && data?.id)
-      dispatch({ type: "DELETE_ORDER", payload: data.id });
+    try {
+      if (type === "delete-user" && data?.id) {
+        await api.delete(`/auth/user/${data.id}`);
+        dispatch({ type: "DELETE_USER", payload: data.id });
+      }
+      if (type === "delete-product" && data?.id) {
+        await api.delete(`/products/${data.id}`);
+        dispatch({ type: "DELETE_PRODUCT", payload: data.id });
+      }
+      if (type === "delete-order" && data?.id) {
+        await api.delete(`/orders/${data.id}`);
+        dispatch({ type: "DELETE_ORDER", payload: data.id });
+      }
+    } catch (error) {
+      console.error("Failed to delete:", error);
+      // Perhaps show an alert or something, but for now, just log
+    }
     closeModal();
   };
 

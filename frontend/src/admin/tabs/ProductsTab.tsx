@@ -48,12 +48,6 @@ export default function ProductsTab({
     <div className="bg-white rounded-lg shadow-md">
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 p-6 border-b">
         <h3 className="text-xl font-semibold text-gray-900">Manage Products</h3>
-        <button
-          onClick={openAddProductModal}
-          className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-md"
-        >
-          <PlusCircle size={18} /> <span>Add New Product</span>
-        </button>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full table-fixed divide-y divide-gray-200">

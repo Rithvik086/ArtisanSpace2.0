@@ -219,9 +219,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         };
 
         const [uJson, pJson, oJson] = await Promise.all([
-          fetchWithFallback("/admin/users", "/manager/users"),
-          fetchWithFallback("/admin/products", "/manager/products"),
-          fetchWithFallback("/admin/orders", "/manager/orders"),
+          fetchWithFallback("/manager/users", "/admin/users"),
+          fetchWithFallback("/manager/products", "/admin/products"),
+          fetchWithFallback("/manager/orders", "/admin/orders"),
         ]);
 
         const normalizeUsers = (Array.isArray(uJson) ? uJson : []).map(
