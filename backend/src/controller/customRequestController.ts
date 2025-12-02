@@ -56,6 +56,8 @@ export const getUserCustomRequests = async (req: Request, res: Response) => {
 export const reqCustomOrder = async (req: Request, res: Response) => {
   try {
     const { title, type, description, budget, requiredBy } = req.body;
+
+    // Enhanced validation
     if (!title || !type || !description || !budget || !requiredBy) {
       return res.status(400).json({
         success: false,
@@ -63,17 +65,87 @@ export const reqCustomOrder = async (req: Request, res: Response) => {
       });
     }
 
+    if (title.trim().length < 3) {
+      return res.status(400).json({
+        success: false,
+        message: "Title must be at least 3 characters long",
+      });
+    }
+
+    const titleRegex = /^[a-zA-Z0-9\s\-']+$/;
+    if (!titleRegex.test(title.trim())) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Title can only contain letters, numbers, spaces, hyphens, and apostrophes",
+      });
+    }
+
+    if (type.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: "Type must be at least 2 characters long",
+      });
+    }
+
+    if (description.trim().length < 10) {
+      return res.status(400).json({
+        success: false,
+        message: "Description must be at least 10 characters long",
+      });
+    }
+
+    // Validate budget format
+    const budgetRegex = /^\$?\d+(\.\d{2})?$/;
+    if (!budgetRegex.test(budget.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid budget format (e.g., $500 or 500)",
+      });
+    }
+
+    // Validate requiredBy date
+    const selectedDate = new Date(requiredBy);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      return res.status(400).json({
+        success: false,
+        message: "Required by date must be today or in the future",
+      });
+    }
+
     if (!req.file) {
       return res.status(400).json({ message: "No image uploaded" });
     }
+
+    // Check file type
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!allowedTypes.includes(req.file.mimetype)) {
+      return res.status(400).json({
+        success: false,
+        message: "Only image files (JPEG, PNG, GIF, WebP) are allowed",
+      });
+    }
+
+    // Check file size (e.g., max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (req.file.size > maxSize) {
+      return res.status(400).json({
+        success: false,
+        message: "Image file size must be less than 5MB",
+      });
+    }
+
     const result = await cloudinary.uploader.upload(req.file.path);
     const newrequest = await addRequest(
       req.user.id,
-      title,
-      type,
+      title.trim(),
+      type.trim(),
       result.secure_url,
-      description,
-      budget,
+      description.trim(),
+      budget.trim(),
       requiredBy
     );
     res.json({

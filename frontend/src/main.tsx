@@ -22,6 +22,8 @@ import Loader from "./components/ui/Loader";
 const App = lazy(() => import("./App.tsx"));
 const SignUp = lazy(() => import("./components/auth/SignUp"));
 const Login = lazy(() => import("./components/auth/Login"));
+const ForgotPassword = lazy(() => import("./components/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("./components/auth/ResetPassword"));
 const ArtisanDashboard = lazy(() => import("./artisan/Dashboardpage"));
 const WorkshopsPage = lazy(() => import("./artisan/Workshopspage"));
 const ListingsPage = lazy(() => import("./artisan/listingspage"));
@@ -53,6 +55,14 @@ const router = createBrowserRouter([
   {
     path: "/login",
     element: <Login />,
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />,
+  },
+  {
+    path: "/reset-password",
+    element: <ResetPassword />,
   },
   {
     path: "/customer",

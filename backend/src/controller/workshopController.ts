@@ -57,12 +57,46 @@ export const getAcceptedWorkshopsForCustomers = async (
 
 export const bookUserWorkshop = async (req: Request, res: Response) => {
   const { workshopTitle, workshopDesc, date, time } = req.body;
-  console.log(workshopTitle, workshopDesc);
 
+  // Enhanced validation
   if (!workshopTitle || !workshopDesc || !date || !time) {
     return res
       .status(400)
       .json({ success: false, error: "All fields are required!" });
+  }
+
+  if (workshopTitle.trim().length < 3) {
+    return res.status(400).json({
+      success: false,
+      error: "Workshop title must be at least 3 characters long",
+    });
+  }
+
+  const titleRegex = /^[a-zA-Z0-9\s\-']+$/;
+  if (!titleRegex.test(workshopTitle.trim())) {
+    return res.status(400).json({
+      success: false,
+      error:
+        "Workshop title can only contain letters, numbers, spaces, hyphens, and apostrophes",
+    });
+  }
+
+  if (workshopDesc.trim().length < 10) {
+    return res.status(400).json({
+      success: false,
+      error: "Workshop description must be at least 10 characters long",
+    });
+  }
+
+  const selectedDate = new Date(date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (selectedDate < today) {
+    return res.status(400).json({
+      success: false,
+      error: "Workshop date must be today or in the future",
+    });
   }
 
   try {
@@ -74,8 +108,8 @@ export const bookUserWorkshop = async (req: Request, res: Response) => {
 
     const newWorkshop = await bookWorkshop(
       req.user.id,
-      workshopTitle,
-      workshopDesc,
+      workshopTitle.trim(),
+      workshopDesc.trim(),
       date,
       time
     );
