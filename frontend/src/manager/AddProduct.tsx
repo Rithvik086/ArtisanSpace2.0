@@ -32,7 +32,20 @@ const AddProduct: React.FC = () => {
   };
 
   return (
-    <ProductForm onSubmit={handleCreate} submitButtonText="Create Listing" onSuccess={() => { /* handled in ProductForm */ }} />
+    <div className="mb-6">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-lg font-semibold">Add Listing</h3>
+      </div>
+      <div className="bg-white rounded-md shadow-sm p-4">
+        <ProductForm
+          onSubmit={handleCreate}
+          submitButtonText="Create Listing"
+          onSuccess={() => {
+            /* handled in ProductForm */
+          }}
+        />
+      </div>
+    </div>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import GraphCard from "../admin/components/GraphCard";
 import {
@@ -23,8 +23,9 @@ const ManagerDashboard: React.FC<{
 }> = ({ setModalState }) => {
   const [activeTab, setActiveTab] = useState<string>("Users");
   const { state } = useAppContext();
-  const users = state.users.filter(
-    (user) => user.role.toLowerCase() !== "admin"
+  const users = useMemo(
+    () => state.users.filter((user) => user.role.toLowerCase() !== "admin"),
+    [state.users]
   );
   const products = state.products;
   const orders = state.orders;
@@ -69,10 +70,20 @@ const ManagerDashboard: React.FC<{
   async function fetchSales() {
     setLoadingData(true);
     try {
-      const sRes = await api.get("/admin/sales");
-      setSales(Array.isArray(sRes.data) ? sRes.data : []);
+      // try manager endpoint first, fall back to admin
+      let res;
+      try {
+        res = await api.get('/manager/sales');
+        console.debug('[ManagerDashboard] fetched /manager/sales', res.status);
+      } catch (err) {
+        console.warn('[ManagerDashboard] /manager/sales failed, trying /admin/sales', err);
+        res = await api.get('/admin/sales');
+        console.debug('[ManagerDashboard] fetched /admin/sales', res.status);
+      }
+
+      setSales(Array.isArray(res.data) ? res.data : []);
     } catch (e) {
-      console.error("Failed fetching sales data", e);
+      console.error('[ManagerDashboard] Failed fetching sales data', e);
     } finally {
       setLoadingData(false);
     }
@@ -83,7 +94,8 @@ const ManagerDashboard: React.FC<{
   }, []);
 
   useEffect(() => {
-    setOrdersChart(buildMonthlyCounts(orders || [], "purchasedAt", "orders"));
+    // orders normalized in AppContext use `date` field
+    setOrdersChart(buildMonthlyCounts(orders || [], "date", "orders"));
     setProductsChart(
       buildMonthlyCounts(
         products?.filter((p) => p.status === "approved") || [],

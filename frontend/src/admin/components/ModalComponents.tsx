@@ -14,7 +14,8 @@ interface ModalProps {
 export function Modal({ isOpen, onClose, title, children }: ModalProps): React.ReactElement | null {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+    // Use a transparent backdrop and apply a blur so the previous page is visible but blurred
+    <div className="fixed inset-0 bg-transparent backdrop-blur-md flex justify-center items-center z-50 p-4">
       <div className={cn('shadow-2xl w-full max-w-lg border-2 border-amber-300', 'bg-white rounded-md')}>
         <div className="flex justify-between items-center p-6 border-b border-amber-200 bg-linear-to-r from-amber-50 to-orange-50">
           <h2 className="text-2xl font-bold text-amber-900 font-serif">{title}</h2>
