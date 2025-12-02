@@ -50,29 +50,27 @@ const Checkout: React.FC = () => {
   const { showLoading, hideLoading } = useLoading();
   const navigate = useNavigate();
 
-  // Fallback hardcoded address for users without address
-  const fallbackAddress = {
-    street: "BHI Hostel IIIT Sricity",
-    city: "Daman, Sricity",
-    state: "Andhra Pradesh",
-    zip: "517646",
-    country: "India",
+  // Function to check if address is complete
+  const isAddressComplete = (address: UserAddress | null) => {
+    return (
+      address && address.street && address.city && address.state && address.zip
+    );
   };
+
+  // Fallback hardcoded address for users without address - REMOVED
+  // const fallbackAddress = {
+  //   street: "BHI Hostel IIIT Sricity",
+  //   city: "Daman, Sricity",
+  //   state: "Andhra Pradesh",
+  //   zip: "517646",
+  //   country: "India",
+  // };
 
   useEffect(() => {
     if (user) {
       fetchCart();
-      // Safely set user address with proper null handling
-      const address = user.address
-        ? {
-            street: user.address.street || null,
-            city: user.address.city || null,
-            state: user.address.state || null,
-            zip: user.address.zip || null,
-            country: user.address.country || null,
-          }
-        : fallbackAddress;
-      setUserAddress(address);
+      // Safely set user address
+      setUserAddress(user.address || null);
     }
   }, [user]);
 
@@ -103,6 +101,14 @@ const Checkout: React.FC = () => {
   };
 
   const handlePlaceOrder = async () => {
+    if (!isAddressComplete(userAddress)) {
+      showToast(
+        "Please update your shipping address in settings before placing an order.",
+        "error"
+      );
+      return;
+    }
+
     // Confirmation dialog
     const confirmed = window.confirm(
       `Are you sure you want to place this order for ₹${total.toFixed(
@@ -153,7 +159,7 @@ const Checkout: React.FC = () => {
     }
   };
 
-  const displayAddress = userAddress || fallbackAddress;
+  const displayAddress = userAddress;
 
   if (cart.length === 0) {
     return (
@@ -292,40 +298,63 @@ const Checkout: React.FC = () => {
                 </h2>
 
                 <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-amber-950">
-                        {user?.name || "Delivery Address"}
-                      </h3>
-                      {displayAddress.street && (
-                        <p className="text-amber-700 mt-1">
-                          {displayAddress.street}
-                        </p>
-                      )}
-                      {displayAddress.city && (
-                        <p className="text-amber-700">{displayAddress.city}</p>
-                      )}
-                      {displayAddress.state && (
-                        <p className="text-amber-700">
-                          State: {displayAddress.state}
-                        </p>
-                      )}
-                      {displayAddress.zip && (
-                        <p className="text-amber-700">
-                          Pincode: {displayAddress.zip}
-                        </p>
-                      )}
-                      {displayAddress.country && (
-                        <p className="text-amber-700">
-                          {displayAddress.country}
-                        </p>
-                      )}
+                  {isAddressComplete(userAddress) ? (
+                    <>
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-amber-950">
+                            {user?.name || "Delivery Address"}
+                          </h3>
+                          {displayAddress?.street && (
+                            <p className="text-amber-700 mt-1">
+                              {displayAddress.street}
+                            </p>
+                          )}
+                          {displayAddress?.city && (
+                            <p className="text-amber-700">
+                              {displayAddress.city}
+                            </p>
+                          )}
+                          {displayAddress?.state && (
+                            <p className="text-amber-700">
+                              State: {displayAddress.state}
+                            </p>
+                          )}
+                          {displayAddress?.zip && (
+                            <p className="text-amber-700">
+                              Pincode: {displayAddress.zip}
+                            </p>
+                          )}
+                          {displayAddress?.country && (
+                            <p className="text-amber-700">
+                              {displayAddress.country}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => navigate("/settings")}
+                          className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                          Change Address
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center">
+                      <p className="text-amber-700 mb-4">
+                        No shipping address found. Please update your address in
+                        settings to place an order.
+                      </p>
+                      <button
+                        onClick={() => navigate("/settings")}
+                        className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                        Update Address
+                      </button>
                     </div>
-                    <button className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
-                      <Edit3 className="w-4 h-4" />
-                      Change Address
-                    </button>
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -391,12 +420,21 @@ const Checkout: React.FC = () => {
                 {/* Place Order Button */}
                 <button
                   onClick={handlePlaceOrder}
-                  disabled={cart.length === 0}
+                  disabled={
+                    cart.length === 0 || !isAddressComplete(userAddress)
+                  }
                   className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-4 px-6 rounded-xl font-bold mt-6 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group"
                 >
                   <CheckCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
                   Place Order - ₹{total.toFixed(2)}
                 </button>
+
+                {!isAddressComplete(userAddress) && (
+                  <p className="mt-4 text-center text-sm text-red-600">
+                    Please update your shipping address in settings to place an
+                    order.
+                  </p>
+                )}
 
                 <div className="mt-4 text-center">
                   <p className="text-xs text-amber-600">

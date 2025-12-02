@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import Navbar from "./components/LandingPage/Navbar";
 import HeroSection from "./components/LandingPage/HeroSection";
+import { useEffect, useState } from "react";
+import api from "./lib/axios";
 /*
 --- FONT NOTE ---
 To use the 'Kranky' font, you'll need to:
@@ -356,6 +358,74 @@ function Footer() {
 // --- Main App Component ---
 // This brings all the sections together.
 export default function App() {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await api.get("/products/approved");
+        setProducts(res.data.products || []);
+      } catch (error) {
+        console.error("Failed to fetch products", error);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const galleryItems =
+    products.length > 0
+      ? products.map((p: any) => ({ image: p.image, text: p.name }))
+      : [
+          {
+            image: `https://picsum.photos/seed/1/800/600?grayscale`,
+            text: "Bridge",
+          },
+          {
+            image: `https://picsum.photos/seed/2/800/600?grayscale`,
+            text: "Desk Setup",
+          },
+          {
+            image: `https://picsum.photos/seed/3/800/600?grayscale`,
+            text: "Waterfall",
+          },
+          {
+            image: `https://picsum.photos/seed/4/800/600?grayscale`,
+            text: "Strawberries",
+          },
+          {
+            image: `https://picsum.photos/seed/5/800/600?grayscale`,
+            text: "Deep Diving",
+          },
+          {
+            image: `https://picsum.photos/seed/16/800/600?grayscale`,
+            text: "Train Track",
+          },
+          {
+            image: `https://picsum.photos/seed/17/800/600?grayscale`,
+            text: "Santorini",
+          },
+          {
+            image: `https://picsum.photos/seed/8/800/600?grayscale`,
+            text: "Blurry Lights",
+          },
+          {
+            image: `https://picsum.photos/seed/9/800/600?grayscale`,
+            text: "New York",
+          },
+          {
+            image: `https://picsum.photos/seed/10/800/600?grayscale`,
+            text: "Good Boy",
+          },
+          {
+            image: `https://picsum.photos/seed/21/800/600?grayscale`,
+            text: "Coastline",
+          },
+          {
+            image: `https://picsum.photos/seed/12/800/600?grayscale`,
+            text: "Palm Trees",
+          },
+        ];
+
   return (
     <div className="bg-amber-50 font-sans text-gray-900">
       <Navbar />
@@ -368,6 +438,7 @@ export default function App() {
             textColor="amber-900"
             borderRadius={0.2}
             scrollEase={0.02}
+            items={galleryItems}
           />
         </div>
 

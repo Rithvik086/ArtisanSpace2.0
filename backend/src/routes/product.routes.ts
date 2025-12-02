@@ -15,14 +15,20 @@ import { verifytoken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
+// Public route - no auth required
+router.get(
+  "/approved",
+  getProducts
+);
+
 router.use(verifytoken);
 
 // Public routes - accessible by all authenticated users
-router.get(
-  "/approved",
-  authorizerole("customer", "artisan", "manager", "admin"),
-  getProducts
-);
+// router.get(
+//   "/approved",
+//   authorizerole("customer", "artisan", "manager", "admin"),
+//   getProducts
+// );
 
 // Artisan+ routes - Must come before /:id to avoid conflicts
 router.get(
