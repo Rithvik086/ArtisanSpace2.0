@@ -70,17 +70,7 @@ const ManagerDashboard: React.FC<{
   async function fetchSales() {
     setLoadingData(true);
     try {
-      // try manager endpoint first, fall back to admin
-      let res;
-      try {
-        res = await api.get('/manager/sales');
-        console.debug('[ManagerDashboard] fetched /manager/sales', res.status);
-      } catch (err) {
-        console.warn('[ManagerDashboard] /manager/sales failed, trying /admin/sales', err);
-        res = await api.get('/admin/sales');
-        console.debug('[ManagerDashboard] fetched /admin/sales', res.status);
-      }
-
+      const res = await api.get('/manager/sales');
       setSales(Array.isArray(res.data) ? res.data : []);
     } catch (e) {
       console.error('[ManagerDashboard] Failed fetching sales data', e);
