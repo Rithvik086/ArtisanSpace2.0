@@ -76,7 +76,11 @@ export default function ArtisanDashboard() {
           newPrice: Number(p.newPrice ?? p.price ?? 0),
           quantity: Number(p.quantity ?? p.stock ?? 0),
           status:
-            (p.status === "disapproved" ? "rejected" : p.status) ?? "active",
+            (p.status === "disapproved"
+              ? "rejected"
+              : p.status === "approved"
+              ? "active"
+              : p.status) ?? "pending",
           description: p.description ?? p.desc ?? "",
         }));
 
@@ -319,7 +323,7 @@ export default function ArtisanDashboard() {
               />
 
               <ProductsList
-                products={products}
+                products={products.filter((p) => p.status === "active")}
                 isEditOpen={isEditModalOpen}
                 selectedProduct={selectedProduct}
                 onEditOpen={handleOpenEditModal}

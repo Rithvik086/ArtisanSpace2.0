@@ -81,7 +81,8 @@ export default function DashboardPage({
   }, []);
 
   useEffect(() => {
-    setOrdersChart(buildMonthlyCounts(orders || [], "purchasedAt", "orders"));
+    // orders are normalized to use `date` (see AppContext). Use that field for charting.
+    setOrdersChart(buildMonthlyCounts(orders || [], "date", "orders"));
     setProductsChart(
       buildMonthlyCounts(
         products?.filter((p) => p.status === "approved") || [],
