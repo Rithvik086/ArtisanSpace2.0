@@ -34,6 +34,25 @@ export const getCustomRequests = async (req: Request, res: Response) => {
   }
 };
 
+export const getUserCustomRequests = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.id as string;
+    const requests = await getRequests(null, null); // Get all, then filter by userId
+    const userRequests = requests.filter(
+      (req: any) => req.userId._id.toString() === userId
+    );
+
+    res.status(200).json({
+      success: true,
+      requests: userRequests,
+    });
+  } catch (error) {
+    throw new Error(
+      "Error fetching user requests: " + (error as Error).message
+    );
+  }
+};
+
 export const reqCustomOrder = async (req: Request, res: Response) => {
   try {
     const { title, type, description, budget, requiredBy } = req.body;

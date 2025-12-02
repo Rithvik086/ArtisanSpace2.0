@@ -4,6 +4,7 @@ import {
   approveCustomRequest,
   deleteCustomRequest,
   getCustomRequests,
+  getUserCustomRequests,
   reqCustomOrder,
 } from "../controller/customRequestController.js";
 import authorizerole from "../middleware/roleMiddleware.js";
@@ -16,6 +17,12 @@ router.get(
   getCustomRequests
 );
 
+router.get(
+  "/user",
+  authorizerole("customer", "artisan", "manager", "admin"),
+  getUserCustomRequests
+);
+
 router.post(
   "/",
   authorizerole("customer", "artisan", "manager", "admin"),
@@ -23,7 +30,11 @@ router.post(
   reqCustomOrder
 );
 
-router.put("/", authorizerole("manager", "admin"), approveCustomRequest);
+router.put(
+  "/",
+  authorizerole("artisan", "manager", "admin"),
+  approveCustomRequest
+);
 
 router.delete(
   "/:requestId",
