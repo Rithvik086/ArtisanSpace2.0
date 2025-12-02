@@ -175,7 +175,7 @@ export default function SupportTicketsPage() {
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#6B4F3A] bg-white border border-[#6B4F3A]/20 rounded-md hover:bg-[#6B4F3A]/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#6B4F3A] bg-white border border-[#6B4F3A]/20 rounded-md hover:bg-[#6B4F3A]/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {refreshing ? (
               <>

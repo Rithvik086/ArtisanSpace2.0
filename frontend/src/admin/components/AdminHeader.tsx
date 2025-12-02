@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, User, LogOut } from 'lucide-react';
-import { useSelector } from 'react-redux';
-import { useDispatch } from '../../redux/store';
-import { logoutUser } from '../../redux/slices/authThunks';
-import type { RootState } from '../../redux/store';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, User, LogOut } from "lucide-react";
+import { useSelector } from "react-redux";
+import { useDispatch } from "../../redux/store";
+import { logoutUser } from "../../redux/slices/authThunks";
+import type { RootState } from "../../redux/store";
 
 export default function AdminHeader(): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,18 +13,18 @@ export default function AdminHeader(): React.ReactElement {
   const user = useSelector((state: RootState) => state.auth.user);
 
   const navItems = [
-    { name: 'Home', href: '/admin' },
-    { name: 'Content Moderation', href: '/admin/moderation' },
-    { name: 'Support Ticket', href: '/admin/support' },
+    { name: "Home", href: "/admin" },
+    { name: "Content Moderation", href: "/admin/moderation" },
+    { name: "Support Ticket", href: "/admin/support" },
   ];
 
   const handleLogout = async () => {
     try {
       await dispatch(logoutUser()).unwrap();
-      navigate('/');
+      navigate("/");
     } catch (error) {
-      console.error('Logout failed:', error);
-      navigate('/');
+      console.error("Logout failed:", error);
+      navigate("/");
     }
   };
 
@@ -34,7 +34,9 @@ export default function AdminHeader(): React.ReactElement {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <Link to="/admin" className="flex items-center">
-            <h1 className="font-bold text-amber-950 text-3xl font-kranky">ArtisanSpace</h1>
+            <h1 className="font-bold text-amber-950 text-3xl font-kranky">
+              ArtisanSpace
+            </h1>
           </Link>
 
           {/* Desktop Nav */}
@@ -52,17 +54,19 @@ export default function AdminHeader(): React.ReactElement {
 
           {/* Desktop User Menu */}
           <div className="hidden md:flex items-center space-x-4">
-            <span className="text-amber-900 font-medium">Welcome, {user?.name || user?.username}</span>
+            <span className="text-amber-900 font-medium">
+              Welcome, {user?.name || user?.username}
+            </span>
             <button
-              onClick={() => navigate('/admin/settings')}
-              className="text-amber-900 hover:text-amber-950 p-2 rounded-md transition-colors"
+              onClick={() => navigate("/admin/settings")}
+              className="text-amber-900 hover:text-amber-950 p-2 rounded-md transition-colors cursor-pointer"
               title="Settings"
             >
               <User size={20} />
             </button>
             <button
               onClick={handleLogout}
-              className="text-amber-900 hover:text-amber-950 p-2 rounded-md transition-colors"
+              className="text-amber-900 hover:text-amber-950 p-2 rounded-md transition-colors cursor-pointer"
               title="Logout"
             >
               <LogOut size={20} />
@@ -70,7 +74,10 @@ export default function AdminHeader(): React.ReactElement {
           </div>
 
           {/* Mobile Menu Button */}
-          <button onClick={() => setIsOpen(!isOpen)} className="md:hidden text-amber-950">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden text-amber-950"
+          >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
@@ -93,10 +100,10 @@ export default function AdminHeader(): React.ReactElement {
             <div className="border-t pt-2 mt-2">
               <button
                 onClick={() => {
-                  navigate('/admin/settings');
+                  navigate("/admin/settings");
                   setIsOpen(false);
                 }}
-                className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-amber-900 hover:text-amber-950 hover:bg-amber-100"
+                className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-amber-900 hover:text-amber-950 hover:bg-amber-100 cursor-pointer"
               >
                 <User size={20} className="mr-2" />
                 Settings
@@ -106,7 +113,7 @@ export default function AdminHeader(): React.ReactElement {
                   handleLogout();
                   setIsOpen(false);
                 }}
-                className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-amber-900 hover:text-amber-950 hover:bg-amber-100"
+                className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-amber-900 hover:text-amber-950 hover:bg-amber-100 cursor-pointer"
               >
                 <LogOut size={20} className="mr-2" />
                 Logout
