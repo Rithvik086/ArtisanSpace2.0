@@ -70,10 +70,10 @@ const ManagerDashboard: React.FC<{
   async function fetchSales() {
     setLoadingData(true);
     try {
-      const res = await api.get('/manager/sales');
+      const res = await api.get("/manager/sales");
       setSales(Array.isArray(res.data) ? res.data : []);
     } catch (e) {
-      console.error('[ManagerDashboard] Failed fetching sales data', e);
+      console.error("[ManagerDashboard] Failed fetching sales data", e);
     } finally {
       setLoadingData(false);
     }

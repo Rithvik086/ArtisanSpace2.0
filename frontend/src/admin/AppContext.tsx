@@ -203,9 +203,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     const fetchInitial = async () => {
       try {
         const [uJson, pJson, oJson] = await Promise.all([
-          api.get("/manager/users").then(r => r.data).catch(() => []),
-          api.get("/manager/products").then(r => r.data).catch(() => []),
-          api.get("/manager/orders").then(r => r.data).catch(() => []),
+          api
+            .get("/manager/users")
+            .then((r) => r.data)
+            .catch(() => []),
+          api
+            .get("/manager/products")
+            .then((r) => r.data)
+            .catch(() => []),
+          api
+            .get("/manager/orders")
+            .then((r) => r.data)
+            .catch(() => []),
         ]);
 
         const normalizeUsers = (Array.isArray(uJson) ? uJson : []).map(
