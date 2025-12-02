@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { FileUp, Loader2, Sparkles } from "lucide-react";
 import { craftStyles, cn } from "../../styles/theme";
 
@@ -37,10 +37,14 @@ interface ValidationErrors {
 }
 
 // Validation Regex from your original code
-const productNameregex = /^[a-zA-Z0-9\s-&]{3,40}$/;
-const materialregex = /^[a-zA-Z\s,-]{3,50}$/;
-const originalPriceregex = /^\d+(\.\d{1,2})?$/;
+// Name: letters, spaces, ampersand or hyphen only (no digits), 3-40 chars
+const productNameregex = /^[a-zA-Z\s&-]{3,40}$/;
+// Material: letters, spaces, commas, hyphens allowed. Require at least 1 char, max 50.
+const materialregex = /^[a-zA-Z\s,\-]{1,50}$/;
+// Price: up to 5 digits before decimal, optional 1-2 decimals (e.g. 99999 or 99999.99)
+const originalPriceregex = /^\d{1,5}(\.\d{1,2})?$/;
 const descriptionregex = /^.{10,500}$/; // Simplified to length, as regex was restrictive
+// Quantity: integer > 0 (we'll additionally cap at 1000 in validation)
 const quantityregex = /^[1-9][0-9]*$/;
 
 const productTypes: ProductType[] = [
@@ -85,25 +89,57 @@ export function ProductForm({
       case "productName":
         return productNameregex.test(value)
           ? ""
-          : "Name must be 3-40 letters, numbers, spaces, or hyphens.";
+          : "Name must be 3-40 letters, spaces, ampersand (&) or hyphens.";
       case "type":
         return value ? "" : "Please select a product type.";
       case "material":
-        return materialregex.test(value)
-          ? ""
-          : "Material must be 3-50 letters, spaces, commas, or hyphens.";
+        // required
+        if (!value || value.trim().length === 0) {
+          return "Please provide material(s) used.";
+        }
+        if (!materialregex.test(value)) {
+          return "Material may contain letters, spaces, commas and hyphens (max 50 chars).";
+        }
+        // limit hyphens to 2
+        const hyphenCount = (value.match(/-/g) || []).length;
+        if (hyphenCount > 2) {
+          return "Material can contain at most 2 hyphens.";
+        }
+        return "";
       case "price":
-        return originalPriceregex.test(value)
-          ? ""
-          : "Price must be a valid number (e.g., 10.99).";
+        // ensure numeric and within limits (>0 and up to 4 digits before decimal)
+        if (!originalPriceregex.test(value)) {
+          return "Price must be up to 5 digits (optionally with 1-2 decimals).";
+        }
+        try {
+          const num = parseFloat(value);
+          if (isNaN(num) || num <= 0) {
+            return "Price must be greater than 0.";
+          }
+        } catch (e) {
+          return "Price must be a valid number.";
+        }
+        return "";
       case "description":
         return descriptionregex.test(value)
           ? ""
           : "Description must be between 10 and 500 characters.";
       case "quantity":
-        return quantityregex.test(value)
-          ? ""
-          : "Quantity must be a positive number greater than 0.";
+        // disallow plus/minus signs
+        if (/[+-]/.test(value)) {
+          return "Quantity must not contain '+' or '-' signs.";
+        }
+        if (!quantityregex.test(value)) {
+          return "Quantity must be a positive integer.";
+        }
+        try {
+          const q = parseInt(value, 10);
+          if (isNaN(q) || q <= 0) return "Quantity must be greater than 0.";
+          if (q > 1000) return "Quantity must be 1000 or less.";
+        } catch (e) {
+          return "Quantity must be a valid integer.";
+        }
+        return "";
       case "image":
         return imageFile || imagePreview ? "" : "A product photo is required.";
       default:
@@ -126,32 +162,84 @@ export function ProductForm({
     return Object.keys(newErrors).length === 0;
   };
 
+  // Helper that returns errors object without mutating state (useful to compute validity)
+  const getValidationErrors = (
+    fd: ProductFormData,
+    imgFile: File | null,
+    imgPreview: string | null
+  ): ValidationErrors => {
+    const newErrors: ValidationErrors = {};
+    Object.keys(fd).forEach((key) => {
+      const error = validateField(key, fd[key as keyof ProductFormData]);
+      if (error) newErrors[key] = error;
+    });
+    // image
+    if (!imgFile && !imgPreview) {
+      newErrors.image = "A product photo is required.";
+    }
+    return newErrors;
+  };
+
+  const [isFormValid, setIsFormValid] = useState<boolean>(
+    Object.keys(getValidationErrors(formData, imageFile, imagePreview)).length === 0
+  );
+
+  // Keep isFormValid updated as the user types or changes the image
+  useEffect(() => {
+    const errs = getValidationErrors(formData, imageFile, imagePreview);
+    setIsFormValid(Object.keys(errs).length === 0);
+  }, [formData, imageFile, imagePreview]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ): void => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value.trimStart() }));
-    // Clear error on change
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
+    // Do not silently strip plus/minus for quantity; keep raw value and validate
+    const newValue = name === "quantity" ? value : value.trimStart();
+    setFormData((prev) => ({ ...prev, [name]: newValue }));
+    // Run live validation for this field
+    const fieldError = validateField(name, newValue);
+    setErrors((prev) => ({ ...prev, [name]: fieldError }));
+  };
+
+  const handleQuantityKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "+" || e.key === "-") {
+      e.preventDefault();
+      setErrors((prev) => ({ ...prev, quantity: "Quantity must not contain '+' or '-' signs." }));
+    }
+  };
+
+  const handleQuantityPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const text = e.clipboardData.getData("text");
+    if (/[+-]/.test(text)) {
+      e.preventDefault();
+      setErrors((prev) => ({ ...prev, quantity: "Pasted text may not contain '+' or '-' signs." }));
     }
   };
 
   const handleSelectChange = (value: string): void => {
     setFormData((prev) => ({ ...prev, type: value }));
-    if (errors.type) {
-      setErrors((prev) => ({ ...prev, type: "" }));
-    }
+    // Validate the select immediately
+    const fieldError = validateField("type", value);
+    setErrors((prev) => ({ ...prev, type: fieldError }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate accepted formats
+      const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+      if (!allowedTypes.includes(file.type)) {
+        setErrors((prev) => ({
+          ...prev,
+          image: "Unsupported image format. Accepted: JPG, PNG, WEBP.",
+        }));
+        return;
+      }
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
-      if (errors.image) {
-        setErrors((prev) => ({ ...prev, image: "" }));
-      }
+      // clear image error
+      setErrors((prev) => ({ ...prev, image: "" }));
     }
   };
 
@@ -364,8 +452,10 @@ export function ProductForm({
                     type="number"
                     min="1"
                     placeholder="How many do you have?"
-                    value={formData.quantity}
-                    onChange={handleChange}
+                      value={formData.quantity}
+                      onChange={handleChange}
+                      onKeyDown={handleQuantityKeyDown}
+                      onPaste={handleQuantityPaste}
                     className={cn(
                       craftStyles.input.default,
                       "text-lg",
@@ -411,11 +501,16 @@ export function ProductForm({
                       : "Upload your creation's photo"}
                   </span>
                 </button>
-                {errors.image && (
-                  <p className="text-sm text-red-600 font-medium">
-                    {errors.image}
-                  </p>
-                )}
+                  <div className="mt-2 flex items-center justify-between">
+                    <p className="text-sm text-stone-500">
+                      Accepted formats: JPG, PNG, WEBP
+                    </p>
+                    {errors.image && (
+                      <p className="text-sm text-red-600 font-medium">
+                        {errors.image}
+                      </p>
+                    )}
+                  </div>
               </div>
 
               {/* Image Preview */}
@@ -479,7 +574,7 @@ export function ProductForm({
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !isFormValid}
                 className={cn(
                   craftStyles.button.primary,
                   "w-full text-xl py-4 disabled:opacity-50 disabled:cursor-not-allowed",
