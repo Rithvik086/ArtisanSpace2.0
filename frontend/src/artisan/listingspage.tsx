@@ -60,7 +60,9 @@ export default function ListingsPage(): React.ReactElement {
     setError(null);
     setSuccess(null);
     try {
-      const res = await api.post("/products", formData);
+      const res = await api.post("/products", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       const p = res.data?.product ?? res.data ?? {};
       const normalized = {
