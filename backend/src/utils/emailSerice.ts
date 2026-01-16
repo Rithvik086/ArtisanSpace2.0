@@ -11,6 +11,12 @@ const transporter = mail.createTransport({
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASS,
   },
+  tls: {
+    rejectUnauthorized: false,
+  },
+  connectionTimeout: 60000, // 60 seconds
+  greetingTimeout: 30000,
+  socketTimeout: 60000,
 });
 
 export const sendMail = async (email: string, subject: string, msg: string) => {
