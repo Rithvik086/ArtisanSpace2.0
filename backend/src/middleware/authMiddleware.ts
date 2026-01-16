@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { userExists } from "../services/userServices.js";
 import type { Request, Response, NextFunction } from "express";
+import config from "../config/index.js";
 
 declare global {
   namespace Express {
@@ -26,15 +27,8 @@ export const verifytoken = async (
     return res.status(401).json({ message: "Access denied. Please log in." });
   }
 
-  if (!process.env.JWT_SECRET) {
-    console.error("JWT_SECRET is not defined in environment variables");
-    return res
-      .status(500)
-      .json({ message: "Server error. Please try again later." });
-  }
-
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET) as {
+    const decoded = jwt.verify(token, config.JWT_SECRET) as {
       id: string;
       role: string;
       iat: number;
