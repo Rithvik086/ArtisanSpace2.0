@@ -248,9 +248,8 @@ const verifyEmail = async (req: Request, res: Response) => {
       tokenExpiresAt: null,
     });
 
-    res
-      .status(200)
-      .json({ message: "Email verified successfully. You can now log in." });
+    // Redirect to frontend login page with success message
+    res.redirect(`${config.FRONTEND_URL}/login?verified=true`);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res
@@ -281,7 +280,7 @@ const forgotPassword = async (req: Request, res: Response) => {
       resetTokenExpiresAt: expiresAt,
     });
 
-    const resetLink = `${config.FRONTEND_URL}/api/v1/reset-password?token=${token}`;
+    const resetLink = `${config.FRONTEND_URL}/reset-password?token=${token}`;
     await sendMail(
       email,
       "Reset Your Password - ArtisanSpace",
