@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import User from "../models/userModel.js";
+import logger from "../utils/logger.js";
 
 export async function getUsersListService() {
   try {
@@ -236,7 +237,7 @@ export async function updateUser(
         updateFields.address.country = address.country;
     }
 
-    console.log(updateFields);
+    logger.debug({ updateFields }, "Updating user fields");
 
     const updatedUser = await User.findOneAndUpdate(
       { _id: userId, isValid: true },

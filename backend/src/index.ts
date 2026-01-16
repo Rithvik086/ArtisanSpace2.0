@@ -8,6 +8,7 @@ import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import deliveryRoutes from "./routes/delivery.routes.js";
+import logger from "./utils/logger.js";
 import managerRoutes from "./routes/manager.routes.js";
 import productRoutes from "./routes/product.routes.js";
 import path from "path";
@@ -23,7 +24,7 @@ dotenv.config();
 if (process.env.SKIP_DB !== "true") {
   await dbConnect();
 } else {
-  console.log("SKIP_DB=true — skipping database connection for demo mode");
+  logger.info("SKIP_DB=true — skipping database connection for demo mode");
 }
 
 const PORT = process.env.PORT || 3000;
@@ -73,5 +74,5 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  logger.info({ port: PORT }, "Server is running");
 });
