@@ -9,6 +9,7 @@ import userRoutes from "./routes/user.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import deliveryRoutes from "./routes/delivery.routes.js";
 import logger from "./utils/logger.js";
+import config from "./config/index.js";
 import managerRoutes from "./routes/manager.routes.js";
 import productRoutes from "./routes/product.routes.js";
 import path from "path";
@@ -21,18 +22,18 @@ const __dirname = dirname(__filename);
 dotenv.config();
 
 // Allow skipping DB connection for local/demo use by setting SKIP_DB=true in .env
-if (process.env.SKIP_DB !== "true") {
+if (config.SKIP_DB !== "true") {
   await dbConnect.connect();
 } else {
   logger.info("SKIP_DB=true — skipping database connection for demo mode");
 }
 
-const PORT = process.env.PORT || 3000;
+const PORT = config.PORT;
 const app = express();
 
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    origin: config.CORS_ORIGIN,
     credentials: true,
   })
 );
@@ -51,7 +52,7 @@ apiRouter.use("/", userRoutes);
 
 app.use("/api/v1", apiRouter);
 
-if (process.env.NODE_ENV === "production") {
+if (config.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../../frontend/dist")));
 
   app.get("/*splat", (_req: Request, res: Response) => {

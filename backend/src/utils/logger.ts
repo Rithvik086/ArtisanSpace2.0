@@ -1,7 +1,8 @@
 import pino from "pino";
 import pretty from "pino-pretty";
+import config from "../config/index.js";
 
-const isProduction = process.env.NODE_ENV === "production";
+const isProduction = config.NODE_ENV === "production";
 
 class Logger {
   private logger: pino.Logger;

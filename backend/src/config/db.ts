@@ -1,24 +1,19 @@
 import mongoose from "mongoose";
 import logger from "../utils/logger.js";
+import config from "./index.js";
 
 class Database {
   private isConnected: boolean = false;
 
   async connect(): Promise<void> {
     try {
-      if (!process.env.MONGO_URI) {
-        throw new Error("MONGO_URI is not defined in environment variables");
-      }
-
-      const options: mongoose.ConnectOptions = {
+      await mongoose.connect(config.MONGO_URI, {
         maxPoolSize: 10, // Maximum number of connections in the connection pool
         minPoolSize: 2, // Minimum number of connections in the connection pool
         maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
         serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
         socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-      };
-
-      await mongoose.connect(process.env.MONGO_URI, options);
+      });
 
       this.isConnected = true;
       logger.info("Database connection established with connection pooling");

@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import mail from "nodemailer";
 import logger from "./logger.js";
+import config from "../config/index.js";
 
 dotenv.config();
 
@@ -9,8 +10,8 @@ const transporter = mail.createTransport({
   port: 587,
   secure: false,
   auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS,
+    user: config.MAIL_USER,
+    pass: config.MAIL_PASS,
   },
   tls: {
     rejectUnauthorized: false,
