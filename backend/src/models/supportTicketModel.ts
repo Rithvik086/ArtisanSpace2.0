@@ -40,4 +40,16 @@ const ticketSchema = new mongoose.Schema({
   },
 });
 
+// Pre-save middleware to update updatedAt on every save
+ticketSchema.pre("save", function (next) {
+  this.updatedAt = new Date().toISOString();
+  next();
+});
+
+// Pre-update middleware to update updatedAt on findOneAndUpdate operations
+ticketSchema.pre("findOneAndUpdate", function (next) {
+  this.set({ updatedAt: new Date().toISOString() });
+  next();
+});
+
 export default mongoose.model("Ticket", ticketSchema);

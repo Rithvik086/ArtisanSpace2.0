@@ -77,6 +77,18 @@ const userSchema = new mongoose.Schema({
   },
 });
 
+// Pre-save middleware to update updatedAt on every save
+userSchema.pre("save", function (next) {
+  this.updatedAt = new Date().toISOString();
+  next();
+});
+
+// Pre-update middleware to update updatedAt on findOneAndUpdate operations
+userSchema.pre("findOneAndUpdate", function (next) {
+  this.set({ updatedAt: new Date().toISOString() });
+  next();
+});
+
 (userSchema as any).pre(
   "save",
   async function (this: any, next: (err?: any) => void) {

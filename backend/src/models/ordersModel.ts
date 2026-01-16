@@ -60,4 +60,16 @@ const orderSchema = new mongoose.Schema({
   },
 });
 
+// Pre-save middleware to update updatedAt on every save
+orderSchema.pre("save", function (next) {
+  this.updatedAt = new Date().toISOString();
+  next();
+});
+
+// Pre-update middleware to update updatedAt on findOneAndUpdate operations
+orderSchema.pre("findOneAndUpdate", function (next) {
+  this.set({ updatedAt: new Date().toISOString() });
+  next();
+});
+
 export default mongoose.model("Order", orderSchema);
