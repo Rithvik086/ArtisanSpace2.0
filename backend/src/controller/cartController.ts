@@ -21,6 +21,7 @@ export const getCart = async (req: Request, res: Response) => {
       success: true,
       cart,
       amount,
+      totalamount: amount+5/100*amount+18/100*amount, // including tax and shipping
       itemCount: cart.length,
     });
   } catch (error) {

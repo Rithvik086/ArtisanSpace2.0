@@ -40,7 +40,7 @@ interface UserAddress {
 const Checkout: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [subtotal, setSubtotal] = useState(0);
-  const [shipping] = useState(50); // Fixed shipping cost
+  const [shipping, setShipping] = useState(50); // Fixed shipping cost
   const [tax, setTax] = useState(0);
   const [total, setTotal] = useState(0);
   const [selectedPayment, setSelectedPayment] = useState("cod");
@@ -74,13 +74,6 @@ const Checkout: React.FC = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    // Calculate tax (5% of subtotal) and total
-    const calculatedTax = Math.round(subtotal * 0.05 * 100) / 100;
-    setTax(calculatedTax);
-    setTotal(subtotal + shipping + calculatedTax);
-  }, [subtotal, shipping]);
-
   const fetchCart = async () => {
     try {
       showLoading();
@@ -91,6 +84,9 @@ const Checkout: React.FC = () => {
       }
       setCart(response.data.cart);
       setSubtotal(response.data.amount);
+      setTotal(response.data.totalamount);
+      setShipping(response.data.amount * (5 / 100));
+      setTax(response.data.amount * (18 / 100));
     } catch (error) {
       console.error("Error fetching cart:", error);
       showToast("Error loading cart data", "error");
@@ -104,7 +100,7 @@ const Checkout: React.FC = () => {
     if (!isAddressComplete(userAddress)) {
       showToast(
         "Please update your shipping address in settings before placing an order.",
-        "error"
+        "error",
       );
       return;
     }
@@ -112,14 +108,14 @@ const Checkout: React.FC = () => {
     // Confirmation dialog
     const confirmed = window.confirm(
       `Are you sure you want to place this order for ₹${total.toFixed(
-        2
+        2,
       )}?\n\nPayment Method: ${
         selectedPayment === "cod"
           ? "Cash on Delivery"
           : selectedPayment === "card"
-          ? "Credit/Debit Card"
-          : "UPI"
-      }`
+            ? "Credit/Debit Card"
+            : "UPI"
+      }`,
     );
 
     if (!confirmed) {
@@ -140,7 +136,7 @@ const Checkout: React.FC = () => {
       if (response.data.success) {
         showToast(
           `Order placed successfully! 🎉 Order Total: ₹${response.data.orderTotal}`,
-          "success"
+          "success",
         );
         // Navigate to order confirmation or customer home
         setTimeout(() => {
@@ -245,7 +241,7 @@ const Checkout: React.FC = () => {
                           <span className="font-bold text-amber-900">
                             Item Total: ₹
                             {(item.productId.newPrice * item.quantity).toFixed(
-                              2
+                              2,
                             )}
                           </span>
                         </div>
@@ -266,12 +262,12 @@ const Checkout: React.FC = () => {
                   <div className="flex items-center justify-between text-amber-800/70">
                     <span className="flex items-center gap-2">
                       <Truck className="w-4 h-4" />
-                      Shipping
+                      Shipping (5%)
                     </span>
                     <span>₹{shipping.toFixed(2)}</span>
                   </div>
                   <div className="flex items-center justify-between text-amber-800/70">
-                    <span>Tax</span>
+                    <span>Tax (18%)</span>
                     <span>₹{tax.toFixed(2)}</span>
                   </div>
                   <div className="border-t border-amber-200 pt-3">
