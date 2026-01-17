@@ -1,7 +1,11 @@
 import { getUserCart } from "./cartServices.js";
 import razorpay from "../config/razorpay.js";
 import logger from "../utils/logger.js";
-import { error } from "console";
+import Payment from "../models/paymentModel.js";
+import Order from "../models/ordersModel.js";
+import { removeCart } from "./cartServices.js";
+
+
 // // using userId instead of cartId cause at any given point of time user has only one cart
 export async function getAmount(userId: string) {
     try {
@@ -44,7 +48,20 @@ export async function createOrder(amount: number) {
             },
             "Razorpay order creation failed"
         );
-        const desc = err?.error?.description || "Unknow Razorpay erro"
-        throw new Error("Error in creating order: " + { desc });
+        const desc = err?.error?.description || "Unknown Razorpay error";
+        throw new Error("Error in creating order: " + desc);
     }
+}
+export async function savePayment(userId: string, razorpayOrderId: string, razorpayPaymentId: string, amount: number, status: string) {
+    const payment = new Payment({ userId, razorpayOrderId, razorpayPaymentId, amount, status });
+    return await payment.save();
+}
+
+export async function updateOrderPaymentStatus(orderId: string, paymentId: string, status: string) {
+    return await Order.findByIdAndUpdate(orderId, { paymentId, paymentStatus: status });
+}
+
+
+export async function clearCartAfterPayment(userId: string) {
+    return await removeCart(userId);
 }

@@ -18,6 +18,12 @@ import {
   Calculator,
 } from "lucide-react";
 
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 interface CartItem {
   productId: {
     _id: string;
@@ -105,53 +111,108 @@ const Checkout: React.FC = () => {
       return;
     }
 
-    // Confirmation dialog
-    const confirmed = window.confirm(
-      `Are you sure you want to place this order for ₹${total.toFixed(
-        2,
-      )}?\n\nPayment Method: ${
-        selectedPayment === "cod"
-          ? "Cash on Delivery"
-          : selectedPayment === "card"
-            ? "Credit/Debit Card"
-            : "UPI"
-      }`,
-    );
+    // For COD, confirm and place order
+    if (selectedPayment === "cod") {
+      const confirmed = window.confirm(
+        `Are you sure you want to place this order for ₹${total.toFixed(
+          2,
+        )}?\n\nPayment Method: Cash on Delivery`,
+      );
 
-    if (!confirmed) {
-      return;
-    }
+      if (!confirmed) return;
 
-    try {
-      showLoading();
-      console.log("Placing order...", {
-        selectedPayment,
-        total,
-        cart: cart.length,
-      });
-
-      const response = await axios.post("/orders", {});
-      console.log("Order response:", response.data);
-
-      if (response.data.success) {
-        showToast(
-          `Order placed successfully! 🎉 Order Total: ₹${response.data.orderTotal}`,
-          "success",
-        );
-        // Navigate to order confirmation or customer home
-        setTimeout(() => {
-          navigate("/customer");
-        }, 2000); // Give user time to see the success message
-      } else {
-        showToast(response.data.message || "Failed to place order", "error");
+      try {
+        showLoading();
+        const response = await axios.post("/orders", {});
+        if (response.data.success) {
+          showToast(
+            `Order placed successfully! 🎉 Order Total: ₹${response.data.orderTotal}`,
+            "success",
+          );
+          setTimeout(() => {
+            navigate("/customer");
+          }, 2000);
+        } else {
+          showToast(response.data.message || "Failed to place order", "error");
+        }
+      } catch (error: any) {
+        const errorMessage =
+          error.response?.data?.message || "Failed to place order";
+        showToast(errorMessage, "error");
+      } finally {
+        hideLoading();
       }
-    } catch (error: any) {
-      console.error("Error placing order:", error);
-      const errorMessage =
-        error.response?.data?.message || "Failed to place order";
-      showToast(errorMessage, "error");
-    } finally {
-      hideLoading();
+    } else {
+      // For card/upi, initiate Razorpay payment
+      const confirmed = window.confirm(
+        `Are you sure you want to proceed with payment for ₹${total.toFixed(
+          2,
+        )}?\n\nPayment Method: ${
+          selectedPayment === "card" ? "Credit/Debit Card" : "UPI"
+        }`,
+      );
+
+      if (!confirmed) return;
+
+      try {
+        showLoading();
+
+        // Create order
+        const orderResponse = await axios.post("/payments/create-order");
+        const order = orderResponse.data;
+        if (!order.orderId) throw new Error("Order creation failed");
+
+        // Load Razorpay if not loaded
+        if (!window.Razorpay) {
+          const script = document.createElement("script");
+          script.src = "https://checkout.razorpay.com/v1/checkout.js";
+          document.body.appendChild(script);
+          await new Promise((resolve) => (script.onload = resolve));
+        }
+
+        // Razorpay options
+        const options = {
+          key: "rzp_test_S4taigLOZNozsn",
+          amount: order.amount,
+          currency: order.currency,
+          order_id: order.orderId,
+          name: "Artisan Space",
+          description: "Payment for your order",
+          handler: async (response: any) => {
+            // Verify payment
+            const verifyResponse = await axios.post("/payments/verify-payment", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              amount: order.amount,
+            });
+            const result = verifyResponse.data;
+            if (result.success) {
+              showToast("Payment successful! Your order is confirmed.", "success");
+              setTimeout(() => {
+                navigate("/customer");
+              }, 2000);
+            } else {
+              showToast("Payment verification failed. Please contact support.", "error");
+            }
+            hideLoading();
+          },
+          prefill: {
+            name: user?.name || "",
+            email: user?.email || "",
+          },
+          theme: {
+            color: "#f59e0b",
+          },
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.error || error.message || "Payment failed";
+        showToast(errorMessage, "error");
+        hideLoading();
+      }
     }
   };
 
