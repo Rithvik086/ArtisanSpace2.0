@@ -16,6 +16,9 @@ interface Config {
   CLOUDINARY_API_SECRET: string;
   FRONTEND_URL: string;
   SKIP_DB?: string | undefined;
+  RAZORPAY_API_KEY: string;
+  RAZORPAY_SECRET: string;
+  RAZORPAY_WEBHOOK_SECRET: string
 }
 
 // Validate and parse environment variables
@@ -32,6 +35,9 @@ function validateConfig(): Config {
     "CLOUDINARY_API_KEY",
     "CLOUDINARY_API_SECRET",
     "FRONTEND_URL",
+    "RAZORPAY_API_KEY",
+    "RAZORPAY_SECRET",
+    "RAZORPAY_WEBHOOK_SECRET",
   ];
 
   const missingVars: string[] = [];
@@ -68,6 +74,9 @@ function validateConfig(): Config {
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET!,
     FRONTEND_URL: process.env.FRONTEND_URL!,
     SKIP_DB: process.env.SKIP_DB,
+    RAZORPAY_API_KEY: process.env.RAZORPAY_API_KEY!,
+    RAZORPAY_SECRET: process.env.RAZORPAY_SECRET!,
+    RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET!
   };
 }
 

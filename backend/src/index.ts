@@ -12,6 +12,7 @@ import logger from "./utils/logger.js";
 import config from "./config/index.js";
 import managerRoutes from "./routes/manager.routes.js";
 import productRoutes from "./routes/product.routes.js";
+import paymentRoutes from "./routes/payment.route.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -48,7 +49,9 @@ apiRouter.use("/products", productRoutes);
 apiRouter.use("/admin", adminRoutes);
 apiRouter.use("/delivery", deliveryRoutes);
 apiRouter.use("/manager", managerRoutes);
+apiRouter.use('/payments', paymentRoutes);
 apiRouter.use("/", userRoutes);
+
 
 app.use("/api/v1", apiRouter);
 
