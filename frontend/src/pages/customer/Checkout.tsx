@@ -10,13 +10,18 @@ import {
   MapPin,
   Edit3,
   CreditCard,
-  Smartphone,
   CheckCircle,
   ArrowLeft,
   Package,
   Truck,
   Calculator,
 } from "lucide-react";
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 interface CartItem {
   productId: {
@@ -40,11 +45,16 @@ interface UserAddress {
 const Checkout: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [subtotal, setSubtotal] = useState(0);
-  const [shipping] = useState(50); // Fixed shipping cost
+  const [shipping, setShipping] = useState(50); // Fixed shipping cost
   const [tax, setTax] = useState(0);
   const [total, setTotal] = useState(0);
   const [selectedPayment, setSelectedPayment] = useState("cod");
   const [userAddress, setUserAddress] = useState<UserAddress | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalAction, setModalAction] = useState<(() => Promise<void>) | null>(
+    null,
+  );
+  const [modalMessage, setModalMessage] = useState("");
   const user = useSelector((state: RootState) => state.auth.user);
   const { showToast } = useToast();
   const { showLoading, hideLoading } = useLoading();
@@ -74,13 +84,6 @@ const Checkout: React.FC = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    // Calculate tax (5% of subtotal) and total
-    const calculatedTax = Math.round(subtotal * 0.05 * 100) / 100;
-    setTax(calculatedTax);
-    setTotal(subtotal + shipping + calculatedTax);
-  }, [subtotal, shipping]);
-
   const fetchCart = async () => {
     try {
       showLoading();
@@ -91,6 +94,9 @@ const Checkout: React.FC = () => {
       }
       setCart(response.data.cart);
       setSubtotal(response.data.amount);
+      setTotal(response.data.totalamount);
+      setShipping(response.data.amount * (5 / 100));
+      setTax(response.data.amount * (18 / 100));
     } catch (error) {
       console.error("Error fetching cart:", error);
       showToast("Error loading cart data", "error");
@@ -104,57 +110,107 @@ const Checkout: React.FC = () => {
     if (!isAddressComplete(userAddress)) {
       showToast(
         "Please update your shipping address in settings before placing an order.",
-        "error"
+        "error",
       );
       return;
     }
 
-    // Confirmation dialog
-    const confirmed = window.confirm(
-      `Are you sure you want to place this order for ₹${total.toFixed(
-        2
-      )}?\n\nPayment Method: ${
-        selectedPayment === "cod"
-          ? "Cash on Delivery"
-          : selectedPayment === "card"
-          ? "Credit/Debit Card"
-          : "UPI"
-      }`
-    );
-
-    if (!confirmed) {
-      return;
+    // For COD, show confirmation modal
+    if (selectedPayment === "cod") {
+      setModalMessage(
+        `Are you sure you want to place this order for ₹${total.toFixed(
+          2,
+        )}?\n\nPayment Method: Cash on Delivery`,
+      );
+      setModalAction(() => handleCODOrder);
+      setShowModal(true);
+    } else {
+      // For pay now, show confirmation modal
+      setModalMessage(
+        `Are you sure you want to proceed with payment for ₹${total.toFixed(
+          2,
+        )}?\n\nPayment Method: Online Payment (Card/UPI)`,
+      );
+      setModalAction(() => handleOnlinePayment);
+      setShowModal(true);
     }
+  };
 
+  const handleCODOrder = async () => {
     try {
       showLoading();
-      console.log("Placing order...", {
-        selectedPayment,
-        total,
-        cart: cart.length,
-      });
-
       const response = await axios.post("/orders", {});
-      console.log("Order response:", response.data);
-
       if (response.data.success) {
         showToast(
           `Order placed successfully! 🎉 Order Total: ₹${response.data.orderTotal}`,
-          "success"
+          "success",
         );
-        // Navigate to order confirmation or customer home
         setTimeout(() => {
           navigate("/customer");
-        }, 2000); // Give user time to see the success message
+        }, 2000);
       } else {
         showToast(response.data.message || "Failed to place order", "error");
       }
     } catch (error: any) {
-      console.error("Error placing order:", error);
       const errorMessage =
         error.response?.data?.message || "Failed to place order";
       showToast(errorMessage, "error");
     } finally {
+      hideLoading();
+    }
+  };
+
+  const handleOnlinePayment = async () => {
+    try {
+      showLoading();
+
+      // Create order
+      const orderResponse = await axios.post("/payments/create-order");
+      const order = orderResponse.data;
+      if (!order.orderId) throw new Error("Order creation failed");
+
+      // Load Razorpay if not loaded
+      if (!window.Razorpay) {
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        document.body.appendChild(script);
+        await new Promise((resolve) => (script.onload = resolve));
+      }
+
+      // Razorpay options
+      const options = {
+        key: "rzp_test_S4taigLOZNozsn",
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.orderId,
+        name: "Artisan Space",
+        description: "Payment for your order",
+        handler: (_response: any) => {
+          // Payment submitted - webhook will verify and update DB automatically
+          showToast(
+            "Payment submitted. Your order will be confirmed shortly.",
+            "success",
+          );
+          setTimeout(() => {
+            navigate("/customer");
+          }, 2000);
+          hideLoading();
+        },
+        prefill: {
+          name: user?.name || "",
+          email: user?.email || "",
+        },
+        theme: {
+          color: "#f59e0b",
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.error || error.message || "Payment failed";
+      showToast(errorMessage, "error");
       hideLoading();
     }
   };
@@ -245,7 +301,7 @@ const Checkout: React.FC = () => {
                           <span className="font-bold text-amber-900">
                             Item Total: ₹
                             {(item.productId.newPrice * item.quantity).toFixed(
-                              2
+                              2,
                             )}
                           </span>
                         </div>
@@ -266,12 +322,12 @@ const Checkout: React.FC = () => {
                   <div className="flex items-center justify-between text-amber-800/70">
                     <span className="flex items-center gap-2">
                       <Truck className="w-4 h-4" />
-                      Shipping
+                      Shipping (5%)
                     </span>
                     <span>₹{shipping.toFixed(2)}</span>
                   </div>
                   <div className="flex items-center justify-between text-amber-800/70">
-                    <span>Tax</span>
+                    <span>Tax (18%)</span>
                     <span>₹{tax.toFixed(2)}</span>
                   </div>
                   <div className="border-t border-amber-200 pt-3">
@@ -383,36 +439,20 @@ const Checkout: React.FC = () => {
                     </div>
                   </label>
 
-                  {/* Credit/Debit Card */}
+                  {/* Pay Now - Online Payment */}
                   <label className="flex items-center p-4 border border-amber-200 rounded-xl cursor-pointer hover:bg-amber-50 transition-colors">
                     <input
                       type="radio"
                       name="payment"
-                      value="card"
-                      checked={selectedPayment === "card"}
+                      value="online"
+                      checked={selectedPayment === "online"}
                       onChange={(e) => setSelectedPayment(e.target.value)}
                       className="w-4 h-4 text-amber-600 focus:ring-amber-500"
                     />
                     <div className="ml-3 flex-1">
                       <span className="font-medium text-amber-950">
-                        Credit/Debit Card
+                        Pay Now (Card/UPI)
                       </span>
-                    </div>
-                  </label>
-
-                  {/* UPI */}
-                  <label className="flex items-center p-4 border border-amber-200 rounded-xl cursor-pointer hover:bg-amber-50 transition-colors">
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="upi"
-                      checked={selectedPayment === "upi"}
-                      onChange={(e) => setSelectedPayment(e.target.value)}
-                      className="w-4 h-4 text-amber-600 focus:ring-amber-500"
-                    />
-                    <div className="ml-3 flex-1 flex items-center gap-2">
-                      <Smartphone className="w-4 h-4 text-amber-700" />
-                      <span className="font-medium text-amber-950">UPI</span>
                     </div>
                   </label>
                 </div>
@@ -451,6 +491,39 @@ const Checkout: React.FC = () => {
             </section>
           </div>
         </div>
+
+        {/* Confirmation Modal */}
+        {showModal && (
+          <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-in fade-in zoom-in">
+              <h2 className="text-xl font-bold text-amber-950 mb-4">
+                Confirm Order
+              </h2>
+              <p className="text-amber-700 mb-6 whitespace-pre-line">
+                {modalMessage}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 px-4 py-3 border-2 border-amber-300 text-amber-800 rounded-xl font-semibold hover:bg-amber-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    setShowModal(false);
+                    if (modalAction) {
+                      await modalAction();
+                    }
+                  }}
+                  className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
