@@ -1,12 +1,14 @@
 import { Router } from "express";
-import { createPaymentOrder,verifyPayment } from "../controller/paymentController.js";
+import { createPaymentOrder, handleWebhook } from "../controller/paymentController.js";
 import { verifytoken } from "../middleware/authMiddleware.js";
 const router = Router();
 
+// Webhook must be before auth middleware
+router.post('/webhooks/razorpay', handleWebhook);
+
+// Protected routes
 router.use(verifytoken);
-// router.get('/webhooks/razorpay', webhookhandler);
 router.post('/create-order', createPaymentOrder);
-router.post('/verify-payment', verifyPayment);
 
 
 export default router;

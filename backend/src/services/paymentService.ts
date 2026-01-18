@@ -29,12 +29,16 @@ export async function getAmount(userId: string) {
 }
 
 
-export async function createOrder(amount: number) {
+export async function createOrder(amount: number, userId: string, orderId?: string) {
     try {
         const razorpayOrder = await razorpay.orders.create({
             amount: amount * 100, // amount in the smallest currency unit
             currency: "INR",
             receipt: `receipt_order_${Date.now()}`,
+            notes: { 
+                userId: userId,
+                orderId: orderId || '',
+            }
         })
         return razorpayOrder
     } catch (err: any) {
@@ -43,7 +47,7 @@ export async function createOrder(amount: number) {
                 name: err?.name,
                 message: err?.message,
                 statusCode: err?.statusCode,
-                razorpayError: err?.error,      
+                razorpayError: err?.error,
                 stack: err?.stack,
             },
             "Razorpay order creation failed"

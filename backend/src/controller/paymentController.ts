@@ -1,6 +1,7 @@
 import { error } from "console";
 import { createOrder, getAmount, savePayment, updateOrderPaymentStatus, clearCartAfterPayment } from "../services/paymentService.js";
 import type { Request, Response } from "express";
+import { placeUserOrder } from "../services/orderServices.js";
 import crypto from 'crypto';
 import config from "../config/index.js";
 
@@ -12,7 +13,7 @@ export const createPaymentOrder = async (req: Request, res: Response) => {
         const amount = await getAmount(userId);
         if (amount <= 0) return res.status(400).json({ error: "Cart is empty or invalid amount" });
 
-        const order = await createOrder(amount);
+        const order = await createOrder(amount, userId);
 
         res.json({ orderId: order.id, amount: order.amount, currency: order.currency })
 
@@ -22,22 +23,53 @@ export const createPaymentOrder = async (req: Request, res: Response) => {
     }
 }
 
-export const verifyPayment = async (req: Request, res: Response) => {
+export const handleWebhook = async (req: Request, res: Response) => {
     try {
-        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amount, orderId } = req.body;
-        const sign = razorpay_order_id + '|' + razorpay_payment_id;
-        const expectedSign = crypto.createHmac('sha256', config.RAZORPAY_SECRET).update(sign).digest('hex');
+        const webhookSecret = config.RAZORPAY_WEBHOOK_SECRET;
+        const signature = req.headers['x-razorpay-signature'] as string;
 
-        if (razorpay_signature === expectedSign) {
-            const userId = req.user?.id;
-            await savePayment(userId, razorpay_order_id, razorpay_payment_id, amount, 'success');
-            await updateOrderPaymentStatus(orderId, razorpay_payment_id, 'paid');
-            await clearCartAfterPayment(userId);
-            res.json({ success: true, message: 'Payment verified' });
-        } else {
-            res.status(400).json({ error: 'Payment verification failed' });
+        const expectedSignature = crypto.createHmac('sha256', webhookSecret)
+            .update(JSON.stringify(req.body))
+            .digest('hex');
+
+        if (signature !== expectedSignature) {
+            return res.status(400).json({ error: 'Invalid signature' });
         }
+
+        const event = req.body.event;
+        const paymentEntity = req.body.payload.payment.entity;
+        const userId = paymentEntity.notes?.userId;
+
+        if (event === 'payment.captured') {
+            // Payment successful - place order
+            await placeUserOrder(userId);
+
+            await savePayment(
+                userId,
+                paymentEntity.order_id,
+                paymentEntity.id,
+                paymentEntity.amount / 100,
+                'success'
+            );
+
+            await updateOrderPaymentStatus(
+                paymentEntity.notes?.orderId,
+                paymentEntity.id,
+                'paid'
+            );
+            await clearCartAfterPayment(userId);
+        } else if (event === 'payment.failed') {
+            await savePayment(
+                userId,
+                paymentEntity.order_id,
+                paymentEntity.id,
+                paymentEntity.amount / 100,
+                'failed'
+            );
+        }
+        res.json({ status: 'ok' });
+
     } catch (err) {
-        res.status(500).json({ error: 'Verification error' });
+        res.status(500).json({ error: 'Webhook processing failed' });
     }
-};
+}

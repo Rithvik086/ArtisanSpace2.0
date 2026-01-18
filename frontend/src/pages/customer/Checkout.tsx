@@ -178,23 +178,15 @@ const Checkout: React.FC = () => {
           order_id: order.orderId,
           name: "Artisan Space",
           description: "Payment for your order",
-          handler: async (response: any) => {
-            // Verify payment
-            const verifyResponse = await axios.post("/payments/verify-payment", {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              amount: order.amount,
-            });
-            const result = verifyResponse.data;
-            if (result.success) {
-              showToast("Payment successful! Your order is confirmed.", "success");
-              setTimeout(() => {
-                navigate("/customer");
-              }, 2000);
-            } else {
-              showToast("Payment verification failed. Please contact support.", "error");
-            }
+          handler: (response: any) => {
+            // Payment submitted - webhook will verify and update DB automatically
+            showToast(
+              "Payment submitted. Your order will be confirmed shortly.",
+              "success",
+            );
+            setTimeout(() => {
+              navigate("/customer");
+            }, 2000);
             hideLoading();
           },
           prefill: {
@@ -209,7 +201,8 @@ const Checkout: React.FC = () => {
         const rzp = new window.Razorpay(options);
         rzp.open();
       } catch (error: any) {
-        const errorMessage = error.response?.data?.error || error.message || "Payment failed";
+        const errorMessage =
+          error.response?.data?.error || error.message || "Payment failed";
         showToast(errorMessage, "error");
         hideLoading();
       }
