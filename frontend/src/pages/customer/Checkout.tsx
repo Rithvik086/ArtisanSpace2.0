@@ -10,7 +10,6 @@ import {
   MapPin,
   Edit3,
   CreditCard,
-  Smartphone,
   CheckCircle,
   ArrowLeft,
   Package,
@@ -52,7 +51,9 @@ const Checkout: React.FC = () => {
   const [selectedPayment, setSelectedPayment] = useState("cod");
   const [userAddress, setUserAddress] = useState<UserAddress | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [modalAction, setModalAction] = useState<(() => Promise<void>) | null>(null);
+  const [modalAction, setModalAction] = useState<(() => Promise<void>) | null>(
+    null,
+  );
   const [modalMessage, setModalMessage] = useState("");
   const user = useSelector((state: RootState) => state.auth.user);
   const { showToast } = useToast();
@@ -184,7 +185,7 @@ const Checkout: React.FC = () => {
         order_id: order.orderId,
         name: "Artisan Space",
         description: "Payment for your order",
-        handler: (response: any) => {
+        handler: (_response: any) => {
           // Payment submitted - webhook will verify and update DB automatically
           showToast(
             "Payment submitted. Your order will be confirmed shortly.",
