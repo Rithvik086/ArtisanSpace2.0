@@ -60,6 +60,7 @@ interface InputFieldProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
   icon?: React.ElementType;
+  disabled?: boolean;
 }
 
 interface ButtonProps {
@@ -98,6 +99,7 @@ const InputField: React.FC<InputFieldProps> = ({
   onChange,
   placeholder,
   icon: Icon,
+  disabled = false,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const inputType = type === "password" && showPassword ? "text" : type;
@@ -126,6 +128,7 @@ const InputField: React.FC<InputFieldProps> = ({
           value={value}
           onChange={onChange}
           placeholder={placeholder}
+          disabled={disabled}
           className={cn(
             "w-full px-4 py-3 border border-amber-200 rounded-lg",
             "focus:ring-2 focus:ring-amber-500 focus:border-amber-500",
@@ -133,7 +136,8 @@ const InputField: React.FC<InputFieldProps> = ({
             "transition-all duration-200 hover:border-amber-300",
             "shadow-sm hover:shadow-md focus:shadow-lg",
             Icon ? "pl-10" : "",
-            type === "password" ? "pr-10" : ""
+            type === "password" ? "pr-10" : "",
+            disabled && "bg-gray-100 text-gray-500 cursor-not-allowed"
           )}
         />
         {type === "password" && (
@@ -275,6 +279,7 @@ const ProfileSettings: React.FC<
               value={formData.email}
               onChange={handleChange}
               placeholder="you@example.com"
+              disabled={true}
             />
             <InputField
               id="mobile"
