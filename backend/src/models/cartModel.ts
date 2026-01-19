@@ -26,10 +26,26 @@ const cartSchema = new mongoose.Schema({
       },
     },
   ],
+  createdAt: {
+    type: String,
+    default: () => new Date().toISOString(),
+  },
   updatedAt: {
     type: String,
     default: () => new Date().toISOString(),
   },
+});
+
+// Pre-save middleware to update updatedAt on every save
+cartSchema.pre("save", function (next) {
+  this.updatedAt = new Date().toISOString();
+  next();
+});
+
+// Pre-update middleware to update updatedAt on findOneAndUpdate operations
+cartSchema.pre("findOneAndUpdate", function (next) {
+  this.set({ updatedAt: new Date().toISOString() });
+  next();
 });
 
 export default mongoose.model("Cart", cartSchema);

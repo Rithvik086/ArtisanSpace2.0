@@ -46,6 +46,15 @@ const orderSchema = new mongoose.Schema({
     required: true,
     enum: ["pending", "shipped", "delivered", "cancelled"],
   },
+  paymentId: {
+    type: String,
+    default: null,
+  },
+  paymentStatus: {
+    type: String,
+    enum: ["unpaid", "paid", "failed"],
+    default: "unpaid",
+  },
   createdAt: {
     type: String,
     default: () => new Date().toISOString(),
@@ -58,6 +67,18 @@ const orderSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+});
+
+// Pre-save middleware to update updatedAt on every save
+orderSchema.pre("save", function (next) {
+  this.updatedAt = new Date().toISOString();
+  next();
+});
+
+// Pre-update middleware to update updatedAt on findOneAndUpdate operations
+orderSchema.pre("findOneAndUpdate", function (next) {
+  this.set({ updatedAt: new Date().toISOString() });
+  next();
 });
 
 export default mongoose.model("Order", orderSchema);

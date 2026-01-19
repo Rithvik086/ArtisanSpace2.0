@@ -13,6 +13,7 @@ import { sendMail } from "../utils/emailSerice.js";
 import type { Request, Response } from "express";
 import crypto from "crypto";
 import User from "../models/userModel.js";
+import config from "../config/index.js";
 import { z } from "zod";
 
 const updateProfileSchema = z.object({
@@ -118,9 +119,7 @@ const signup = async (req: Request, res: Response) => {
       tokenExpiresAt: expiresAt,
     });
     // TODO: Need to change the frontend URL here later when get the actual frontend URL
-    const verificationLink = `${
-      process.env.FRONTEND_URL || "http://localhost:3000"
-    }/api/v1/verify-email?token=${token}`;
+    const verificationLink = `${config.FRONTEND_URL}/api/v1/verify-email?token=${token}`;
     try {
       await sendMail(
         email,
@@ -181,19 +180,12 @@ const login = async (req: Request, res: Response) => {
         .json({ message: "Please verify your email before logging in." });
     }
 
-    if (!process.env.JWT_SECRET) {
-      console.error("JWT_SECRET is not defined in environment variables");
-      return res
-        .status(500)
-        .json({ message: "Server error. Please try again later." });
-    }
-
     const token = jwt.sign(
       {
         id: user._id.toString(),
         role: user.role,
       },
-      process.env.JWT_SECRET,
+      config.JWT_SECRET,
       { expiresIn: "24h" }
     );
 
@@ -201,7 +193,7 @@ const login = async (req: Request, res: Response) => {
       httpOnly: true,
       sameSite: "strict",
       maxAge: 86400000, // 24 hours,
-      secure: process.env.NODE_ENV === "production",
+      secure: config.NODE_ENV === "production",
     });
 
     res.status(200).json({
@@ -256,9 +248,8 @@ const verifyEmail = async (req: Request, res: Response) => {
       tokenExpiresAt: null,
     });
 
-    res
-      .status(200)
-      .json({ message: "Email verified successfully. You can now log in." });
+    // Redirect to frontend login page with success message
+    res.redirect(`${config.FRONTEND_URL}/login?verified=true`);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res
@@ -289,9 +280,7 @@ const forgotPassword = async (req: Request, res: Response) => {
       resetTokenExpiresAt: expiresAt,
     });
 
-    const resetLink = `${
-      process.env.FRONTEND_URL || "http://localhost:3000"
-    }/api/v1/reset-password?token=${token}`;
+    const resetLink = `${config.FRONTEND_URL}/reset-password?token=${token}`;
     await sendMail(
       email,
       "Reset Your Password - ArtisanSpace",

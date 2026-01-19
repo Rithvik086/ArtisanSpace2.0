@@ -62,6 +62,18 @@ const productSchema = new mongoose.Schema({
   },
 });
 
+// Pre-save middleware to update updatedAt on every save
+productSchema.pre("save", function (next) {
+  this.updatedAt = new Date().toISOString();
+  next();
+});
+
+// Pre-update middleware to update updatedAt on findOneAndUpdate operations
+productSchema.pre("findOneAndUpdate", function (next) {
+  this.set({ updatedAt: new Date().toISOString() });
+  next();
+});
+
 (productSchema as any).pre(
   "deleteOne",
   { query: true },
@@ -84,7 +96,7 @@ const productSchema = new mongoose.Schema({
 (productSchema as any).pre(
   "save",
   async function (this: any, next: (err?: any) => void) {
-    if (this.isValid === false && this.isModified('isValid')) {
+    if (this.isValid === false && this.isModified("isValid")) {
       try {
         await Cart.updateMany(
           { "products.productId": this._id },
