@@ -19,7 +19,7 @@ export const getProducts = async (req: Request, res: Response) => {
 
     let categoryParam: string | string[] | null = null;
     if (typeof category === "string") {
-      categoryParam = category;
+      categoryParam = category.split(',').map(s => s.trim());
     } else if (Array.isArray(category)) {
       categoryParam = category.filter(
         (item): item is string => typeof item === "string"
@@ -28,7 +28,7 @@ export const getProducts = async (req: Request, res: Response) => {
 
     let materialParam: string | string[] | null = null;
     if (typeof material === "string") {
-      materialParam = material;
+      materialParam = material.split(',').map(s => s.trim());
     } else if (Array.isArray(material)) {
       materialParam = material.filter(
         (item): item is string => typeof item === "string"
