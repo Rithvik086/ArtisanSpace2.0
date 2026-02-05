@@ -2,6 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import morgan from "morgan";
+import fs from "fs";
 import type { Request, Response, NextFunction } from "express";
 import dbConnect from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
@@ -17,10 +19,23 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
+import helmet from "helmet";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 dotenv.config();
+
+// Create logs directory if it doesn't exist
+const logsDir = path.join(__dirname, "../logs");
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir, { recursive: true });
+}
+
+// Create a write stream for morgan logs
+const logStream = fs.createWriteStream(path.join(logsDir, "logs.txt"), {
+  flags: "a",
+});
 
 // Allow skipping DB connection for local/demo use by setting SKIP_DB=true in .env
 if (config.SKIP_DB !== "true") {
@@ -38,6 +53,16 @@ app.use(
     credentials: true,
   })
 );
+
+app.use(helmet());
+
+// Morgan middleware - logs all HTTP requests to logs/logs.txt
+app.use(morgan("combined", { stream: logStream }));
+// Also log to console in development
+if (config.NODE_ENV !== "production") {
+  app.use(morgan("dev"));
+}
+
 app.use(cookieParser());
 app.use(express.json());
 
