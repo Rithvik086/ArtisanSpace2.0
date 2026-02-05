@@ -19,6 +19,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
+import helmet from "helmet";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -51,6 +53,8 @@ app.use(
     credentials: true,
   })
 );
+
+app.use(helmet());
 
 // Morgan middleware - logs all HTTP requests to logs/logs.txt
 app.use(morgan("combined", { stream: logStream }));

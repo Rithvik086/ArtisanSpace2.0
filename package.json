@@ -25,5 +25,9 @@
     "@types/morgan": "^1.9.10",
     "concurrently": "^9.2.1",
     "morgan": "^1.10.1"
+  },
+  "dependencies": {
+    "@types/helmet": "^4.0.0",
+    "helmet": "^8.1.0"
   }
 }
