@@ -45,7 +45,7 @@ interface UserAddress {
 const Checkout: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [subtotal, setSubtotal] = useState(0);
-  const [shipping, setShipping] = useState(50); // Fixed shipping cost
+  const [shipping, setShipping] = useState(0); // 5% of subtotal
   const [tax, setTax] = useState(0);
   const [total, setTotal] = useState(0);
   const [selectedPayment, setSelectedPayment] = useState("cod");

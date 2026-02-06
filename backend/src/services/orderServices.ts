@@ -35,9 +35,9 @@ export async function placeUserOrder(userId: string) {
     }
 
     // Calculate final amount with tax and shipping
-    const tax = Math.round(subtotal * 0.05 * 100) / 100; // 5% tax
-    const shipping = 50; // Fixed shipping fee
-    const totalAmount = parseFloat((subtotal + tax + shipping).toFixed(2));
+    const tax = subtotal * 0.18; // 18% tax
+    const shipping = subtotal * 0.05; // 5% shipping
+    const totalAmount = Math.round(subtotal + tax + shipping); // ₹ integer
 
     // Reduce inventory for each product
     for (const item of cart.products) {
