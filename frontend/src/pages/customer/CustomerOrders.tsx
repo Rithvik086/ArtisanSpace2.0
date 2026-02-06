@@ -29,6 +29,28 @@ const CustomerOrders = () => {
   const user = useSelector((state: RootState) => state.auth.user);
   const navigate = useNavigate();
 
+  const calculateSubtotal = (order: Order) => {
+    return order.products.reduce(
+      (total, item) => total + item.productId.newPrice * item.quantity,
+      0,
+    );
+  };
+
+  const calculateTax = (subtotal: number) => {
+    return Math.round(subtotal * 0.18 * 100) / 100; // 18% tax
+  };
+
+  const calculateShipping = (subtotal: number) => {
+    return Math.round(subtotal * 0.05 * 100) / 100; // 5% shipping
+  };
+
+  const calculateTotal = (order: Order) => {
+    const subtotal = calculateSubtotal(order);
+    const tax = calculateTax(subtotal);
+    const shipping = calculateShipping(subtotal);
+    return subtotal + tax + shipping;
+  };
+
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -130,7 +152,7 @@ const CustomerOrders = () => {
                             year: "numeric",
                             month: "long",
                             day: "numeric",
-                          }
+                          },
                         )}
                       </div>
                     </div>
@@ -139,7 +161,7 @@ const CustomerOrders = () => {
                     <div className="flex items-center gap-2">
                       <CreditCard className="h-4 w-4 text-amber-600" />
                       <span className="text-2xl font-bold text-amber-900">
-                        ₹{order.money.toLocaleString()}
+                        ₹{calculateTotal(order).toLocaleString()}
                       </span>
                     </div>
                     <Badge

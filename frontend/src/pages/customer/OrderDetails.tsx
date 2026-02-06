@@ -117,16 +117,16 @@ const OrderDetails = () => {
     if (!order) return 0;
     return order.products.reduce(
       (total, item) => total + item.productId.newPrice * item.quantity,
-      0
+      0,
     );
   };
 
   const calculateTax = (subtotal: number) => {
-    return Math.round(subtotal * 0.05 * 100) / 100; // 5% tax
+    return Math.round(subtotal * 0.18 * 100) / 100; // 18% tax
   };
 
   const calculateShipping = () => {
-    return 50; // Fixed shipping fee
+    return Math.round(calculateSubtotal() * 0.05 * 100) / 100; // 5% shipping
   };
 
   const handlePrint = () => {
@@ -265,7 +265,7 @@ const OrderDetails = () => {
             <div className="flex items-center gap-4">
               <Badge
                 className={`${getStatusColor(
-                  order.status
+                  order.status,
                 )} border font-medium px-4 py-2`}
               >
                 {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
