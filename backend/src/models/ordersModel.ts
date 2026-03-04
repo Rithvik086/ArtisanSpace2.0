@@ -69,6 +69,12 @@ const orderSchema = new mongoose.Schema({
   },
 });
 
+// Create indexes for faster query performance
+orderSchema.index({ userId: 1, isValid: 1 });
+orderSchema.index({ _id: 1, isValid: 1 });
+orderSchema.index({ paymentId: 1 });
+orderSchema.index({ paymentStatus: 1 });
+
 // Pre-save middleware to update updatedAt on every save
 orderSchema.pre("save", function (next) {
   this.updatedAt = new Date().toISOString();

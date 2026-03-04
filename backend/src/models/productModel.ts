@@ -62,6 +62,11 @@ const productSchema = new mongoose.Schema({
   },
 });
 
+// Create indexes for better query performance
+productSchema.index({ _id: 1, isValid: 1 });
+productSchema.index({ status: 1, isValid: 1 });
+productSchema.index({ userId: 1, isValid: 1 });
+
 // Pre-save middleware to update updatedAt on every save
 productSchema.pre("save", function (next) {
   this.updatedAt = new Date().toISOString();
@@ -84,13 +89,13 @@ productSchema.pre("findOneAndUpdate", function (next) {
     try {
       await Cart.updateMany(
         { "products.productId": productId },
-        { $pull: { products: { productId } } }
+        { $pull: { products: { productId } } },
       );
       next();
     } catch (error) {
       next(error as any);
     }
-  }
+  },
 );
 
 (productSchema as any).pre(
@@ -100,14 +105,14 @@ productSchema.pre("findOneAndUpdate", function (next) {
       try {
         await Cart.updateMany(
           { "products.productId": this._id },
-          { $pull: { products: { productId: this._id } } }
+          { $pull: { products: { productId: this._id } } },
         );
       } catch (error) {
         return next(error as any);
       }
     }
     next();
-  }
+  },
 );
 
 export default mongoose.model("Product", productSchema);

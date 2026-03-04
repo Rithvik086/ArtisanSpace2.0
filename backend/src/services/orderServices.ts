@@ -1,19 +1,17 @@
 import mongoose from "mongoose";
 import Order from "../models/ordersModel.js";
-// import { getUserCart } from "./cartServices.js";
 import { decreaseProductQuantity, productCount } from "./productServices.js";
 import Cart from "../models/cartModel.js";
-// import { getCart, removeCart } from "./cartServices.js";
-// import { decreaseProductQuantity, productCount } from "./productServices.js";
+import logger from "../utils/logger.js";
 
-export async function placeUserOrder(userId: string) {
+export async function placeUserOrder(userId: string, paymentId?: string) {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    // Get cart with populated product and user data
+    // Get cart with populated product data only (userId already known)
     let cart = await Cart.findOne({ userId })
       .populate("products.productId")
-      .populate("userId")
+      .lean()
       .session(session);
 
     if (!cart || cart.products.length === 0) {
@@ -21,11 +19,15 @@ export async function placeUserOrder(userId: string) {
     }
 
     let subtotal = 0;
+    const stockMap = new Map<string, number>();
 
-    // Validate stock and calculate subtotal
+    // Validate stock and calculate subtotal in one pass
     for (const item of cart.products) {
       const product = item.productId as any;
       const availableStock = await productCount(product._id, session);
+
+      // Store stock for later use to avoid re-querying
+      stockMap.set(product._id.toString(), availableStock);
 
       if (availableStock < item.quantity) {
         throw new Error(`Insufficient stock for product: ${product.name}`);
@@ -39,24 +41,23 @@ export async function placeUserOrder(userId: string) {
     const shipping = subtotal * 0.05; // 5% shipping
     const totalAmount = Math.round(subtotal + tax + shipping); // ₹ integer
 
-    // Reduce inventory for each product
-    for (const item of cart.products) {
+    // Batch inventory updates using bulkWrite for better performance
+    const bulkOps = cart.products.map((item) => {
       const product = item.productId as any;
-      const newStock =
-        (await productCount(product._id, session)) - item.quantity;
+      const currentStock = stockMap.get(product._id.toString()) || 0;
+      const newStock = currentStock - item.quantity;
 
-      const response = await decreaseProductQuantity(
-        product._id,
-        newStock,
-        session,
-        true // Allow zero quantity for order processing
-      );
+      return {
+        updateOne: {
+          filter: { _id: product._id, isValid: true },
+          update: { $set: { quantity: newStock } },
+        },
+      };
+    });
 
-      if (!response.success) {
-        throw new Error(
-          `Failed to update inventory for product: ${product.name}`
-        );
-      }
+    if (bulkOps.length > 0) {
+      const Product = (await import("../models/productModel.js")).default;
+      await Product.bulkWrite(bulkOps, { session });
     }
 
     // Create order object with embedded product data
@@ -78,24 +79,37 @@ export async function placeUserOrder(userId: string) {
     });
 
     const orderData = {
-      userId: cart.userId,
+      userId: userId,
       products: orderProducts,
       money: totalAmount,
       purchasedAt: new Date(),
       status: "pending",
+      paymentId: paymentId || null,
+      paymentStatus: paymentId ? "paid" : "unpaid",
     };
 
-    // Insert order into database
-    await Order.create([orderData], { session });
+    // Insert order and delete cart in parallel
+    const [createdOrder] = await Promise.all([
+      Order.create([orderData], { session }),
+      Cart.findOneAndDelete({ userId }, { session }),
+    ]);
 
-    // Remove cart after successful order placement
-    const cartRemovalResponse = await Cart.findOneAndDelete(
-      { userId },
-      { session }
-    );
-    if (!cartRemovalResponse) {
-      throw new Error("Failed to remove cart after order placement");
+    if (!createdOrder || createdOrder.length === 0 || !createdOrder[0]) {
+      throw new Error("Failed to create order");
     }
+
+    const order = createdOrder[0];
+
+    logger.info(
+      {
+        userId,
+        orderId: order._id,
+        amount: totalAmount,
+        paymentId: paymentId || null,
+        paymentStatus: paymentId ? "paid" : "unpaid",
+      },
+      "Order created",
+    );
 
     await session.commitTransaction();
     return {
@@ -139,7 +153,7 @@ export async function getOrders() {
 export async function getOrderByOrderId(orderId: string) {
   try {
     const order = await Order.findOne({ _id: orderId, isValid: true }).populate(
-      "userId"
+      "userId",
     );
     if (!order) {
       throw new Error("Order not found!");
@@ -158,14 +172,14 @@ export async function getOrdersByUserId(userId: string) {
     return orders;
   } catch (err) {
     throw new Error(
-      "Error in getting orders by user ID: " + (err as Error).message
+      "Error in getting orders by user ID: " + (err as Error).message,
     );
   }
 }
 
 export async function changeOrderStatus(
   orderId: string,
-  status: "pending" | "delivered" | "cancelled"
+  status: "pending" | "delivered" | "cancelled",
 ) {
   try {
     const order = await Order.findOne({ _id: orderId, isValid: true });
@@ -177,7 +191,7 @@ export async function changeOrderStatus(
     return { success: true, message: "Order status updated successfully!" };
   } catch (err) {
     throw new Error(
-      "Error in changing order status: " + (err as Error).message
+      "Error in changing order status: " + (err as Error).message,
     );
   }
 }
@@ -200,7 +214,7 @@ export async function deleteOrderById(orderId: string) {
     const order = await Order.findOneAndUpdate(
       { _id: orderId, isValid: true },
       { isValid: false },
-      { new: true }
+      { new: true },
     );
     if (!order) {
       throw new Error("Order not found!");
@@ -219,7 +233,7 @@ export async function getAllOrdersForAdmin() {
     return orders;
   } catch (err) {
     throw new Error(
-      "Error getting all orders for admin: " + (err as Error).message
+      "Error getting all orders for admin: " + (err as Error).message,
     );
   }
 }

@@ -6,6 +6,7 @@ import {
   getOrdersByUserId,
   placeUserOrder,
 } from "../services/orderServices.js";
+import logger from "../utils/logger.js";
 
 export const getOrderById = async (req: Request, res: Response) => {
   const orderId = req.params.orderId;
@@ -25,7 +26,10 @@ export const getOrderById = async (req: Request, res: Response) => {
 
     res.status(200).json({ success: true, order });
   } catch (e) {
-    console.error("Error in getting order by ID:", e);
+    logger.error(
+      { error: (e as Error).message, orderId: req.params.orderId },
+      "Error in getting order by ID",
+    );
     res.status(500).json({ success: false, message: "Error fetching order" });
   }
 };
@@ -36,26 +40,32 @@ export const getUserOrders = async (req: Request, res: Response) => {
     const orders = await getOrdersByUserId(userId);
     res.status(200).json({ success: true, orders });
   } catch (e) {
-    console.error("Error in getting user orders:", e);
+    logger.error(
+      { error: (e as Error).message, userId: req.user.id },
+      "Error in getting user orders",
+    );
     res.status(500).json({ success: false, message: "Error fetching orders" });
   }
 };
 
 export const placeOrder = async (req: Request, res: Response) => {
   try {
-    const userId = req.user.id;
-
-    const response = await placeUserOrder(userId);
-
-    if (response.success) {
-      res.status(200).json(response);
-    } else {
-      res
-        .status(500)
-        .json({ success: false, message: "Failed to place Order!" });
-    }
+    // IMPORTANT: Orders should only be placed through payment webhook
+    // This endpoint is deprecated and blocked for security
+    logger.warn(
+      { userId: req.user.id },
+      "Attempt to place order without payment - blocked",
+    );
+    return res.status(403).json({
+      success: false,
+      message:
+        "Orders must be placed through payment gateway. Please complete payment first.",
+    });
   } catch (e) {
-    console.error("Error in placing order:", e);
+    logger.error(
+      { error: (e as Error).message, userId: req.user.id },
+      "Error in placing order",
+    );
     const errorMessage = (e as Error).message || "Failed to place order";
     res.status(500).json({ success: false, message: errorMessage });
   }
@@ -76,7 +86,10 @@ export const changeStatus = async (req: Request, res: Response) => {
       message: response.message || "Failed to update status",
     });
   } catch (error) {
-    console.error("Error in changing order status:", error);
+    logger.error(
+      { error: (error as Error).message, orderId: req.params.orderId },
+      "Error in changing order status",
+    );
     res
       .status(500)
       .json({ success: false, message: "Error updating order status" });
@@ -98,7 +111,10 @@ export const deleteOrder = async (req: Request, res: Response) => {
       message: response.message || "Failed to delete order",
     });
   } catch (error) {
-    console.error("Error in deleting order:", error);
+    logger.error(
+      { error: (error as Error).message, orderId: req.params.orderId },
+      "Error in deleting order",
+    );
     res.status(500).json({ success: false, message: "Error deleting order" });
   }
 };

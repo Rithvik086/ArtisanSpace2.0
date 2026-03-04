@@ -36,6 +36,9 @@ const cartSchema = new mongoose.Schema({
   },
 });
 
+// Note: userId already has unique index from schema definition
+// No need for additional index
+
 // Pre-save middleware to update updatedAt on every save
 cartSchema.pre("save", function (next) {
   this.updatedAt = new Date().toISOString();

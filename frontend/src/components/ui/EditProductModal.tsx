@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { craftStyles, cn } from "../../styles/theme";
+import { Upload } from "lucide-react";
+import api from "../../lib/axios";
 
 interface Product {
   _id: string;
@@ -29,6 +31,7 @@ interface FormErrors {
   newPrice?: string;
   quantity?: string;
   description?: string;
+  image?: string;
 }
 
 interface EditProductModalProps {
@@ -63,8 +66,12 @@ export function EditProductModal({
     quantity: "",
     description: "",
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
+  const [isImageUploading, setIsImageUploading] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (product) {
@@ -75,15 +82,18 @@ export function EditProductModal({
         quantity: product.quantity.toString(),
         description: product.description,
       });
+      setImagePreview(product.image);
+      setImageFile(null);
       setErrors({}); // Clear errors when modal opens
     }
   }, [product, isOpen]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
     // Live-validate this field
     let err = "";
     if (name === "name") {
@@ -110,6 +120,23 @@ export function EditProductModal({
         err = "Description must be 10-500 characters.";
     }
     setErrors((prev) => ({ ...prev, [name]: err }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+      if (!allowedTypes.includes(file.type)) {
+        setErrors((prev) => ({
+          ...prev,
+          image: "Unsupported image format. Accepted: JPG, PNG, WEBP.",
+        }));
+        return;
+      }
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+      setErrors((prev) => ({ ...prev, image: "" }));
+    }
   };
 
   const handleQuantityKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -175,13 +202,56 @@ export function EditProductModal({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (validateForm() && product) {
-      onSave({
-        ...product,
-        ...formData,
-        oldPrice: parseFloat(formData.oldPrice),
-        newPrice: parseFloat(formData.newPrice),
-        quantity: parseInt(formData.quantity, 10),
-      });
+      // If image was changed, upload it first
+      if (imageFile) {
+        setIsImageUploading(true);
+        const uploadFormData = new FormData();
+        uploadFormData.append("image", imageFile);
+
+        // Upload image via API
+        api
+          .patch(`/products/${product._id}/image`, uploadFormData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          })
+          .then((response) => {
+            const data = response.data;
+            if (data.success) {
+              // Update product with new image URL
+              onSave({
+                ...product,
+                ...formData,
+                oldPrice: parseFloat(formData.oldPrice),
+                newPrice: parseFloat(formData.newPrice),
+                quantity: parseInt(formData.quantity, 10),
+                image: data.imageUrl,
+              });
+            }
+          })
+          .catch((err: any) => {
+            setErrors((prev) => ({
+              ...prev,
+              image:
+                err.response?.data?.error ||
+                err.message ||
+                "Failed to upload image",
+            }));
+          })
+          .finally(() => {
+            setIsImageUploading(false);
+          });
+      } else {
+        // No image change, just save product details
+        onSave({
+          ...product,
+          ...formData,
+          oldPrice: parseFloat(formData.oldPrice),
+          newPrice: parseFloat(formData.newPrice),
+          quantity: parseInt(formData.quantity, 10),
+          image: product.image,
+        });
+      }
     }
   };
 
@@ -203,6 +273,69 @@ export function EditProductModal({
         </div>
         <div className="p-6">
           <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+            {/* Image Section */}
+            <div className="grid grid-cols-4 items-start gap-4 pb-4 border-b">
+              <label className="text-right text-sm font-medium col-span-4 md:col-span-1">
+                Image
+              </label>
+              <div className="col-span-4 md:col-span-3 space-y-3">
+                {/* Image Preview */}
+                {imagePreview && (
+                  <div className="w-full h-40 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center border border-gray-300">
+                    <img
+                      src={imagePreview}
+                      alt="Product preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "https://via.placeholder.com/300x300?text=No+Image";
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* File Input */}
+                <div className="relative">
+                  <input
+                    ref={fileInputRef}
+                    id="imageFile"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handleFileChange}
+                    disabled={isImageUploading}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isImageUploading}
+                    className={cn(
+                      "w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-amber-300 bg-amber-50 rounded-lg text-amber-900 font-semibold transition",
+                      isImageUploading
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-amber-100",
+                    )}
+                  >
+                    {isImageUploading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-900"></div>
+                        <span>Uploading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-5 h-5" />
+                        <span>Change Image</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {errors.image && (
+                  <p className="text-red-500 text-sm">{errors.image}</p>
+                )}
+              </div>
+            </div>
+
             <div className="grid grid-cols-4 items-center gap-4">
               <label htmlFor="name" className="text-right text-sm font-medium">
                 Name

@@ -3,56 +3,63 @@
 import React, { useEffect, useState } from "react";
 import { EditProductModal } from "../components/ui/EditProductModal";
 import { DeleteConfirmationModal } from "../components/ui/DeleteConfirmationModal";
+import { BulkUploadModal } from "../components/ui/BulkUploadModal";
+import { UpdateImageModal } from "../components/ui/UpdateImageModal";
 import { craftStyles, cn } from "../styles/theme";
 import type { Product as ProductType } from "./Dashboardpage";
 import { ProductForm } from "../components/forms/ProductForm";
+import { ProductCard } from "../components/ProductCard";
 import api from "../lib/axios";
 import { useToast } from "../components/ui/ToastProvider";
 import { CheckCircle, AlertCircle } from "lucide-react";
 
 export default function ListingsPage(): React.ReactElement {
-  const [, setProducts] = useState<ProductType[]>([]);
+  const [products, setProducts] = useState<ProductType[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(
-    null
+    null,
   );
   const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
   const [productToDeleteId, setProductToDeleteId] = useState<string | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isImageUpdateOpen, setIsImageUpdateOpen] = useState<boolean>(false);
+  const [selectedProductForImageUpdate, setSelectedProductForImageUpdate] =
+    useState<ProductType | null>(null);
+
+  const fetchProducts = async () => {
+    try {
+      let res = await api.get("/products/my");
+      if (res.status === 401 || res.status === 403) {
+        res = await api.get("/products/approved");
+      }
+      const list = Array.isArray(res.data)
+        ? res.data
+        : (res.data?.products ?? res.data?.data ?? []);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const normalized = (list as any[]).map((p: any) => ({
+        _id: String(p._id ?? p.id ?? `${Date.now()}-${Math.random()}`),
+        category: p.category ?? p.type ?? "",
+        image: p.image,
+        name: p.name ?? p.title ?? "Untitled",
+        oldPrice: Number(p.oldPrice ?? p.price ?? 0),
+        newPrice: Number(p.newPrice ?? p.price ?? 0),
+        quantity: Number(p.quantity ?? p.stock ?? 0),
+        status:
+          (p.status === "disapproved" ? "rejected" : p.status) ?? "active",
+        description: p.description ?? p.desc ?? "",
+      }));
+      setProducts(normalized as ProductType[]);
+    } catch (e) {
+      console.error("Failed to load listings", e);
+      setProducts([]);
+    }
+  };
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        let res = await api.get("/products/my");
-        if (res.status === 401 || res.status === 403) {
-          res = await api.get("/products/approved");
-        }
-        const list = Array.isArray(res.data)
-          ? res.data
-          : res.data?.products ?? res.data?.data ?? [];
-        const normalized = (list as any[]).map((p: any) => ({
-          _id: String(p._id ?? p.id ?? `${Date.now()}-${Math.random()}`),
-          category: p.category ?? p.type ?? "",
-          image: p.image,
-          name: p.name ?? p.title ?? "Untitled",
-          oldPrice: Number(p.oldPrice ?? p.price ?? 0),
-          newPrice: Number(p.newPrice ?? p.price ?? 0),
-          quantity: Number(p.quantity ?? p.stock ?? 0),
-          status:
-            (p.status === "disapproved" ? "rejected" : p.status) ?? "active",
-          description: p.description ?? p.desc ?? "",
-        }));
-        setProducts(normalized as ProductType[]);
-      } catch (e) {
-        console.error("Failed to load listings", e);
-        setProducts([]);
-      }
-    };
-
     void fetchProducts();
   }, []);
 
@@ -84,7 +91,7 @@ export default function ListingsPage(): React.ReactElement {
       // notify other artisan pages (e.g. Dashboard) about the new product so they can update immediately
       try {
         window.dispatchEvent(
-          new CustomEvent("artisan:product-created", { detail: normalized })
+          new CustomEvent("artisan:product-created", { detail: normalized }),
         );
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
@@ -113,13 +120,14 @@ export default function ListingsPage(): React.ReactElement {
 
   const handleSave = (updated: ProductType) => {
     setProducts((prev) =>
-      prev.map((p) => (p._id === updated._id ? updated : p))
+      prev.map((p) => (p._id === updated._id ? updated : p)),
     );
     setIsEditModalOpen(false);
     setSelectedProduct(null);
   };
 
   const { showToast } = useToast();
+  const [isBulkOpen, setIsBulkOpen] = useState<boolean>(false);
 
   const handleConfirmDelete = async () => {
     if (!productToDeleteId) return;
@@ -139,17 +147,61 @@ export default function ListingsPage(): React.ReactElement {
     }
   };
 
+  const handleUpdateImageClick = (
+    productId: string,
+    productName: string,
+    currentImage: string,
+  ) => {
+    setSelectedProductForImageUpdate({
+      _id: productId,
+      name: productName,
+      image: currentImage,
+      category: "",
+      oldPrice: 0,
+      newPrice: 0,
+      quantity: 0,
+      status: "active",
+      description: "",
+    });
+    setIsImageUpdateOpen(true);
+  };
+
+  const handleImageUpdateSuccess = (newImageUrl: string) => {
+    if (selectedProductForImageUpdate) {
+      setProducts((prev) =>
+        prev.map((p) =>
+          p._id === selectedProductForImageUpdate._id
+            ? { ...p, image: newImageUrl }
+            : p,
+        ),
+      );
+      showToast("Product image updated successfully", "success");
+      setIsImageUpdateOpen(false);
+      setSelectedProductForImageUpdate(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-amber-100">
       <div className={cn(craftStyles.layout.container, "py-6")}>
         {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-amber-900 font-baloo mb-2">
-            Create New Listing
-          </h1>
-          <p className="text-amber-700 font-baloo text-lg">
-            Add a new product to your artisan collection
-          </p>
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-amber-900 font-baloo mb-2">
+              Create New Listing
+            </h1>
+            <p className="text-amber-700 font-baloo text-lg">
+              Add a new product to your artisan collection
+            </p>
+          </div>
+          <div className="mt-4 md:mt-0">
+            <button
+              onClick={() => setIsBulkOpen(true)}
+              className={craftStyles.button.primary}
+            >
+              Bulk Upload
+            </button>
+          </div>
         </div>
 
         {/* Success Message */}
@@ -203,13 +255,67 @@ export default function ListingsPage(): React.ReactElement {
             /* handled in handleCreate */
           }}
         />
-      </div>
 
-      {/* <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-semibold text-amber-900 mb-4">Your Listings</h2>
-        <p className="text-amber-700 mb-6">Manage and view all your product listings.</p>
-        <ProductTable products={products} onEdit={handleEdit} onDelete={handleDeleteOpen} />
-      </div> */}
+        <BulkUploadModal
+          isOpen={isBulkOpen}
+          onClose={() => setIsBulkOpen(false)}
+          onSubmit={async (items) => {
+            try {
+              setLoading(true);
+              const res = await api.post("/products/bulk", { products: items });
+              console.log("bulk response", res.data);
+              const data = res.data || {};
+              // summarize results if present
+              if (Array.isArray(data.results)) {
+                const successCount = data.results.filter(
+                  (r: any) => r.success,
+                ).length;
+                const failCount = data.results.length - successCount;
+                showToast(
+                  `Bulk upload finished: ${successCount} succeeded, ${failCount} failed`,
+                  "success",
+                );
+              } else {
+                showToast("Bulk upload completed", "success");
+              }
+              setIsBulkOpen(false); // close on success
+              await fetchProducts();
+              return res.data;
+            } catch (e) {
+              showToast("Bulk upload failed", "error");
+              throw e;
+            } finally {
+              setLoading(false);
+            }
+          }}
+        />
+
+        {/* Your Listings Section */}
+        {products.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-3xl font-bold text-amber-900 font-baloo mb-2">
+              Your Listings
+            </h2>
+            <p className="text-amber-700 font-baloo text-lg mb-6">
+              Manage your product listings - hover over images to update or
+              delete
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {products.map((product) => (
+                <ProductCard
+                  key={product._id}
+                  {...product}
+                  onUpdateImage={handleUpdateImageClick}
+                  onDelete={(id) => {
+                    setProductToDeleteId(id);
+                    setIsDeleteOpen(true);
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {selectedProduct && (
         <EditProductModal
@@ -225,6 +331,20 @@ export default function ListingsPage(): React.ReactElement {
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={handleConfirmDelete}
       />
+
+      {selectedProductForImageUpdate && (
+        <UpdateImageModal
+          isOpen={isImageUpdateOpen}
+          onClose={() => {
+            setIsImageUpdateOpen(false);
+            setSelectedProductForImageUpdate(null);
+          }}
+          productName={selectedProductForImageUpdate.name}
+          productId={selectedProductForImageUpdate._id}
+          currentImageUrl={selectedProductForImageUpdate.image}
+          onSuccess={handleImageUpdateSuccess}
+        />
+      )}
     </div>
   );
 }
