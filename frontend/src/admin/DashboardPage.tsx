@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from "react";
 import GraphCard from "./components/GraphCard";
-import {
-  DollarSign,
-  BarChart2,
-  PackageCheck,
-  Users2,
-  Users,
-  Package,
-  ShoppingCart,
-} from "lucide-react";
+import { BarChart2, PackageCheck, Users2, Users, Package, ShoppingCart } from "lucide-react";
+import RupeeIcon from "../components/icons/RupeeIcon";
 import UsersTab from "./tabs/UsersTab";
 import ProductsTab from "./tabs/ProductsTab";
 import OrdersTab from "./tabs/OrdersTab";
@@ -220,7 +213,7 @@ export default function DashboardPage({
               data={sales}
               dataKey="sales"
               xKey="month"
-              icon={DollarSign}
+              icon={RupeeIcon}
               unit="₹"
             />
             <GraphCard

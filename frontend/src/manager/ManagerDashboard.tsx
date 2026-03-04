@@ -1,15 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import GraphCard from "../admin/components/GraphCard";
-import {
-  DollarSign,
-  BarChart2,
-  PackageCheck,
-  Users2,
-  Users,
-  Package,
-  ShoppingCart,
-} from "lucide-react";
+import { BarChart2, PackageCheck, Users2, Users, Package, ShoppingCart } from "lucide-react";
+import RupeeIcon from "../components/icons/RupeeIcon";
 import UsersTab from "../admin/tabs/UsersTab";
 import ProductsTab from "../admin/tabs/ProductsTab";
 import OrdersTab from "../admin/tabs/OrdersTab";
@@ -237,7 +230,7 @@ const ManagerDashboard: React.FC<{
               data={sales}
               dataKey="sales"
               xKey="month"
-              icon={DollarSign}
+              icon={RupeeIcon}
               unit="₹"
             />
             <GraphCard

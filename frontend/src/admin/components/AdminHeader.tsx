@@ -12,10 +12,11 @@ export default function AdminHeader(): React.ReactElement {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.auth.user);
 
+  const showSupport = false; // hide support UI but keep route and logic
   const navItems = [
     { name: "Home", href: "/admin" },
     { name: "Content Moderation", href: "/admin/moderation" },
-    { name: "Support Ticket", href: "/admin/support" },
+    ...(showSupport ? [{ name: "Support Ticket", href: "/admin/support" }] : []),
   ];
 
   const handleLogout = async () => {

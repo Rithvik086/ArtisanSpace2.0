@@ -1,6 +1,8 @@
 import React from "react";
 
 export default function AdminFooter(): React.ReactElement {
+  const showSupport = false; // hide support UI from footer but keep code
+
   return (
     <footer className="bg-white text-amber-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -69,30 +71,32 @@ export default function AdminFooter(): React.ReactElement {
             </ul>
           </div>
 
-          {/* Support & Info Section */}
-          <div>
-            <h3 className="text-xl font-bold mb-4">Support Ticket</h3>
-            <p className="text-amber-900 text-base mb-4">
-              Need help? Create a support ticket and we'll get back to you.
-            </p>
-            <a
-              href="#"
-              className="inline-block bg-amber-950 text-amber-50 px-4 py-2 rounded-md hover:bg-amber-900 transition-colors"
-            >
-              Create Ticket
-            </a>
-
-            <div className="mt-6">
-              <h4 className="text-lg font-semibold mb-2">Our Information</h4>
-              <p className="text-amber-900 text-base">
-                IIIT SriCity
-                <br />
-                +91 0000000000
-                <br />
-                Artisanspace09@gmail.com
+          {/* Support & Info Section (hidden) */}
+          {showSupport && (
+            <div>
+              <h3 className="text-xl font-bold mb-4">Support Ticket</h3>
+              <p className="text-amber-900 text-base mb-4">
+                Need help? Create a support ticket and we'll get back to you.
               </p>
+              <a
+                href="#"
+                className="inline-block bg-amber-950 text-amber-50 px-4 py-2 rounded-md hover:bg-amber-900 transition-colors"
+              >
+                Create Ticket
+              </a>
+
+              <div className="mt-6">
+                <h4 className="text-lg font-semibold mb-2">Our Information</h4>
+                <p className="text-amber-900 text-base">
+                  IIIT SriCity
+                  <br />
+                  +91 0000000000
+                  <br />
+                  Artisanspace09@gmail.com
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="border-t border-amber-200 mt-8 pt-8 text-center">
