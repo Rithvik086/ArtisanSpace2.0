@@ -48,6 +48,14 @@ const productSchema = new mongoose.Schema({
       message: "{VALUE} is not a valid status",
     },
   },
+  rejectionReason: {
+    type: String,
+    default: null,
+  },
+  removedReason: {
+    type: String,
+    default: null,
+  },
   createdAt: {
     type: String,
     default: () => new Date().toISOString(),

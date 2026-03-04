@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { craftStyles, cn } from "../../styles/theme";
 import { Upload } from "lucide-react";
 import api from "../../lib/axios";
+import type { AxiosError } from "axios";
 
 interface Product {
   _id: string;
@@ -229,12 +230,13 @@ export function EditProductModal({
               });
             }
           })
-          .catch((err: any) => {
+          .catch((err) => {
+            const axiosError = err as AxiosError<{ error?: string }>;
             setErrors((prev) => ({
               ...prev,
               image:
-                err.response?.data?.error ||
-                err.message ||
+                axiosError.response?.data?.error ||
+                axiosError.message ||
                 "Failed to upload image",
             }));
           })

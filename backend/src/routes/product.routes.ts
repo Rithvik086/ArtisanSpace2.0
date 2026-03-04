@@ -10,6 +10,8 @@ import {
   getUserProducts,
   productsModeration,
   updateProductImageController,
+  updateRejectionReasonController,
+  updateRemovalReasonController,
 } from "../controller/productController.js";
 import upload from "../middleware/multer.js";
 import authorizerole from "../middleware/roleMiddleware.js";
@@ -67,6 +69,20 @@ router.patch(
   authorizerole("artisan", "manager", "admin"),
   upload.single("image"),
   updateProductImageController,
+);
+
+// Rejection reason route - MUST come before PUT /:id to avoid conflicts
+router.patch(
+  "/:id/rejection-reason",
+  authorizerole("manager", "admin"),
+  updateRejectionReasonController,
+);
+
+// Removal reason route - MUST come before PUT /:id to avoid conflicts
+router.patch(
+  "/:id/removal-reason",
+  authorizerole("manager", "admin"),
+  updateRemovalReasonController,
 );
 
 router.put("/:id", authorizerole("artisan", "manager", "admin"), editProduct);

@@ -277,7 +277,10 @@ export async function approveProduct(productId: string) {
   }
 }
 
-export async function disapproveProduct(productId: string) {
+export async function disapproveProduct(
+  productId: string,
+  rejectionReason?: string,
+) {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -285,9 +288,14 @@ export async function disapproveProduct(productId: string) {
       throw new Error("Invalid product ID");
     }
 
+    const updateData: any = { status: "disapproved" };
+    if (rejectionReason && rejectionReason.trim().length > 0) {
+      updateData.rejectionReason = rejectionReason.trim();
+    }
+
     const updatedProduct = await Product.findOneAndUpdate(
       { _id: productId, isValid: true },
-      { status: "disapproved" },
+      updateData,
       { new: true, runValidators: true, session },
     );
 
@@ -300,6 +308,84 @@ export async function disapproveProduct(productId: string) {
   } catch (e) {
     await session.abortTransaction();
     throw new Error("Error approving product: " + (e as Error).message);
+  } finally {
+    session.endSession();
+  }
+}
+
+export async function updateProductRejectionReason(
+  productId: string,
+  reason: string,
+) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      throw new Error("Invalid product ID");
+    }
+
+    if (!reason || reason.trim().length === 0) {
+      throw new Error("Rejection reason cannot be empty");
+    }
+
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: productId, isValid: true },
+      { rejectionReason: reason.trim(), status: "disapproved" },
+      { new: true, runValidators: true, session },
+    );
+
+    if (!updatedProduct) {
+      throw new Error("Product not found");
+    } else {
+      await session.commitTransaction();
+      return {
+        success: true,
+        message: "Rejection reason updated successfully!",
+        product: updatedProduct,
+      };
+    }
+  } catch (e) {
+    await session.abortTransaction();
+    throw new Error("Error updating rejection reason: " + (e as Error).message);
+  } finally {
+    session.endSession();
+  }
+}
+
+export async function updateProductRemovalReason(
+  productId: string,
+  reason: string,
+) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      throw new Error("Invalid product ID");
+    }
+
+    if (!reason || reason.trim().length === 0) {
+      throw new Error("Removal reason cannot be empty");
+    }
+
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: productId },
+      { removedReason: reason.trim(), isValid: false },
+      { new: true, runValidators: true, session },
+    );
+
+    if (!updatedProduct) {
+      throw new Error("Product not found");
+    } else {
+      await session.commitTransaction();
+      return {
+        success: true,
+        message: "Product removed with reason noted!",
+        product: updatedProduct,
+      };
+    }
+  } catch (e) {
+    await session.abortTransaction();
+    throw new Error("Error updating removal reason: " + (e as Error).message);
   } finally {
     session.endSession();
   }

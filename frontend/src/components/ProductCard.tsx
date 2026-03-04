@@ -12,6 +12,8 @@ export interface ProductCardProps {
   quantity: number;
   category: string;
   status: "active" | "pending" | "inactive" | "rejected";
+  rejectionReason?: string;
+  uploadedBy?: string;
   onUpdateImage: (
     productId: string,
     productName: string,
@@ -27,7 +29,10 @@ export function ProductCard({
   oldPrice,
   newPrice,
   quantity,
+  category,
   status,
+  rejectionReason,
+  uploadedBy,
   onUpdateImage,
   onDelete,
 }: ProductCardProps) {
@@ -86,6 +91,16 @@ export function ProductCard({
       <div className="p-4 space-y-2">
         <h3 className="font-semibold text-amber-900 truncate">{name}</h3>
 
+        {/* Uploader info (displayed in manager view) */}
+        {uploadedBy && (
+          <p className="text-xs text-stone-500">Added by: {uploadedBy}</p>
+        )}
+
+        {/* Category */}
+        {category && (
+          <p className="text-xs text-stone-500 capitalize">{category}</p>
+        )}
+
         {/* Price */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500 line-through">
@@ -100,6 +115,16 @@ export function ProductCard({
         <div className="text-sm text-amber-700">
           Stock: <span className="font-semibold">{quantity}</span>
         </div>
+
+        {/* Rejection Reason (if status is rejected) */}
+        {status === "rejected" && rejectionReason && (
+          <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm">
+            <p className="text-xs font-semibold text-red-700 mb-1">
+              Rejection Reason:
+            </p>
+            <p className="text-red-600 text-xs">{rejectionReason}</p>
+          </div>
+        )}
 
         {/* Mobile action buttons */}
         <div className="hidden sm:flex gap-2 pt-2 md:hidden">

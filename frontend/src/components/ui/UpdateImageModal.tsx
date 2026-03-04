@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { craftStyles, cn } from "../../styles/theme";
 import { X, Image as ImageIcon, AlertCircle, Upload } from "lucide-react";
 import api from "../../lib/axios";
+import type { AxiosError } from "axios";
 
 interface UpdateImageModalProps {
   isOpen: boolean;
@@ -71,10 +72,11 @@ export function UpdateImageModal({
       setImageFile(null);
       setPreview(currentImageUrl);
       onClose();
-    } catch (err: any) {
+    } catch (err) {
+      const axiosError = err as AxiosError<{ error?: string }>;
       setError(
-        err.response?.data?.error ||
-          (err as Error).message ||
+        axiosError.response?.data?.error ||
+          axiosError.message ||
           "Failed to update image",
       );
     } finally {

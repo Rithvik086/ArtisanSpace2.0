@@ -17,6 +17,8 @@ interface Product {
   category: string;
   status: "active" | "pending" | "inactive" | "rejected";
   description: string;
+  rejectionReason?: string;
+  uploadedBy?: string;
 }
 
 const AddProduct: React.FC = () => {
@@ -50,6 +52,8 @@ const AddProduct: React.FC = () => {
         status:
           (p.status === "disapproved" ? "rejected" : p.status) ?? "active",
         description: p.description ?? p.desc ?? "",
+        rejectionReason: p.rejectionReason ?? "",
+        uploadedBy: p.uploadedBy ?? (p.userId ? String(p.userId) : "unknown"),
       }));
       setProducts(normalized);
     } catch (e) {

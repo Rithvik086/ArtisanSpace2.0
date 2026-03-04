@@ -51,6 +51,7 @@ export default function ListingsPage(): React.ReactElement {
         status:
           (p.status === "disapproved" ? "rejected" : p.status) ?? "active",
         description: p.description ?? p.desc ?? "",
+        rejectionReason: p.rejectionReason ?? "",
       }));
       setProducts(normalized as ProductType[]);
     } catch (e) {

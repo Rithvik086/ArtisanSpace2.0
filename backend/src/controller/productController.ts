@@ -10,6 +10,8 @@ import {
   getProducts as getProductsService,
   updateProduct,
   updateProductImage,
+  updateProductRejectionReason,
+  updateProductRemovalReason,
 } from "../services/productServices.js";
 import cloudinary from "../config/cloudinary.js";
 import logger from "../utils/logger.js";
@@ -153,11 +155,13 @@ export const productsModeration = async (req: Request, res: Response) => {
       (req.query.action as string) || (req.body && req.body.action);
     const productIdRaw =
       (req.query.productId as string) || (req.body && req.body.productId);
+    const reasonRaw = req.body && req.body.reason;
 
     const action =
       typeof actionRaw === "string" ? actionRaw.trim().toLowerCase() : "";
     const productId =
       typeof productIdRaw === "string" ? productIdRaw.trim() : "";
+    const reason = typeof reasonRaw === "string" ? reasonRaw.trim() : undefined;
 
     if (!action)
       return res
@@ -173,7 +177,7 @@ export const productsModeration = async (req: Request, res: Response) => {
     if (action === "approve") {
       result = await approveProduct(productId);
     } else if (action === "disapprove") {
-      result = await disapproveProduct(productId);
+      result = await disapproveProduct(productId, reason);
     } else if (action === "remove") {
       result = await deleteProductService(productId);
     } else {
@@ -288,6 +292,90 @@ export const updateProductImageController = async (
     logger.error(
       { error: (e as Error).message },
       "Error updating product image",
+    );
+    res
+      .status(500)
+      .json({ success: false, error: (e as Error).message || "Server error" });
+  }
+};
+
+export const updateRejectionReasonController = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const productId = req.params.id;
+    const { reason } = req.body;
+
+    if (!productId) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Product ID is required" });
+    }
+
+    if (!reason || typeof reason !== "string" || reason.trim().length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Rejection reason is required" });
+    }
+
+    const updateResult = await updateProductRejectionReason(productId, reason);
+
+    if (updateResult.success) {
+      res.status(200).json({
+        success: true,
+        message: updateResult.message,
+        product: updateResult.product,
+      });
+    } else {
+      res.status(500).json({ success: false });
+    }
+  } catch (e) {
+    logger.error(
+      { error: (e as Error).message },
+      "Error updating rejection reason",
+    );
+    res
+      .status(500)
+      .json({ success: false, error: (e as Error).message || "Server error" });
+  }
+};
+
+export const updateRemovalReasonController = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const productId = req.params.id;
+    const { reason } = req.body;
+
+    if (!productId) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Product ID is required" });
+    }
+
+    if (!reason || typeof reason !== "string" || reason.trim().length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Removal reason is required" });
+    }
+
+    const updateResult = await updateProductRemovalReason(productId, reason);
+
+    if (updateResult.success) {
+      res.status(200).json({
+        success: true,
+        message: updateResult.message,
+        product: updateResult.product,
+      });
+    } else {
+      res.status(500).json({ success: false });
+    }
+  } catch (e) {
+    logger.error(
+      { error: (e as Error).message },
+      "Error updating removal reason",
     );
     res
       .status(500)
