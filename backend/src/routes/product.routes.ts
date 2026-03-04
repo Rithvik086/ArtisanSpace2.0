@@ -1,6 +1,7 @@
 import express from "express";
 import {
   addProduct,
+  bulkAddProducts,
   deleteProduct,
   editProduct,
   getAllProducts,
@@ -8,6 +9,9 @@ import {
   getProducts,
   getUserProducts,
   productsModeration,
+  updateProductImageController,
+  updateRejectionReasonController,
+  updateRemovalReasonController,
 } from "../controller/productController.js";
 import upload from "../middleware/multer.js";
 import authorizerole from "../middleware/roleMiddleware.js";
@@ -33,27 +37,52 @@ router.use(verifytoken);
 router.get(
   "/my",
   authorizerole("artisan", "manager", "admin"),
-  getUserProducts
+  getUserProducts,
 );
 
 // Manager+ routes - all products
-router.get(
-  "/all",
-  authorizerole("manager", "admin"),
-  getAllProducts
-);
+router.get("/all", authorizerole("manager", "admin"), getAllProducts);
 
 router.get(
   "/:id",
   authorizerole("customer", "artisan", "manager", "admin"),
-  getProductById
+  getProductById,
 );
 
 router.post(
   "/",
   authorizerole("artisan", "manager", "admin"),
   upload.single("image"),
-  addProduct
+  addProduct,
+);
+
+// bulk insert route - expects JSON array of products with optional image URLs
+router.post(
+  "/bulk",
+  authorizerole("artisan", "manager", "admin"),
+  bulkAddProducts,
+);
+
+// Image update route - MUST come before PUT /:id to avoid conflicts
+router.patch(
+  "/:id/image",
+  authorizerole("artisan", "manager", "admin"),
+  upload.single("image"),
+  updateProductImageController,
+);
+
+// Rejection reason route - MUST come before PUT /:id to avoid conflicts
+router.patch(
+  "/:id/rejection-reason",
+  authorizerole("manager", "admin"),
+  updateRejectionReasonController,
+);
+
+// Removal reason route - MUST come before PUT /:id to avoid conflicts
+router.patch(
+  "/:id/removal-reason",
+  authorizerole("manager", "admin"),
+  updateRemovalReasonController,
 );
 
 router.put("/:id", authorizerole("artisan", "manager", "admin"), editProduct);
@@ -61,14 +90,14 @@ router.put("/:id", authorizerole("artisan", "manager", "admin"), editProduct);
 router.delete(
   "/:id",
   authorizerole("artisan", "manager", "admin"),
-  deleteProduct
+  deleteProduct,
 );
 
 // Manager+ routes
 router.post(
   "/moderation",
   authorizerole("manager", "admin"),
-  productsModeration
+  productsModeration,
 );
 
 export default router;

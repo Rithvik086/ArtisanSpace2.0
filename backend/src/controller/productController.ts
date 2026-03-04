@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import {
   addProductService,
+  addProductsBulk,
   approveProduct,
   deleteProductService,
   disapproveProduct,
@@ -8,8 +9,12 @@ import {
   getProductById as getProductByIdService,
   getProducts as getProductsService,
   updateProduct,
+  updateProductImage,
+  updateProductRejectionReason,
+  updateProductRemovalReason,
 } from "../services/productServices.js";
 import cloudinary from "../config/cloudinary.js";
+import logger from "../utils/logger.js";
 
 export const getProducts = async (req: Request, res: Response) => {
   try {
@@ -19,19 +24,19 @@ export const getProducts = async (req: Request, res: Response) => {
 
     let categoryParam: string | string[] | null = null;
     if (typeof category === "string") {
-      categoryParam = category.split(',').map(s => s.trim());
+      categoryParam = category.split(",").map((s) => s.trim());
     } else if (Array.isArray(category)) {
       categoryParam = category.filter(
-        (item): item is string => typeof item === "string"
+        (item): item is string => typeof item === "string",
       );
     }
 
     let materialParam: string | string[] | null = null;
     if (typeof material === "string") {
-      materialParam = material.split(',').map(s => s.trim());
+      materialParam = material.split(",").map((s) => s.trim());
     } else if (Array.isArray(material)) {
       materialParam = material.filter(
-        (item): item is string => typeof item === "string"
+        (item): item is string => typeof item === "string",
       );
     }
 
@@ -39,7 +44,7 @@ export const getProducts = async (req: Request, res: Response) => {
       categoryParam,
       materialParam,
       page,
-      limit
+      limit,
     );
 
     res.status(200).json({
@@ -48,7 +53,7 @@ export const getProducts = async (req: Request, res: Response) => {
       pagination: result.pagination,
     });
   } catch (error) {
-    console.error("Error in getProducts:", error);
+    logger.error({ error: (error as Error).message }, "Error in getProducts");
     throw new Error("Error loading store page: " + (error as Error).message);
   }
 };
@@ -64,7 +69,7 @@ export const editProduct = async (req: Request, res: Response) => {
       parseInt(oldPrice),
       parseInt(newPrice),
       parseInt(quantity),
-      description
+      description,
     );
 
     if (result.success) {
@@ -111,12 +116,35 @@ export const addProduct = async (req: Request, res: Response) => {
       result.secure_url,
       price,
       quantity,
-      description
+      description,
     );
 
     res.status(201).json({ message: "Product added successfully" });
   } catch (error) {
     throw new Error("Error adding product: " + (error as Error).message);
+  }
+};
+
+export const bulkAddProducts = async (req: Request, res: Response) => {
+  try {
+    const items = Array.isArray(req.body.products)
+      ? req.body.products
+      : req.body;
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Request must include an array of products",
+      });
+    }
+
+    // items should contain fields matching addProductService parameters
+    const results = await addProductsBulk(req.user.id, req.user.role, items);
+    return res.status(201).json({ success: true, results });
+  } catch (e: any) {
+    logger.error({ error: e.message }, "Error in bulkAddProducts");
+    return res
+      .status(500)
+      .json({ success: false, error: e.message || "Server error" });
   }
 };
 
@@ -127,11 +155,13 @@ export const productsModeration = async (req: Request, res: Response) => {
       (req.query.action as string) || (req.body && req.body.action);
     const productIdRaw =
       (req.query.productId as string) || (req.body && req.body.productId);
+    const reasonRaw = req.body && req.body.reason;
 
     const action =
       typeof actionRaw === "string" ? actionRaw.trim().toLowerCase() : "";
     const productId =
       typeof productIdRaw === "string" ? productIdRaw.trim() : "";
+    const reason = typeof reasonRaw === "string" ? reasonRaw.trim() : undefined;
 
     if (!action)
       return res
@@ -147,7 +177,7 @@ export const productsModeration = async (req: Request, res: Response) => {
     if (action === "approve") {
       result = await approveProduct(productId);
     } else if (action === "disapprove") {
-      result = await disapproveProduct(productId);
+      result = await disapproveProduct(productId, reason);
     } else if (action === "remove") {
       result = await deleteProductService(productId);
     } else {
@@ -163,7 +193,10 @@ export const productsModeration = async (req: Request, res: Response) => {
       .status(500)
       .json({ success: false, error: "Moderation action failed" });
   } catch (e) {
-    console.error("Error in productsModeration:", (e as Error).message);
+    logger.error(
+      { error: (e as Error).message },
+      "Error in productsModeration",
+    );
     return res
       .status(500)
       .json({ success: false, error: (e as Error).message || "Server error" });
@@ -198,7 +231,7 @@ export const getUserProducts = async (req: Request, res: Response) => {
     });
   } catch (error) {
     throw new Error(
-      "Error fetching user products: " + (error as Error).message
+      "Error fetching user products: " + (error as Error).message,
     );
   }
 };
@@ -215,5 +248,137 @@ export const getProductById = async (req: Request, res: Response) => {
     res.status(200).json({ success: true, product });
   } catch (error) {
     res.status(404).json({ success: false, error: (error as Error).message });
+  }
+};
+
+export const updateProductImageController = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const productId = req.params.id;
+
+    if (!productId) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Product ID is required" });
+    }
+
+    if (!req.file) {
+      return res
+        .status(400)
+        .json({ success: false, error: "No image file uploaded" });
+    }
+
+    // Upload image to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path);
+
+    // Update product with new image URL
+    const updateResult = await updateProductImage(
+      productId as string,
+      result.secure_url,
+    );
+
+    if (updateResult.success) {
+      res.status(200).json({
+        success: true,
+        message: "Product image updated successfully!",
+        imageUrl: result.secure_url,
+      });
+    } else {
+      res.status(500).json({ success: false });
+    }
+  } catch (e) {
+    logger.error(
+      { error: (e as Error).message },
+      "Error updating product image",
+    );
+    res
+      .status(500)
+      .json({ success: false, error: (e as Error).message || "Server error" });
+  }
+};
+
+export const updateRejectionReasonController = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const productId = req.params.id;
+    const { reason } = req.body;
+
+    if (!productId) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Product ID is required" });
+    }
+
+    if (!reason || typeof reason !== "string" || reason.trim().length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Rejection reason is required" });
+    }
+
+    const updateResult = await updateProductRejectionReason(productId, reason);
+
+    if (updateResult.success) {
+      res.status(200).json({
+        success: true,
+        message: updateResult.message,
+        product: updateResult.product,
+      });
+    } else {
+      res.status(500).json({ success: false });
+    }
+  } catch (e) {
+    logger.error(
+      { error: (e as Error).message },
+      "Error updating rejection reason",
+    );
+    res
+      .status(500)
+      .json({ success: false, error: (e as Error).message || "Server error" });
+  }
+};
+
+export const updateRemovalReasonController = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const productId = req.params.id;
+    const { reason } = req.body;
+
+    if (!productId) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Product ID is required" });
+    }
+
+    if (!reason || typeof reason !== "string" || reason.trim().length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Removal reason is required" });
+    }
+
+    const updateResult = await updateProductRemovalReason(productId, reason);
+
+    if (updateResult.success) {
+      res.status(200).json({
+        success: true,
+        message: updateResult.message,
+        product: updateResult.product,
+      });
+    } else {
+      res.status(500).json({ success: false });
+    }
+  } catch (e) {
+    logger.error(
+      { error: (e as Error).message },
+      "Error updating removal reason",
+    );
+    res
+      .status(500)
+      .json({ success: false, error: (e as Error).message || "Server error" });
   }
 };

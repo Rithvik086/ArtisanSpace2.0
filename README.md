@@ -258,7 +258,7 @@ ArtisanSpace2.0/
 The backend provides RESTful APIs under `/api/v1/` prefix:
 
 - **Authentication**: `/api/v1/auth/*`
-- **Products**: `/api/v1/products/*`
+- **Products**: `/api/v1/products/*` (new `/bulk` POST endpoint allows bulk insertion via JSON array)
 - **Users**: `/api/v1/users/*`
 - **Orders**: `/api/v1/orders/*`
 - **Payments**: `/api/v1/payments/*`

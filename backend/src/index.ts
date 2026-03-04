@@ -51,20 +51,42 @@ app.use(
   cors({
     origin: config.CORS_ORIGIN,
     credentials: true,
-  })
+  }),
 );
 
-app.use(helmet());
+// app.use(helmet());
 
-// Morgan middleware - logs all HTTP requests to logs/logs.txt
+// Morgan middleware for HTTP request logging
+// Combined format to file
 app.use(morgan("combined", { stream: logStream }));
-// Also log to console in development
-if (config.NODE_ENV !== "production") {
-  app.use(morgan("dev"));
-}
+
+// Dev format to console (always on, for visibility)
+app.use(
+  morgan("dev", {
+    stream: {
+      write: (message: string) => {
+        logger.info(message.trim());
+      },
+    },
+  }),
+);
 
 app.use(cookieParser());
 app.use(express.json());
+
+// Request logging middleware
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  logger.debug(
+    {
+      method: req.method,
+      path: req.path,
+      query: req.query,
+      ip: req.ip,
+    },
+    "Incoming request",
+  );
+  next();
+});
 
 // Create main API router for /api/v1/
 const apiRouter = express.Router();
@@ -74,9 +96,8 @@ apiRouter.use("/products", productRoutes);
 apiRouter.use("/admin", adminRoutes);
 apiRouter.use("/delivery", deliveryRoutes);
 apiRouter.use("/manager", managerRoutes);
-apiRouter.use('/payments', paymentRoutes);
+apiRouter.use("/payments", paymentRoutes);
 apiRouter.use("/", userRoutes);
-
 
 app.use("/api/v1", apiRouter);
 
@@ -88,14 +109,22 @@ if (config.NODE_ENV === "production") {
       __dirname,
       "../../frontend",
       "dist",
-      "index.html"
+      "index.html",
     );
     res.sendFile(pathFile);
   });
 }
 
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  console.error(err);
+app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
+  logger.error(
+    {
+      error: err.message,
+      stack: err.stack,
+      path: req.path,
+      method: req.method,
+    },
+    "Unhandled error",
+  );
   res.status(500).send({
     success: false,
     message: "Internal Server Error",
@@ -104,13 +133,21 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 
 const server = app.listen(PORT, () => {
   logger.info({ port: PORT }, "Server is running");
+  logger.info(
+    {
+      nodeEnv: config.NODE_ENV,
+      corsOrigin: config.CORS_ORIGIN,
+      skipDb: config.SKIP_DB || false,
+    },
+    "Server configuration",
+  );
 });
 
 // Graceful shutdown
 const gracefulShutdown = async (signal: string) => {
   logger.info(
     { signal },
-    "Received shutdown signal, starting graceful shutdown"
+    "Received shutdown signal, starting graceful shutdown",
   );
 
   server.close(async () => {
@@ -122,7 +159,7 @@ const gracefulShutdown = async (signal: string) => {
     } catch (err) {
       logger.error(
         { error: (err as Error).message },
-        "Error closing database connection"
+        "Error closing database connection",
       );
     }
 
@@ -133,7 +170,7 @@ const gracefulShutdown = async (signal: string) => {
   // Force close server after 10 seconds
   setTimeout(() => {
     logger.error(
-      "Could not close connections in time, forcefully shutting down"
+      "Could not close connections in time, forcefully shutting down",
     );
     process.exit(1);
   }, 10000);

@@ -10,7 +10,7 @@ export async function addProductService(
   image: string,
   oldPrice: string | number,
   quantity: string | number,
-  description: string
+  description: string,
 ) {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -57,6 +57,68 @@ export async function addProductService(
   }
 }
 
+// new bulk insertion service
+export async function addProductsBulk(
+  userId: string,
+  uploadedBy: string,
+  items: Array<{
+    productName: string;
+    type: string;
+    material: string;
+    image?: string;
+    price: string | number;
+    quantity: string | number;
+    description: string;
+  }>,
+) {
+  // iterate through each item and re-use addProductService logic
+  const results: Array<{ success: boolean; error?: string }> = [];
+  const DEFAULT_IMAGE =
+    "https://via.placeholder.com/300x300?text=No+Image+Provided";
+
+  console.log("[BULK-SERVICE] Starting with", items.length, "items");
+
+  for (let idx = 0; idx < items.length; idx++) {
+    const itm = items[idx]!; // non-null assertion
+    console.log(
+      `[BULK-SERVICE] Item ${idx}:`,
+      itm.productName,
+      "type:",
+      itm.type,
+    );
+    try {
+      // pick image or fallback placeholder (schema requires nonempty string)
+      let img = DEFAULT_IMAGE;
+      if (itm.image) {
+        const trimmed = itm.image.trim();
+        if (trimmed.length > 0) {
+          img = trimmed;
+        }
+      }
+      console.log(
+        `[BULK-SERVICE] Item ${idx} using image:`,
+        img.substring(0, 50) + "...",
+      );
+
+      await addProductService(
+        userId,
+        uploadedBy,
+        itm.productName,
+        itm.type,
+        itm.material,
+        img,
+        itm.price,
+        itm.quantity,
+        itm.description,
+      );
+      results.push({ success: true });
+    } catch (e: any) {
+      results.push({ success: false, error: e.message });
+    }
+  }
+  return results;
+}
+
 export async function deleteProductService(productId: string) {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -76,7 +138,7 @@ export async function deleteProductService(productId: string) {
     await Product.findOneAndUpdate(
       { _id: productId, isValid: true },
       { isValid: false },
-      { new: true, runValidators: true, session }
+      { new: true, runValidators: true, session },
     );
     await session.commitTransaction();
     return { success: true };
@@ -104,7 +166,7 @@ export async function getProducts(
   artisanId: string | null = null,
   approved = false,
   page = 1,
-  limit = 10
+  limit = 10,
 ) {
   try {
     const skip = (page - 1) * limit;
@@ -123,7 +185,7 @@ export async function getProducts(
     } else {
       if (approved) {
         query = Product.find({ status: "approved", isValid: true }).populate(
-          "userId"
+          "userId",
         );
       } else {
         query = Product.find({ isValid: true }).populate("userId");
@@ -198,7 +260,7 @@ export async function approveProduct(productId: string) {
     const updatedProduct = await Product.findOneAndUpdate(
       { _id: productId, isValid: true },
       { status: "approved" },
-      { new: true, runValidators: true, session }
+      { new: true, runValidators: true, session },
     );
 
     if (!updatedProduct) {
@@ -215,7 +277,10 @@ export async function approveProduct(productId: string) {
   }
 }
 
-export async function disapproveProduct(productId: string) {
+export async function disapproveProduct(
+  productId: string,
+  rejectionReason?: string,
+) {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -223,10 +288,15 @@ export async function disapproveProduct(productId: string) {
       throw new Error("Invalid product ID");
     }
 
+    const updateData: any = { status: "disapproved" };
+    if (rejectionReason && rejectionReason.trim().length > 0) {
+      updateData.rejectionReason = rejectionReason.trim();
+    }
+
     const updatedProduct = await Product.findOneAndUpdate(
       { _id: productId, isValid: true },
-      { status: "disapproved" },
-      { new: true, runValidators: true, session }
+      updateData,
+      { new: true, runValidators: true, session },
     );
 
     if (!updatedProduct) {
@@ -238,6 +308,84 @@ export async function disapproveProduct(productId: string) {
   } catch (e) {
     await session.abortTransaction();
     throw new Error("Error approving product: " + (e as Error).message);
+  } finally {
+    session.endSession();
+  }
+}
+
+export async function updateProductRejectionReason(
+  productId: string,
+  reason: string,
+) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      throw new Error("Invalid product ID");
+    }
+
+    if (!reason || reason.trim().length === 0) {
+      throw new Error("Rejection reason cannot be empty");
+    }
+
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: productId, isValid: true },
+      { rejectionReason: reason.trim(), status: "disapproved" },
+      { new: true, runValidators: true, session },
+    );
+
+    if (!updatedProduct) {
+      throw new Error("Product not found");
+    } else {
+      await session.commitTransaction();
+      return {
+        success: true,
+        message: "Rejection reason updated successfully!",
+        product: updatedProduct,
+      };
+    }
+  } catch (e) {
+    await session.abortTransaction();
+    throw new Error("Error updating rejection reason: " + (e as Error).message);
+  } finally {
+    session.endSession();
+  }
+}
+
+export async function updateProductRemovalReason(
+  productId: string,
+  reason: string,
+) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      throw new Error("Invalid product ID");
+    }
+
+    if (!reason || reason.trim().length === 0) {
+      throw new Error("Removal reason cannot be empty");
+    }
+
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: productId },
+      { removedReason: reason.trim(), isValid: false },
+      { new: true, runValidators: true, session },
+    );
+
+    if (!updatedProduct) {
+      throw new Error("Product not found");
+    } else {
+      await session.commitTransaction();
+      return {
+        success: true,
+        message: "Product removed with reason noted!",
+        product: updatedProduct,
+      };
+    }
+  } catch (e) {
+    await session.abortTransaction();
+    throw new Error("Error updating removal reason: " + (e as Error).message);
   } finally {
     session.endSession();
   }
@@ -247,7 +395,7 @@ export async function getApprovedProducts(
   category: string | string[] | null = null,
   material: string | string[] | null = null,
   page = 1,
-  limit = 10
+  limit = 10,
 ) {
   try {
     const skip = (page - 1) * limit;
@@ -346,7 +494,7 @@ export async function decreaseProductQuantity(
   productId: string,
   quantity: number,
   session: any = null,
-  allowZero: boolean = false
+  allowZero: boolean = false,
 ) {
   let newSession = false;
 
@@ -371,14 +519,14 @@ export async function decreaseProductQuantity(
     }
     if (!allowZero && quantity === 0) {
       throw new Error(
-        "Quantity cannot be zero. Use allowZero=true for order processing."
+        "Quantity cannot be zero. Use allowZero=true for order processing.",
       );
     }
 
     const updatedProduct = await Product.findOneAndUpdate(
       { _id: productId, isValid: true },
       { quantity },
-      { new: true, runValidators: true, session }
+      { new: true, runValidators: true, session },
     );
 
     if (!updatedProduct) {
@@ -397,7 +545,7 @@ export async function decreaseProductQuantity(
       await session.abortTransaction();
     }
     throw new Error(
-      "Error decreasing product quantity: " + (e as Error).message
+      "Error decreasing product quantity: " + (e as Error).message,
     );
   } finally {
     if (newSession) {
@@ -412,7 +560,7 @@ export async function updateProduct(
   oldPrice: number,
   newPrice: number,
   quantity: number,
-  description: string
+  description: string,
 ) {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -429,7 +577,7 @@ export async function updateProduct(
     const updatedProduct = await Product.findOneAndUpdate(
       { _id: productId, isValid: true },
       { name, oldPrice, newPrice, quantity, description },
-      { new: true, runValidators: true, session }
+      { new: true, runValidators: true, session },
     );
 
     if (!updatedProduct) {
@@ -454,7 +602,7 @@ export async function getAllProductsForAdmin() {
     return products;
   } catch (e) {
     throw new Error(
-      "Error getting all products for admin: " + (e as Error).message
+      "Error getting all products for admin: " + (e as Error).message,
     );
   }
 }
@@ -476,5 +624,42 @@ export async function getProductById(productId: string) {
     return product;
   } catch (e) {
     throw new Error("Error getting product: " + (e as Error).message);
+  }
+}
+
+export async function updateProductImage(productId: string, imageUrl: string) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      throw new Error("Invalid product ID");
+    }
+
+    // Validate image URL is not empty
+    if (!imageUrl || imageUrl.trim().length === 0) {
+      throw new Error("Image URL cannot be empty");
+    }
+
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: productId, isValid: true },
+      { image: imageUrl.trim() },
+      { new: true, runValidators: true, session },
+    );
+
+    if (!updatedProduct) {
+      throw new Error("Product not found");
+    } else {
+      await session.commitTransaction();
+      return {
+        success: true,
+        message: "Product image updated successfully!",
+        product: updatedProduct,
+      };
+    }
+  } catch (e) {
+    await session.abortTransaction();
+    throw new Error("Error updating product image: " + (e as Error).message);
+  } finally {
+    session.endSession();
   }
 }

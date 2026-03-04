@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../lib/axios";
+import { RejectionReasonModal } from "../components/ui/RejectionReasonModal";
 
 interface ProductItem {
   id: string;
@@ -12,6 +13,7 @@ interface ProductItem {
   category?: string;
   status?: "approved" | "pending" | "disapproved";
   description?: string;
+  rejectionReason?: string;
 }
 
 const ContentModeration: React.FC = () => {
@@ -21,6 +23,10 @@ const ContentModeration: React.FC = () => {
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isRejectionReasonOpen, setIsRejectionReasonOpen] =
+    useState<boolean>(false);
+  const [selectedProductForRejection, setSelectedProductForRejection] =
+    useState<ProductItem | null>(null);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -41,7 +47,7 @@ const ContentModeration: React.FC = () => {
           if (res && (res.status === 200 || res.status === 201)) {
             data = res.data;
             items = Array.isArray(data?.products ? data.products : data)
-              ? data.products ?? data
+              ? (data.products ?? data)
               : [];
             if (items.length > 0) break; // stop if we got products
             // even if empty array that's valid - break
@@ -68,6 +74,7 @@ const ContentModeration: React.FC = () => {
         category: p.category ?? "",
         status: (p.status as ProductItem["status"]) ?? "pending",
         description: p.description ?? p.desc ?? "",
+        rejectionReason: p.rejectionReason ?? "",
       }));
       setProducts(normalized);
     } catch (e) {
@@ -84,17 +91,17 @@ const ContentModeration: React.FC = () => {
 
   const handleLocalStatusUpdate = (
     id: string,
-    newStatus: "approved" | "disapproved"
+    newStatus: "approved" | "disapproved",
   ) => {
     setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p))
+      prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p)),
     );
   };
 
   const approvedProducts = products.filter((p) => p.status === "approved");
   const pendingProducts = products.filter((p) => p.status === "pending");
   const disapprovedProducts = products.filter(
-    (p) => p.status === "disapproved"
+    (p) => p.status === "disapproved",
   );
 
   return (
@@ -178,6 +185,10 @@ const ContentModeration: React.FC = () => {
                     key={p.id}
                     product={p}
                     onModerated={handleLocalStatusUpdate}
+                    onOpenRejectionModal={(product) => {
+                      setSelectedProductForRejection(product);
+                      setIsRejectionReasonOpen(true);
+                    }}
                   />
                 ))}
               </div>
@@ -195,6 +206,10 @@ const ContentModeration: React.FC = () => {
                     key={p.id}
                     product={p}
                     onModerated={handleLocalStatusUpdate}
+                    onOpenRejectionModal={(product) => {
+                      setSelectedProductForRejection(product);
+                      setIsRejectionReasonOpen(true);
+                    }}
                   />
                 ))}
               </div>
@@ -212,11 +227,37 @@ const ContentModeration: React.FC = () => {
                     key={p.id}
                     product={p}
                     onModerated={handleLocalStatusUpdate}
+                    onOpenRejectionModal={(product) => {
+                      setSelectedProductForRejection(product);
+                      setIsRejectionReasonOpen(true);
+                    }}
                   />
                 ))}
               </div>
             ))}
         </div>
+      )}
+
+      {selectedProductForRejection && (
+        <RejectionReasonModal
+          isOpen={isRejectionReasonOpen}
+          onClose={() => {
+            setIsRejectionReasonOpen(false);
+            setSelectedProductForRejection(null);
+          }}
+          productId={selectedProductForRejection.id}
+          productName={selectedProductForRejection.name}
+          onSuccess={(reason) => {
+            // Update the product's rejection reason and status locally
+            setProducts((prev) =>
+              prev.map((p) =>
+                p.id === selectedProductForRejection.id
+                  ? { ...p, rejectionReason: reason, status: "disapproved" }
+                  : p,
+              ),
+            );
+          }}
+        />
       )}
     </div>
   );
@@ -225,19 +266,28 @@ const ContentModeration: React.FC = () => {
 function ManagerCard({
   product,
   onModerated,
+  onOpenRejectionModal,
 }: {
   product: ProductItem;
   onModerated: (id: string, status: "approved" | "disapproved") => void;
+  onOpenRejectionModal: (product: ProductItem) => void;
 }) {
   const [loading, setLoading] = useState(false);
 
   const doModeration = async (action: "approve" | "disapprove") => {
     try {
       setLoading(true);
+
+      // If disapproving, open the rejection reason modal instead of directly disapproving
+      if (action === "disapprove") {
+        onOpenRejectionModal(product);
+        return;
+      }
+
       const res = await api.post(
         `/products/moderation?action=${action}&productId=${encodeURIComponent(
-          product.id
-        )}`
+          product.id,
+        )}`,
       );
       if (res.status === 200 && res.data && res.data.success) {
         const newStatus = action === "approve" ? "approved" : "disapproved";
@@ -281,6 +331,15 @@ function ManagerCard({
             </div>
           </div>
         </div>
+
+        {product.rejectionReason && (
+          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-xs font-semibold text-red-700 mb-1">
+              Rejection Reason:
+            </p>
+            <p className="text-sm text-red-600">{product.rejectionReason}</p>
+          </div>
+        )}
       </div>
       <div className="bg-amber-50 px-4 py-3 flex justify-end gap-3">
         {product.status !== "approved" && (

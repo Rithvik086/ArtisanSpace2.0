@@ -48,6 +48,14 @@ const productSchema = new mongoose.Schema({
       message: "{VALUE} is not a valid status",
     },
   },
+  rejectionReason: {
+    type: String,
+    default: null,
+  },
+  removedReason: {
+    type: String,
+    default: null,
+  },
   createdAt: {
     type: String,
     default: () => new Date().toISOString(),
@@ -61,6 +69,11 @@ const productSchema = new mongoose.Schema({
     default: true,
   },
 });
+
+// Create indexes for better query performance
+productSchema.index({ _id: 1, isValid: 1 });
+productSchema.index({ status: 1, isValid: 1 });
+productSchema.index({ userId: 1, isValid: 1 });
 
 // Pre-save middleware to update updatedAt on every save
 productSchema.pre("save", function (next) {
@@ -84,13 +97,13 @@ productSchema.pre("findOneAndUpdate", function (next) {
     try {
       await Cart.updateMany(
         { "products.productId": productId },
-        { $pull: { products: { productId } } }
+        { $pull: { products: { productId } } },
       );
       next();
     } catch (error) {
       next(error as any);
     }
-  }
+  },
 );
 
 (productSchema as any).pre(
@@ -100,14 +113,14 @@ productSchema.pre("findOneAndUpdate", function (next) {
       try {
         await Cart.updateMany(
           { "products.productId": this._id },
-          { $pull: { products: { productId: this._id } } }
+          { $pull: { products: { productId: this._id } } },
         );
       } catch (error) {
         return next(error as any);
       }
     }
     next();
-  }
+  },
 );
 
 export default mongoose.model("Product", productSchema);

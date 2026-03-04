@@ -23,6 +23,7 @@ interface Product {
   quantity: number;
   status: "active" | "pending" | "inactive" | "rejected";
   description: string;
+  rejectionReason?: string;
 }
 
 // We'll load products from the backend (remove previous mock data)
@@ -37,7 +38,7 @@ export default function ArtisanDashboard() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productToDeleteId, setProductToDeleteId] = useState<string | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,14 +59,14 @@ export default function ArtisanDashboard() {
 
         const list = Array.isArray(res.data)
           ? res.data
-          : res.data?.products ?? res.data?.data ?? [];
+          : (res.data?.products ?? res.data?.data ?? []);
 
         const normalized = (list as any[]).map((p: any) => ({
           _id: String(
             p._id ??
               p.id ??
               crypto?.randomUUID?.() ??
-              `${Date.now()}-${Math.random()}`
+              `${Date.now()}-${Math.random()}`,
           ),
           category: p.category ?? p.type ?? "",
           image:
@@ -80,9 +81,10 @@ export default function ArtisanDashboard() {
             (p.status === "disapproved"
               ? "rejected"
               : p.status === "approved"
-              ? "active"
-              : p.status) ?? "pending",
+                ? "active"
+                : p.status) ?? "pending",
           description: p.description ?? p.desc ?? "",
+          rejectionReason: p.rejectionReason ?? "",
         }));
 
         setProducts(normalized as Product[]);
@@ -109,13 +111,13 @@ export default function ArtisanDashboard() {
     };
     window.addEventListener(
       "artisan:product-created",
-      onCreated as EventListener
+      onCreated as EventListener,
     );
 
     return () => {
       window.removeEventListener(
         "artisan:product-created",
-        onCreated as EventListener
+        onCreated as EventListener,
       );
     };
   }, []);
@@ -140,8 +142,8 @@ export default function ArtisanDashboard() {
 
     setProducts(
       products.map((p) =>
-        p._id === updatedProductData._id ? updatedProductData : p
-      )
+        p._id === updatedProductData._id ? updatedProductData : p,
+      ),
     );
     console.log("Saving product:", updatedProductData);
     handleCloseEditModal();
@@ -296,7 +298,7 @@ export default function ArtisanDashboard() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className={cn(
                       craftStyles.input.default,
-                      "pl-10 pr-4 py-2 text-amber-900 placeholder-amber-500 font-baloo"
+                      "pl-10 pr-4 py-2 text-amber-900 placeholder-amber-500 font-baloo",
                     )}
                   />
                 </div>

@@ -1,6 +1,7 @@
 "use client";
 
-import { Pencil, Trash2, Eye, Star } from "lucide-react";
+import { useState } from "react";
+import { Pencil, Trash2, Eye, Star, AlertCircle, X } from "lucide-react";
 import { cn, craftStyles } from "../../styles/theme";
 
 interface Product {
@@ -11,8 +12,9 @@ interface Product {
   oldPrice: number;
   newPrice: number;
   quantity: number;
-  status: 'active' | 'pending' | 'inactive' | 'rejected';
+  status: "active" | "pending" | "inactive" | "rejected";
   description: string;
+  rejectionReason?: string;
 }
 
 interface ProductTableProps {
@@ -21,8 +23,15 @@ interface ProductTableProps {
   onDelete: (productId: string) => void;
 }
 
-export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) {
-  const getStatusColor = (status: Product['status']) => {
+export function ProductTable({
+  products,
+  onEdit,
+  onDelete,
+}: ProductTableProps) {
+  const [selectedRejectionProduct, setSelectedRejectionProduct] =
+    useState<Product | null>(null);
+
+  const getStatusColor = (status: Product["status"]) => {
     switch (status) {
       case "active":
         return "bg-green-100 text-green-800 border-green-200";
@@ -41,8 +50,12 @@ export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) 
         <div className="mx-auto w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mb-4">
           <Eye className="w-12 h-12 text-amber-800" />
         </div>
-        <h3 className="text-xl font-semibold text-amber-900 mb-2">No creations yet</h3>
-        <p className="text-amber-700">Start crafting your first listing to showcase your talents!</p>
+        <h3 className="text-xl font-semibold text-amber-900 mb-2">
+          No creations yet
+        </h3>
+        <p className="text-amber-700">
+          Start crafting your first listing to showcase your talents!
+        </p>
       </div>
     );
   }
@@ -55,21 +68,36 @@ export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) 
           <table className="min-w-full">
             <thead>
               <tr className="border-b border-amber-200 bg-linear-to-r from-amber-50 to-orange-50">
-                <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">Creation</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">
+                  Category
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">
+                  Creation
+                </th>
                 {/* <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">Details</th> */}
-                <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">Pricing</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">Stock</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">
+                  Pricing
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">
+                  Stock
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-amber-900 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-amber-100">
               {products.map((product, index) => (
-                <tr key={product._id} className={cn(
-                  "hover:bg-linear-to-r hover:from-amber-50 hover:to-orange-50 transition-all duration-200",
-                  index % 2 === 0 ? "bg-white" : "bg-amber-25"
-                )}>
+                <tr
+                  key={product._id}
+                  className={cn(
+                    "hover:bg-linear-to-r hover:from-amber-50 hover:to-orange-50 transition-all duration-200",
+                    index % 2 === 0 ? "bg-white" : "bg-amber-25",
+                  )}
+                >
                   <td className="px-6 py-6">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800 border border-amber-200">
                       {product.category}
@@ -85,45 +113,77 @@ export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) 
                         />
                       </div>
                       <div>
-                        <h4 className="text-lg font-semibold text-amber-900 font-serif">{product.name}</h4>
-                        <p className="text-sm text-amber-700 mt-1 line-clamp-2">{product.description}</p>
+                        <h4 className="text-lg font-semibold text-amber-900 font-serif">
+                          {product.name}
+                        </h4>
+                        <p className="text-sm text-amber-700 mt-1 line-clamp-2">
+                          {product.description}
+                        </p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-6">
                     <div className="space-y-1">
                       <p className="text-sm text-amber-700">
-                        <span className="font-medium">Original:</span> ₹{product.oldPrice.toLocaleString()}
+                        <span className="font-medium">Original:</span> ₹
+                        {product.oldPrice.toLocaleString()}
                       </p>
-                      <p className="text-lg font-bold text-amber-900">₹{product.newPrice.toLocaleString()}</p>
+                      <p className="text-lg font-bold text-amber-900">
+                        ₹{product.newPrice.toLocaleString()}
+                      </p>
                     </div>
                   </td>
                   <td className="px-6 py-6">
                     <div className="flex items-center">
                       <Star className="w-4 h-4 text-amber-500 mr-1" />
-                      <span className="text-lg font-semibold text-amber-900">{product.quantity}</span>
-                      <span className="text-sm text-amber-700 ml-1">available</span>
+                      <span className="text-lg font-semibold text-amber-900">
+                        {product.quantity}
+                      </span>
+                      <span className="text-sm text-amber-700 ml-1">
+                        available
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-6">
-                    <span className={cn(
-                      "inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold border",
-                      getStatusColor(product.status)
-                    )}>
-                      {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
-                    </span>
+                    <div className="flex flex-col gap-2">
+                      <span
+                        className={cn(
+                          "inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold border w-fit",
+                          getStatusColor(product.status),
+                        )}
+                      >
+                        {product.status.charAt(0).toUpperCase() +
+                          product.status.slice(1)}
+                      </span>
+                      {product.status === "rejected" &&
+                        product.rejectionReason && (
+                          <button
+                            onClick={() => setSelectedRejectionProduct(product)}
+                            className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 text-xs font-medium"
+                          >
+                            <AlertCircle className="w-4 h-4" />
+                            View Reason
+                          </button>
+                        )}
+                    </div>
                   </td>
                   <td className="px-6 py-6">
                     <div className="flex items-center space-x-3">
-                      <button 
+                      <button
                         onClick={() => onEdit(product)}
-                        className={cn(craftStyles.heroButton.compact, 'p-2 border border-amber-900')}
+                        className={cn(
+                          craftStyles.heroButton.compact,
+                          "p-2 border border-amber-900",
+                        )}
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
-                      <button 
+                      <button
                         onClick={() => onDelete(product._id)}
-                        className={cn(craftStyles.heroButton.compact, 'p-2 border border-amber-900')}
+                        className={cn(
+                          craftStyles.heroButton.compact,
+                          "p-2 border border-amber-900",
+                        )}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -139,7 +199,10 @@ export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) 
       {/* Mobile Cards */}
       <div className="lg:hidden space-y-4">
         {products.map((product) => (
-          <div key={product._id} className="bg-white rounded-xl shadow-md border border-amber-200 overflow-hidden">
+          <div
+            key={product._id}
+            className="bg-white rounded-xl shadow-md border border-amber-200 overflow-hidden"
+          >
             <div className="p-6">
               <div className="flex items-start space-x-4 mb-4">
                 <img
@@ -148,39 +211,69 @@ export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) 
                   className="w-20 h-20 rounded-xl object-cover border-2 border-amber-200"
                 />
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-semibold text-amber-900 font-serif truncate">{product.name}</h3>
-                  <p className="text-sm text-amber-700 mt-1">{product.category}</p>
-                  <span className={cn(
-                    "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border mt-2",
-                    getStatusColor(product.status)
-                  )}>
-                    {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
+                  <h3 className="text-lg font-semibold text-amber-900 font-serif truncate">
+                    {product.name}
+                  </h3>
+                  <p className="text-sm text-amber-700 mt-1">
+                    {product.category}
+                  </p>
+                  <span
+                    className={cn(
+                      "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border mt-2",
+                      getStatusColor(product.status),
+                    )}
+                  >
+                    {product.status.charAt(0).toUpperCase() +
+                      product.status.slice(1)}
                   </span>
+                  {product.status === "rejected" && product.rejectionReason && (
+                    <button
+                      onClick={() => setSelectedRejectionProduct(product)}
+                      className="block w-full text-left px-3 py-2 bg-red-50 border border-red-200 rounded text-red-600 hover:bg-red-100 text-xs font-medium transition mt-2"
+                    >
+                      <AlertCircle className="inline w-4 h-4 mr-1" />
+                      View Rejection Reason
+                    </button>
+                  )}
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                  <p className="text-xs text-amber-700 font-medium uppercase tracking-wide">Price</p>
-                  <p className="text-lg font-bold text-amber-900">₹{product.newPrice.toLocaleString()}</p>
+                  <p className="text-xs text-amber-700 font-medium uppercase tracking-wide">
+                    Price
+                  </p>
+                  <p className="text-lg font-bold text-amber-900">
+                    ₹{product.newPrice.toLocaleString()}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-xs text-amber-700 font-medium uppercase tracking-wide">Stock</p>
-                  <p className="text-lg font-semibold text-amber-900">{product.quantity}</p>
+                  <p className="text-xs text-amber-700 font-medium uppercase tracking-wide">
+                    Stock
+                  </p>
+                  <p className="text-lg font-semibold text-amber-900">
+                    {product.quantity}
+                  </p>
                 </div>
               </div>
 
               <div className="flex justify-end space-x-3">
-                <button 
+                <button
                   onClick={() => onEdit(product)}
-                  className={cn(craftStyles.heroButton.default, 'px-4 py-2 flex items-center space-x-2')}
+                  className={cn(
+                    craftStyles.heroButton.default,
+                    "px-4 py-2 flex items-center space-x-2",
+                  )}
                 >
                   <Pencil className="h-4 w-4" />
                   <span>Edit</span>
                 </button>
-                <button 
+                <button
                   onClick={() => onDelete(product._id)}
-                  className={cn(craftStyles.heroButton.default, 'px-4 py-2 flex items-center space-x-2')}
+                  className={cn(
+                    craftStyles.heroButton.default,
+                    "px-4 py-2 flex items-center space-x-2",
+                  )}
                 >
                   <Trash2 className="h-4 w-4" />
                   <span>Delete</span>
@@ -190,6 +283,46 @@ export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) 
           </div>
         ))}
       </div>
+
+      {/* Rejection Reason Modal */}
+      {selectedRejectionProduct && selectedRejectionProduct.rejectionReason && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-6 h-6 text-red-600" />
+                <h3 className="text-xl font-bold text-amber-900">
+                  Rejection Reason
+                </h3>
+              </div>
+              <button
+                onClick={() => setSelectedRejectionProduct(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-sm text-gray-600 mb-2">
+                <strong>{selectedRejectionProduct.name}</strong>
+              </p>
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-700 text-sm leading-relaxed">
+                  {selectedRejectionProduct.rejectionReason}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setSelectedRejectionProduct(null)}
+              className="w-full px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-semibold transition"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
