@@ -54,7 +54,7 @@ app.use(
   }),
 );
 
-app.use(helmet());
+// app.use(helmet());
 
 // Morgan middleware for HTTP request logging
 // Combined format to file
