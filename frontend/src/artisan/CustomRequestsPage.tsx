@@ -6,12 +6,12 @@ import {
   MessageSquare,
   CheckCircle,
   Clock,
-  DollarSign,
   Calendar,
   TrendingUp,
   AlertCircle,
   Search,
 } from "lucide-react";
+import RupeeIcon from "../components/icons/RupeeIcon";
 import api from "../lib/axios";
 
 interface CustomRequest {
@@ -293,7 +293,7 @@ export default function CustomRequestsPage(): React.ReactElement {
                             {request.type}
                           </div>
                           <div className="flex items-center gap-2">
-                            <DollarSign className="w-4 h-4 text-amber-600" />
+                            <RupeeIcon className="w-4 h-4 text-amber-600" />
                             <span className="font-medium">Budget:</span>{" "}
                             {request.budget}
                           </div>
@@ -386,7 +386,7 @@ export default function CustomRequestsPage(): React.ReactElement {
                             {request.type}
                           </div>
                           <div className="flex items-center gap-2">
-                            <DollarSign className="w-4 h-4 text-green-600" />
+                            <RupeeIcon className="w-4 h-4 text-green-600" />
                             <span className="font-medium">Budget:</span>{" "}
                             {request.budget}
                           </div>

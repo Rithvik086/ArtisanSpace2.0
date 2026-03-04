@@ -406,9 +406,28 @@ const deleteUser = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "User ID is required" });
     }
 
+    // accept an optional reason from the admin in request body
+    const reason = (req.body && (req.body as any).reason) || "";
+
+    // fetch user details before deletion so we can email them
+    const user = await getUserById(userId);
+
     const result = await removeUser(userId);
 
     if (result.success) {
+      // attempt to notify the user by email; do not fail deletion if email fails
+      try {
+        if (user && (user as any).email) {
+          const userEmail = (user as any).email;
+          const userName = (user as any).name || (user as any).username || "User";
+          const adminId = req.user?.id || "an administrator";
+          const message = `Dear ${userName},\n\nYour account on ArtisanSpace has been deleted by ${adminId}.\n\nReason provided:\n${reason || "No reason provided."}\n\nIf you believe this is a mistake, please contact support.\n\nBest regards,\nThe ArtisanSpace Team`;
+          await sendMail(userEmail, "Your ArtisanSpace account has been deleted", message);
+        }
+      } catch (emailErr) {
+        console.error("Failed to send deletion email:", (emailErr as Error).message);
+      }
+
       res.status(200).json({ success: true });
     } else {
       res.status(500).json({ success: false });

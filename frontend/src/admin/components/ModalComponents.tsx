@@ -213,9 +213,24 @@ export function DeleteModal({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (reason?: string) => void;
   itemType: string;
 }): React.ReactElement {
+  const [reason, setReason] = React.useState<string>("");
+
+  React.useEffect(() => {
+    if (!isOpen) setReason("");
+  }, [isOpen]);
+
+  const handleConfirm = () => {
+    // For user deletions, pass the reason; for others, ignore
+    if (itemType === "user") {
+      onConfirm(reason.trim() || "");
+    } else {
+      onConfirm();
+    }
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Delete ${itemType}`}>
       <div className="text-center">
@@ -224,6 +239,22 @@ export function DeleteModal({
           Are you sure you want to delete this {itemType}? This action cannot be
           undone.
         </p>
+
+        {itemType === "user" && (
+          <div className="mt-4 text-left">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Reason for deletion (will be emailed to the user)
+            </label>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              className="w-full border rounded-md p-2"
+              rows={4}
+              placeholder="Enter reason for deleting this user"
+            />
+          </div>
+        )}
+
         <div className="mt-6 flex justify-center gap-4">
           <button
             onClick={onClose}
@@ -232,7 +263,7 @@ export function DeleteModal({
             Cancel
           </button>
           <button
-            onClick={onConfirm}
+            onClick={handleConfirm}
             className="px-4 py-2 bg-red-600 text-white rounded-md"
           >
             Yes, Delete

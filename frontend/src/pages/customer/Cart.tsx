@@ -301,7 +301,7 @@ const Cart: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-4">
                           <p className="text-xl font-bold text-amber-900">
-                            ${item.productId.newPrice.toFixed(2)}
+                            ₹{item.productId.newPrice.toFixed(2)}
                           </p>
                           <button
                             onClick={() => removeProduct(item.productId._id)}
@@ -414,7 +414,7 @@ const Cart: React.FC = () => {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between text-amber-800/70">
                       <span>Subtotal</span>
-                      <span>${total.toFixed(2)}</span>
+                      <span>₹{total.toFixed(2)}</span>
                     </div>
                     <div className="flex items-center justify-between text-amber-800/70">
                       <span>Shipping Estimate</span>
@@ -429,7 +429,7 @@ const Cart: React.FC = () => {
                           Order Total
                         </span>
                         <span className="text-2xl font-extrabold text-amber-900">
-                          ${total.toFixed(2)}
+                          ₹{total.toFixed(2)}
                         </span>
                       </div>
 

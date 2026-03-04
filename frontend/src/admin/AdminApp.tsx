@@ -32,11 +32,11 @@ export default function AdminApp(): React.ReactElement {
 
   const { showToast } = useToast();
 
-  const handleConfirmDelete = async (): Promise<void> => {
+  const handleConfirmDelete = async (reason?: string): Promise<void> => {
     const { type, data } = modalState;
     try {
       if (type === "delete-user" && data?.id) {
-        await api.delete(`/auth/user/${data.id}`);
+        await api.delete(`/auth/user/${data.id}`, { data: { reason } });
         dispatch({ type: "DELETE_USER", payload: data.id });
         showToast("User deleted successfully", "success");
       }

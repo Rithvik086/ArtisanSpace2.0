@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import {
-  Upload,
-  Calendar,
-  DollarSign,
-  MessageSquare,
-  Plus,
-  List,
-} from "lucide-react";
+import { Upload, Calendar, MessageSquare, Plus, List } from "lucide-react";
+import RupeeIcon from "../../components/icons/RupeeIcon";
 import {
   Card,
   CardContent,
@@ -284,12 +278,12 @@ export default function CustomOrderPage(): React.ReactElement {
                         {...register("budget", {
                           required: "Budget is required",
                           pattern: {
-                            value: /^\$?\d+(\.\d{2})?$/,
-                            message:
-                              "Please enter a valid budget (e.g., $500 or 500)",
-                          },
-                        })}
-                        placeholder="e.g., $500 - $1000"
+                              value: /^₹?\d+(\.\d{2})?$/,
+                              message:
+                                "Please enter a valid budget (e.g., ₹500 or 500)",
+                            },
+                          })}
+                          placeholder="e.g., ₹500 - ₹1000"
                         className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder:text-stone-400"
                       />
                       {errors.budget && (
@@ -425,7 +419,7 @@ export default function CustomOrderPage(): React.ReactElement {
                                   </CardTitle>
                                   <div className="flex items-center gap-4 text-sm text-stone-600">
                                     <div className="flex items-center gap-1">
-                                      <DollarSign className="h-4 w-4" />
+                                      <RupeeIcon className="h-4 w-4 text-amber-900" />
                                       {request.budget}
                                     </div>
                                     <div className="flex items-center gap-1">
@@ -502,7 +496,7 @@ export default function CustomOrderPage(): React.ReactElement {
                                   </CardTitle>
                                   <div className="flex items-center gap-4 text-sm text-stone-600">
                                     <div className="flex items-center gap-1">
-                                      <DollarSign className="h-4 w-4" />
+                                      <RupeeIcon className="h-4 w-4 text-green-900" />
                                       {request.budget}
                                     </div>
                                     <div className="flex items-center gap-1">
