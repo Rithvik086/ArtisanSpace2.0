@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import mongoose from "mongoose";
 import {
   addProductService,
   addProductsBulk,
@@ -98,11 +99,15 @@ export const deleteProduct = async (req: Request, res: Response) => {
 
 export const addProduct = async (req: Request, res: Response) => {
   try {
-    const { productName, type, material, price, description, quantity } =
+    const { productName, type, material = "unspecified", price, description, quantity } =
       req.body;
 
     if (!req.file) {
       return res.status(400).json({ error: "No image uploaded" });
+    }
+
+    if (!req.user) {
+      return res.status(401).json({ error: "Authentication required" });
     }
 
     const result = await cloudinary.uploader.upload(req.file.path);
@@ -121,7 +126,11 @@ export const addProduct = async (req: Request, res: Response) => {
 
     res.status(201).json({ message: "Product added successfully" });
   } catch (error) {
-    throw new Error("Error adding product: " + (error as Error).message);
+    logger.error({ error: (error as Error).message }, "Error in addProduct");
+    return res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
   }
 };
 
@@ -135,6 +144,10 @@ export const bulkAddProducts = async (req: Request, res: Response) => {
         success: false,
         error: "Request must include an array of products",
       });
+    }
+
+    if (!req.user) {
+      return res.status(401).json({ error: "Authentication required" });
     }
 
     // items should contain fields matching addProductService parameters
@@ -153,8 +166,14 @@ export const productsModeration = async (req: Request, res: Response) => {
     // Accept parameters from either query string or JSON body
     const actionRaw =
       (req.query.action as string) || (req.body && req.body.action);
-    const productIdRaw =
+    let productIdRaw =
       (req.query.productId as string) || (req.body && req.body.productId);
+    
+    // Also accept productIds array (use first element)
+    if (!productIdRaw && req.body && req.body.productIds && Array.isArray(req.body.productIds)) {
+      productIdRaw = req.body.productIds[0];
+    }
+    
     const reasonRaw = req.body && req.body.reason;
 
     const action =

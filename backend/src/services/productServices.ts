@@ -4,8 +4,8 @@ import Product from "../models/productModel.js";
 export async function addProductService(
   userId: string,
   uploadedBy: string,
-  name: string,
-  category: string,
+  productName: string,
+  type: string,
   material: string,
   image: string,
   oldPrice: string | number,
@@ -35,8 +35,8 @@ export async function addProductService(
     const product = new Product({
       userId,
       uploadedBy,
-      name,
-      category: category.toLowerCase(),
+      name: productName,
+      category: type.toLowerCase(),
       material: material.toLowerCase(),
       image,
       oldPrice: oldPriceRounded,
@@ -64,7 +64,7 @@ export async function addProductsBulk(
   items: Array<{
     productName: string;
     type: string;
-    material: string;
+    material?: string;
     image?: string;
     price: string | number;
     quantity: string | number;
@@ -105,7 +105,7 @@ export async function addProductsBulk(
         uploadedBy,
         itm.productName,
         itm.type,
-        itm.material,
+        itm.material || "unspecified",
         img,
         itm.price,
         itm.quantity,
