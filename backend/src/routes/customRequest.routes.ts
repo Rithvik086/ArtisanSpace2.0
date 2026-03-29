@@ -16,7 +16,7 @@ const router = express.Router();
  * /custom-requests:
  *   get:
  *     summary: Get all custom requests (Artisan/Manager/Admin)
- *     tags: [Custom Requests]
+ *     tags: [Artisan]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -89,7 +89,7 @@ router.post(
  * /custom-requests:
  *   put:
  *     summary: Approve or respond to a custom request (Artisan/Manager/Admin)
- *     tags: [Custom Requests]
+ *     tags: [Artisan]
  *     security:
  *       - bearerAuth: []
  *     requestBody:

@@ -15,7 +15,7 @@ const router = express.Router();
  * /workshops:
  *   get:
  *     summary: Get all workshops (Artisan/Manager/Admin)
- *     tags: [Workshops]
+ *     tags: [Artisan]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -104,7 +104,7 @@ router.post(
  * /workshops/{action}/{workshopId}:
  *   put:
  *     summary: Handle workshop action (approve/reject/etc)
- *     tags: [Workshops]
+ *     tags: [Artisan]
  *     security:
  *       - bearerAuth: []
  *     parameters:

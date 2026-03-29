@@ -39,7 +39,7 @@ router.use(verifytoken);
  * /products/my:
  *   get:
  *     summary: Get user's own products (Artisan only)
- *     tags: [Product Management]
+ *     tags: [Artisan]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -263,7 +263,7 @@ router.patch(
  * /products/{id}:
  *   put:
  *     summary: Update an existing product (Artisan only)
- *     tags: [Product Management]
+ *     tags: [Artisan]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -301,7 +301,7 @@ router.put("/:id", editProduct);
  * /products/{id}:
  *   delete:
  *     summary: Delete a product (Artisan only)
- *     tags: [Product Management]
+ *     tags: [Artisan]
  *     security:
  *       - bearerAuth: []
  *     parameters:
