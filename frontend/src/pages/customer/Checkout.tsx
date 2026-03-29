@@ -143,10 +143,20 @@ const Checkout: React.FC = () => {
   useEffect(() => {
     if (user) {
       fetchCart();
-      // Safely set user address
-      setUserAddress(user.address || null);
+      fetchUserAddress();
     }
   }, [user]);
+
+  const fetchUserAddress = async () => {
+    try {
+      const response = await axios.get("/auth/me");
+      setUserAddress(response.data.user.address || null);
+    } catch (error) {
+      console.error("Error fetching user address:", error);
+      // Fallback to Redux user address if API fails
+      setUserAddress(user?.address || null);
+    }
+  };
 
   const fetchCart = async () => {
     try {

@@ -17,6 +17,9 @@ import AdminFooter from "./components/AdminFooter";
 
 // Lazy load big pages
 const DashboardPage = lazy(() => import("./DashboardPage"));
+const AdvancedAnalyticsDashboard = lazy(
+  () => import("./AdvancedAnalyticsDashboard"),
+);
 
 export default function AdminApp(): React.ReactElement {
   type ModalData = { id?: string } | null;
@@ -80,6 +83,10 @@ export default function AdminApp(): React.ReactElement {
               <Route
                 path="/"
                 element={<DashboardPage setModalState={setModalState} />}
+              />
+              <Route
+                path="analytics"
+                element={<AdvancedAnalyticsDashboard />}
               />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="moderation" element={<ContentModerationPage />} />
