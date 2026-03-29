@@ -127,6 +127,170 @@ router.get("/sales", adminController.getSalesData);
 
 /**
  * @swagger
+ * /admin/dashboard-overview:
+ *   get:
+ *     summary: Get dashboard overview metrics
+ *     tags: [Admin Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dashboard overview data
+ *       403:
+ *         description: Forbidden - requires admin role
+ */
+router.get("/dashboard-overview", adminController.getDashboardOverview);
+
+/**
+ * @swagger
+ * /admin/revenue-analytics:
+ *   get:
+ *     summary: Get revenue analytics with trends
+ *     tags: [Admin Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: period
+ *         schema:
+ *           type: string
+ *           enum: [daily, weekly, monthly]
+ *         default: monthly
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *     responses:
+ *       200:
+ *         description: Revenue analytics data
+ *       403:
+ *         description: Forbidden - requires admin role
+ */
+router.get("/revenue-analytics", adminController.getRevenueAnalytics);
+
+/**
+ * @swagger
+ * /admin/revenue-by-category:
+ *   get:
+ *     summary: Get revenue breakdown by product category
+ *     tags: [Admin Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *     responses:
+ *       200:
+ *         description: Revenue by category data
+ *       403:
+ *         description: Forbidden - requires admin role
+ */
+router.get("/revenue-by-category", adminController.getRevenueByCategory);
+
+/**
+ * @swagger
+ * /admin/geographic-revenue:
+ *   get:
+ *     summary: Get revenue distribution by geographic location
+ *     tags: [Admin Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *     responses:
+ *       200:
+ *         description: Geographic revenue data
+ *       403:
+ *         description: Forbidden - requires admin role
+ */
+router.get("/geographic-revenue", adminController.getGeographicRevenue);
+
+/**
+ * @swagger
+ * /admin/top-selling-products:
+ *   get:
+ *     summary: Get top-selling products by revenue or units
+ *     tags: [Admin Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [revenue, units]
+ *           default: revenue
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *     responses:
+ *       200:
+ *         description: Top-selling products data
+ *       403:
+ *         description: Forbidden - requires admin role
+ */
+router.get("/top-selling-products", adminController.getTopSellingProducts);
+
+/**
+ * @swagger
+ * /admin/inventory-analytics:
+ *   get:
+ *     summary: Get inventory analytics and low-stock alerts
+ *     tags: [Admin Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: threshold
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Stock level threshold for low-stock alerts
+ *     responses:
+ *       200:
+ *         description: Inventory analytics data
+ *       403:
+ *         description: Forbidden - requires admin role
+ */
+router.get("/inventory-analytics", adminController.getInventoryAnalytics);
+
+/**
+ * @swagger
  * /admin/users:
  *   get:
  *     summary: Get all users for admin dashboard
