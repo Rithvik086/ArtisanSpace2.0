@@ -34,6 +34,41 @@ router.use(verifytoken);
 // );
 
 // Artisan+ routes - Must come before /:id to avoid conflicts
+/**
+ * @swagger
+ * /products/my:
+ *   get:
+ *     summary: Get user's own products (Artisan only)
+ *     tags: [Artisan]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of artisan's own products
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   price:
+ *                     type: number
+ *                   category:
+ *                     type: string
+ *                   image:
+ *                     type: string
+ *                   quantity:
+ *                     type: number
+ *                   status:
+ *                     type: string
+ *       403:
+ *         description: Forbidden - requires artisan role
+ */
 router.get(
   "/my",
   getUserProducts,
@@ -223,8 +258,65 @@ router.patch(
   updateRemovalReasonController,
 );
 
+/**
+ * @swagger
+ * /products/{id}:
+ *   put:
+ *     summary: Update an existing product (Artisan only)
+ *     tags: [Artisan]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               productName:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *               quantity:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Product updated successfully
+ *       403:
+ *         description: Forbidden - requires artisan role
+ */
 router.put("/:id", editProduct);
 
+/**
+ * @swagger
+ * /products/{id}:
+ *   delete:
+ *     summary: Delete a product (Artisan only)
+ *     tags: [Artisan]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product ID
+ *     responses:
+ *       200:
+ *         description: Product deleted successfully
+ *       403:
+ *         description: Forbidden - requires artisan role
+ */
 router.delete(
   "/:id",
   deleteProduct,

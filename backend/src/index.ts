@@ -39,6 +39,12 @@ const swaggerOptions = {
       version: "1.0.0",
       description: "API documentation for ArtisanSpace e-commerce platform with role-based access control",
     },
+    tags: [
+      {
+        name: "Artisan",
+        description: "Endpoints specifically for Artisans (e.g., workshops, products, custom requests)",
+      }
+    ],
     servers: [
       {
         url: `http://localhost:${config.PORT}/api/v1`,
