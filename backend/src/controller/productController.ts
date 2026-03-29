@@ -19,7 +19,7 @@ import logger from "../utils/logger.js";
 
 export const getProducts = async (req: Request, res: Response) => {
   try {
-    const { category, material } = req.query;
+    const { category, material, search } = req.query;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 12;
 
@@ -41,11 +41,14 @@ export const getProducts = async (req: Request, res: Response) => {
       );
     }
 
+    const searchParam = typeof search === "string" ? search.trim() : null;
+
     const result = await getApprovedProducts(
       categoryParam,
       materialParam,
       page,
       limit,
+      searchParam,
     );
 
     res.status(200).json({

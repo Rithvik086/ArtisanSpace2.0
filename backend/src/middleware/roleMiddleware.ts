@@ -12,10 +12,6 @@ const authorizerole = (...allowedRoles: string[]) => {
         .status(403)
         .json({ success: false, message: "Forbidden: Access is denied." });
     }
-    logger.debug(
-      { userId: req.user.id, role: req.user.role },
-      "Role authorization passed",
-    );
     next();
   };
 };

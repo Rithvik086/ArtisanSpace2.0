@@ -2,31 +2,19 @@ import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Filter, SlidersHorizontal, Check } from "lucide-react";
 import StoreCard from "@/components/customer/StoreCard";
-import api from "@/lib/axios";
+import {
+  addProductToCart,
+  getStoreProducts,
+  type PaginationInfo,
+  type StoreProduct,
+} from "../../lib/storeGraphql";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useLoading } from "@/components/ui/LoadingProvider";
 
-interface Product {
-  _id: string;
-  name: string;
-  category: string;
-  material: string;
-  image: string;
-  oldPrice: number;
-  newPrice: number;
-  quantity: number;
-  description: string;
-}
-
-interface PaginationInfo {
-  currentPage: number;
-  totalPages: number;
-  totalProducts: number;
-}
-
 const Store: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<StoreProduct[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [appliedSearchTerm, setAppliedSearchTerm] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,6 +23,8 @@ const Store: React.FC = () => {
     currentPage: 1,
     totalPages: 1,
     totalProducts: 0,
+    hasNextPage: false,
+    hasPrevPage: false,
   });
   const { showToast } = useToast();
   const { showLoading, hideLoading } = useLoading();
@@ -61,61 +51,43 @@ const Store: React.FC = () => {
   const fetchProducts = useCallback(async () => {
     try {
       showLoading();
-      const categoryParam =
-        selectedCategories.length > 0
-          ? selectedCategories
-              .map((c) => c.toLowerCase().replace(/\s+/g, "_"))
-              .join(",")
-          : undefined;
-
-      const materialParam =
-        selectedMaterials.length > 0
-          ? selectedMaterials
-              .map((m) => m.toLowerCase().replace(/\s+/g, "_"))
-              .join(",")
-          : undefined;
-
-      // In a real app, you'd pass these to the backend
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: "12",
+      const response = await getStoreProducts({
+        page: currentPage,
+        limit: 12,
+        categories: selectedCategories,
+        materials: selectedMaterials,
+        search: appliedSearchTerm || undefined,
       });
 
-      if (categoryParam) {
-        params.append("category", categoryParam);
-      }
-
-      if (materialParam) {
-        params.append("material", materialParam);
-      }
-
-      const response = await api.get(`/products/approved?${params.toString()}`);
-      setProducts(response.data.products);
-      setPagination(response.data.pagination);
+      setProducts(response.products);
+      setPagination(response.pagination);
     } catch (error) {
       console.error("Error fetching products:", error);
+      showToast("Failed to load products", "error");
     } finally {
       hideLoading();
     }
   }, [
+    appliedSearchTerm,
     currentPage,
     selectedCategories,
     selectedMaterials,
+    showToast,
     showLoading,
     hideLoading,
   ]);
 
   useEffect(() => {
     fetchProducts();
-  }, [fetchProducts, selectedMaterials]);
+  }, [fetchProducts]);
 
   const handleAddToCart = async (productId: string) => {
     try {
-      const response = await api.post(`/cart`, { productId });
-      if (response.data.success) {
+      const response = await addProductToCart(productId, 1);
+      if (response.success) {
         showToast("Product added to cart!", "success");
       } else {
-        showToast(response.data.message || "Failed to add to cart", "error");
+        showToast(response.message || "Failed to add to cart", "error");
       }
     } catch (error) {
       console.error("Error adding to cart:", error);
@@ -143,18 +115,9 @@ const Store: React.FC = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would trigger a backend search
+    setCurrentPage(1);
+    setAppliedSearchTerm(searchTerm.trim());
   };
-
-  const normalizeString = (str: string) =>
-    str.toLowerCase().replace(/\s+/g, "_");
-
-  const filteredProducts = products.filter(
-    (product) =>
-      normalizeString(product.name).includes(normalizeString(searchTerm)) ||
-      normalizeString(product.category).includes(normalizeString(searchTerm)) ||
-      normalizeString(product.material).includes(normalizeString(searchTerm))
-  );
 
   // Animation variants
   const containerVariants = {
@@ -352,7 +315,7 @@ const Store: React.FC = () => {
 
           {/* Product Grid */}
           <div className="flex-1">
-            {filteredProducts.length === 0 ? (
+            {products.length === 0 ? (
               <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-stone-300">
                 <div className="bg-stone-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Search className="h-10 w-10 text-stone-400" />
@@ -361,14 +324,19 @@ const Store: React.FC = () => {
                   No products found
                 </h3>
                 <p className="text-stone-500 max-w-md mx-auto mb-8">
-                  We couldn't find any matches for "{searchTerm}". Try adjusting
-                  your filters or search terms.
+                  We couldn't find any matches for
+                  {appliedSearchTerm
+                    ? ` "${appliedSearchTerm}"`
+                    : " your current filters"}
+                  . Try adjusting your filters or search terms.
                 </p>
                 <button
                   onClick={() => {
                     setSearchTerm("");
+                    setAppliedSearchTerm("");
                     setSelectedCategories([]);
                     setSelectedMaterials([]);
+                    setCurrentPage(1);
                   }}
                   className="text-amber-700 font-medium hover:text-amber-900 underline"
                 >
@@ -384,7 +352,7 @@ const Store: React.FC = () => {
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
                 >
                   <AnimatePresence>
-                    {filteredProducts.map((product) => (
+                    {products.map((product) => (
                       <motion.div
                         key={product._id}
                         variants={itemVariants}

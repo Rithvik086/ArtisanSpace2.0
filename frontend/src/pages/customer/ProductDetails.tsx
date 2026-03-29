@@ -64,7 +64,7 @@ const ProductDetails: React.FC = () => {
     if (!product) return;
     try {
       const response = await axiosInstance.post(
-        `/cart?productId=${product._id}&quantity=${quantity}`
+        `/cart?productId=${product._id}&quantity=${quantity}`,
       );
       if (response.data.success) {
         showToast("Product added to cart!", "success");
@@ -111,7 +111,7 @@ const ProductDetails: React.FC = () => {
   const discountPercentage =
     product.oldPrice > product.newPrice
       ? Math.round(
-          ((product.oldPrice - product.newPrice) / product.oldPrice) * 100
+          ((product.oldPrice - product.newPrice) / product.oldPrice) * 100,
         )
       : 0;
 

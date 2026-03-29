@@ -37,6 +37,8 @@
     "jsx": "react-jsx",
     "verbatimModuleSyntax": true,
     "moduleResolution": "nodenext",
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
     "esModuleInterop": true,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,

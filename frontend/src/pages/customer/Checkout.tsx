@@ -17,11 +17,75 @@ import {
   Calculator,
 } from "lucide-react";
 
+interface RazorpayPaymentResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+
+interface RazorpayFailureResponse {
+  error?: {
+    description?: string;
+  };
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  order_id: string;
+  name: string;
+  description: string;
+  handler: (response: RazorpayPaymentResponse) => void;
+  prefill?: {
+    name?: string;
+    email?: string;
+  };
+  theme?: {
+    color?: string;
+  };
+  modal?: {
+    ondismiss?: () => void;
+  };
+}
+
+interface RazorpayInstance {
+  open: () => void;
+  on: (
+    event: "payment.failed",
+    handler: (response: RazorpayFailureResponse) => void,
+  ) => void;
+}
+
 declare global {
   interface Window {
-    Razorpay: any;
+    Razorpay?: new (options: RazorpayOptions) => RazorpayInstance;
   }
 }
+
+let razorpayScriptPromise: Promise<void> | null = null;
+
+const loadRazorpayCheckout = async (): Promise<void> => {
+  if (window.Razorpay) {
+    return;
+  }
+
+  if (!razorpayScriptPromise) {
+    razorpayScriptPromise = new Promise<void>((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => {
+        razorpayScriptPromise = null;
+        reject(new Error("Failed to load Razorpay checkout script"));
+      };
+      document.body.appendChild(script);
+    });
+  }
+
+  await razorpayScriptPromise;
+};
 
 interface CartItem {
   productId: {
@@ -169,23 +233,22 @@ const Checkout: React.FC = () => {
       const order = orderResponse.data;
       if (!order.orderId) throw new Error("Order creation failed");
 
-      // Load Razorpay if not loaded
+      await loadRazorpayCheckout();
+      hideLoading();
+
       if (!window.Razorpay) {
-        const script = document.createElement("script");
-        script.src = "https://checkout.razorpay.com/v1/checkout.js";
-        document.body.appendChild(script);
-        await new Promise((resolve) => (script.onload = resolve));
+        throw new Error("Payment SDK unavailable. Please try again.");
       }
 
       // Razorpay options
-      const options = {
+      const options: RazorpayOptions = {
         key: "rzp_test_S4taigLOZNozsn",
         amount: order.amount,
         currency: order.currency,
         order_id: order.orderId,
         name: "Artisan Space",
         description: "Payment for your order",
-        handler: (_response: any) => {
+        handler: (_response: RazorpayPaymentResponse) => {
           // Payment submitted - webhook will verify and update DB automatically
           showToast(
             "Payment submitted. Your order will be confirmed shortly.",
@@ -194,7 +257,12 @@ const Checkout: React.FC = () => {
           setTimeout(() => {
             navigate("/customer");
           }, 2000);
-          hideLoading();
+        },
+        modal: {
+          ondismiss: () => {
+            hideLoading();
+            showToast("Payment window closed.", "warning");
+          },
         },
         prefill: {
           name: user?.name || "",
@@ -206,10 +274,21 @@ const Checkout: React.FC = () => {
       };
 
       const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", (response) => {
+        const message =
+          response.error?.description || "Payment failed. Please try again.";
+        hideLoading();
+        showToast(message, "error");
+      });
       rzp.open();
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage =
-        error.response?.data?.error || error.message || "Payment failed";
+        (typeof error === "object" &&
+          error &&
+          "response" in error &&
+          (error as { response?: { data?: { error?: string } } }).response?.data
+            ?.error) ||
+        (error instanceof Error ? error.message : "Payment failed");
       showToast(errorMessage, "error");
       hideLoading();
     }

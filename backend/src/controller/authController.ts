@@ -15,6 +15,7 @@ import crypto from "crypto";
 import User from "../models/userModel.js";
 import config from "../config/index.js";
 import { z } from "zod";
+import logger from "../utils/logger.js";
 
 const updateProfileSchema = z.object({
   name: z
@@ -281,15 +282,41 @@ const forgotPassword = async (req: Request, res: Response) => {
     });
 
     const resetLink = `${config.FRONTEND_URL}/reset-password?token=${token}`;
-    await sendMail(
-      email,
-      "Reset Your Password - ArtisanSpace",
-      `Dear ${user.name},\n\nYou requested a password reset for your ArtisanSpace account. Click the link below to reset your password:\n\n${resetLink}\n\nThis link will expire in 1 hour.\n\nIf you did not request this, please ignore this email.\n\nBest regards,\nThe ArtisanSpace Team`
-    );
 
-    res
-      .status(200)
-      .json({ message: "Password reset link sent to your email." });
+    try {
+      await sendMail(
+        email,
+        "Reset Your Password - ArtisanSpace",
+        `Dear ${user.name},\n\nYou requested a password reset for your ArtisanSpace account. Click the link below to reset your password:\n\n${resetLink}\n\nThis link will expire in 1 hour.\n\nIf you did not request this, please ignore this email.\n\nBest regards,\nThe ArtisanSpace Team`,
+      );
+
+      return res
+        .status(200)
+        .json({ message: "Password reset link sent to your email." });
+    } catch (mailError) {
+      logger.error(
+        {
+          email,
+          error: (mailError as Error).message,
+          userId: String(user._id),
+        },
+        "Forgot-password email delivery failed",
+      );
+
+      // In development, return reset link so local testing is not blocked by SMTP setup.
+      if (config.NODE_ENV === "development") {
+        return res.status(200).json({
+          message:
+            "Email service is unavailable in development. Use the reset link returned by the API response.",
+          resetLink,
+        });
+      }
+
+      return res.status(503).json({
+        message:
+          "Unable to send reset email right now. Please try again later.",
+      });
+    }
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res

@@ -396,6 +396,7 @@ export async function getApprovedProducts(
   material: string | string[] | null = null,
   page = 1,
   limit = 10,
+  search: string | null = null,
 ) {
   try {
     const skip = (page - 1) * limit;
@@ -421,6 +422,18 @@ export async function getApprovedProducts(
         return new RegExp(`^${escaped.replace(/_/g, "[ _]")}$`, "i");
       });
       queryFilter.material = { $in: materialRegexes };
+    }
+
+    if (search && search.trim().length > 0) {
+      const escapedSearch = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const searchRegex = new RegExp(escapedSearch, "i");
+
+      queryFilter.$or = [
+        { name: searchRegex },
+        { category: searchRegex },
+        { material: searchRegex },
+        { description: searchRegex },
+      ];
     }
 
     const query = Product.find(queryFilter).populate("userId");

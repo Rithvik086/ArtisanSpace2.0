@@ -315,7 +315,7 @@ const Workshops: React.FC = () => {
                                     <div className="flex items-center gap-1">
                                       <Calendar className="h-4 w-4" />
                                       {new Date(
-                                        workshop.date
+                                        workshop.date,
                                       ).toLocaleDateString()}
                                     </div>
                                     <div className="flex items-center gap-1">
@@ -376,7 +376,7 @@ const Workshops: React.FC = () => {
                                     <div className="flex items-center gap-1">
                                       <Calendar className="h-4 w-4" />
                                       {new Date(
-                                        workshop.date
+                                        workshop.date,
                                       ).toLocaleDateString()}
                                     </div>
                                     <div className="flex items-center gap-1">
@@ -421,7 +421,7 @@ const Workshops: React.FC = () => {
                                       <p className="text-green-800 text-sm">
                                         Accepted on:{" "}
                                         {new Date(
-                                          workshop.acceptedAt
+                                          workshop.acceptedAt,
                                         ).toLocaleDateString()}
                                       </p>
                                     )}

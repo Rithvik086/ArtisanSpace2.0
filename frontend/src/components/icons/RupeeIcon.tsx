@@ -1,6 +1,8 @@
-import React from "react";
+import type { HTMLAttributes } from "react";
 
-const RupeeIcon = ({ className, ...props }: any) => {
+type RupeeIconProps = HTMLAttributes<HTMLSpanElement>;
+
+const RupeeIcon = ({ className, ...props }: RupeeIconProps) => {
   return (
     <span aria-hidden="true" className={className} {...props}>
       ₹
