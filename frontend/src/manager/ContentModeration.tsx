@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { isAxiosError } from "axios";
 import api from "../lib/axios";
 import { RejectionReasonModal } from "../components/ui/RejectionReasonModal";
 
@@ -16,6 +17,51 @@ interface ProductItem {
   rejectionReason?: string;
 }
 
+type ProductApiStatus = "approved" | "pending" | "disapproved";
+
+const asObject = (value: unknown): Record<string, unknown> =>
+  value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+
+const asString = (value: unknown, fallback = ""): string =>
+  typeof value === "string" ? value : fallback;
+
+const asNumber = (value: unknown, fallback = 0): number => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+  return fallback;
+};
+
+const asStatus = (value: unknown): ProductApiStatus => {
+  if (value === "approved" || value === "pending" || value === "disapproved") {
+    return value;
+  }
+  return "pending";
+};
+
+const normalizeProduct = (value: unknown): ProductItem => {
+  const p = asObject(value);
+  const images = Array.isArray(p.images) ? p.images : [];
+  const firstImage = images.length > 0 ? asString(images[0]) : "";
+
+  return {
+    id: String(p._id ?? p.id ?? ""),
+    image: asString(p.image) || firstImage || asString(p.thumbnail),
+    name: asString(p.name) || asString(p.title, "Untitled"),
+    uploadedBy:
+      asString(p.uploadedBy) || (p.userId !== undefined ? String(p.userId) : ""),
+    quantity: asNumber(p.quantity ?? p.number ?? p.stock),
+    oldPrice: asNumber(p.oldPrice ?? p.price),
+    newPrice: asNumber(p.newPrice ?? p.price),
+    category: asString(p.category),
+    status: asStatus(p.status),
+    description: asString(p.description) || asString(p.desc),
+    rejectionReason: asString(p.rejectionReason),
+  };
+};
+
 const ContentModeration: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
     "approved" | "pending" | "disapproved"
@@ -31,51 +77,34 @@ const ContentModeration: React.FC = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      // Try multiple endpoints to support different role-protected routes.
+      // Manager flow should use manager/public product endpoints.
       const endpoints = [
-        "/admin/products",
-        "/products/all",
         "/manager/products",
+        "/products/all",
       ];
-      let res: any = null;
-      let data: any = null;
-      let items: any[] = [];
+      let data: unknown = null;
+      let items: unknown[] = [];
 
       for (const ep of endpoints) {
         try {
-          res = await api.get(`${ep}?limit=10000`);
-          if (res && (res.status === 200 || res.status === 201)) {
-            data = res.data;
-            items = Array.isArray(data?.products ? data.products : data)
-              ? (data.products ?? data)
-              : [];
+          const response = await api.get(`${ep}?limit=10000`);
+          if (response.status === 200 || response.status === 201) {
+            data = response.data;
+            const dataObject = asObject(data);
+            const productsOrData = dataObject.products ?? data;
+            items = Array.isArray(productsOrData) ? productsOrData : [];
             if (items.length > 0) break; // stop if we got products
             // even if empty array that's valid - break
             break;
           }
-        } catch (e: any) {
+        } catch (e: unknown) {
           // on 401/403 try next endpoint, otherwise bubble after trying all
-          if (
-            e?.response &&
-            (e.response.status === 401 || e.response.status === 403)
-          ) {
+          if (isAxiosError(e) && (e.response?.status === 401 || e.response?.status === 403)) {
             continue;
           }
         }
       }
-      const normalized = (items as any[]).map((p) => ({
-        id: String(p._id || p.id),
-        image: p.image ?? p.images?.[0] ?? p.thumbnail ?? "",
-        name: p.name ?? p.title ?? "Untitled",
-        uploadedBy: p.uploadedBy ?? (p.userId ? String(p.userId) : ""),
-        quantity: Number(p.quantity ?? p.number ?? p.stock ?? 0),
-        oldPrice: Number(p.oldPrice ?? p.price ?? 0),
-        newPrice: Number(p.newPrice ?? p.price ?? 0),
-        category: p.category ?? "",
-        status: (p.status as ProductItem["status"]) ?? "pending",
-        description: p.description ?? p.desc ?? "",
-        rejectionReason: p.rejectionReason ?? "",
-      }));
+      const normalized = items.map(normalizeProduct);
       setProducts(normalized);
     } catch (e) {
       console.error("Failed to load products for moderation", e);

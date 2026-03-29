@@ -1,10 +1,15 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import axios from "../../lib/axios";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../redux/store";
 import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useLoading } from "@/components/ui/LoadingProvider";
+import {
+  getMyCart,
+  updateCartItem,
+  type CartItem,
+  type CartUpdateAction,
+} from "../../lib/storeGraphql";
 import {
   ShoppingBag,
   Minus,
@@ -14,17 +19,6 @@ import {
   PackageOpen,
   X,
 } from "lucide-react";
-
-interface CartItem {
-  productId: {
-    _id: string;
-    name: string;
-    newPrice: number;
-    quantity: number;
-    image: string;
-  };
-  quantity: number;
-}
 
 const Cart: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -36,7 +30,7 @@ const Cart: React.FC = () => {
     [key: string]: string | undefined;
   }>({});
   const [pendingUpdates, setPendingUpdates] = useState<{
-    [key: string]: { action: string; amount?: number };
+    [key: string]: { action: CartUpdateAction; amount?: number };
   }>({});
   const [notes, setNotes] = useState<{
     [key: string]: string;
@@ -45,14 +39,28 @@ const Cart: React.FC = () => {
   // Keep a ref to the latest pending updates so the debounced sender always
   // reads the freshest data (avoids React state closure staleness).
   const pendingUpdatesRef = useRef<{
-    [key: string]: { action: string; amount?: number };
+    [key: string]: { action: CartUpdateAction; amount?: number };
   }>({});
+
+  const fetchCart = useCallback(async () => {
+    try {
+      showLoading();
+      const response = await getMyCart();
+      setCart(response.cart);
+      setTotal(response.amount);
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+      showToast("Failed to fetch cart", "error");
+    } finally {
+      hideLoading();
+    }
+  }, [hideLoading, showLoading, showToast]);
 
   useEffect(() => {
     if (user) {
       fetchCart();
     }
-  }, [user]);
+  }, [fetchCart, user]);
 
   useEffect(() => {
     return () => {
@@ -62,19 +70,6 @@ const Cart: React.FC = () => {
     };
   }, []);
 
-  const fetchCart = async () => {
-    try {
-      showLoading();
-      const response = await axios.get("/cart");
-      setCart(response.data.cart);
-      setTotal(response.data.amount);
-    } catch (error) {
-      console.error("Error fetching cart:", error);
-    } finally {
-      hideLoading();
-    }
-  };
-
   // Process pending updates from the ref (always reads freshest data).
   const processPendingUpdates = useCallback(async () => {
     const toSend = pendingUpdatesRef.current || {};
@@ -82,11 +77,7 @@ const Cart: React.FC = () => {
 
     try {
       const updatePromises = Object.entries(toSend).map(([productId, update]) =>
-        axios.put("/cart", {
-          productId,
-          action: update.action,
-          amount: update.amount,
-        })
+        updateCartItem(productId, update.action, update.amount),
       );
 
       await Promise.all(updatePromises);
@@ -96,9 +87,9 @@ const Cart: React.FC = () => {
       setPendingUpdates({});
 
       // Refresh cart data
-      const response = await axios.get("/cart");
-      setCart(response.data.cart);
-      setTotal(response.data.amount);
+      const response = await getMyCart();
+      setCart(response.cart);
+      setTotal(response.amount);
 
       showToast("Cart updated successfully!", "success");
     } catch (error) {
@@ -117,7 +108,7 @@ const Cart: React.FC = () => {
   const updateQuantity = (
     productId: string,
     newQuantity: number,
-    maxStock: number
+    maxStock: number,
   ) => {
     const cappedQuantity = Math.min(newQuantity, maxStock);
     if (cappedQuantity !== newQuantity) {
@@ -130,8 +121,8 @@ const Cart: React.FC = () => {
       prevCart.map((item) =>
         item.productId._id === productId
           ? { ...item, quantity: newQuantity }
-          : item
-      )
+          : item,
+      ),
     );
 
     // Update total optimistically
@@ -184,7 +175,7 @@ const Cart: React.FC = () => {
   const incrementQuantity = (
     productId: string,
     current: number,
-    maxStock: number
+    maxStock: number,
   ) => {
     const newQty = Math.min(current + 1, maxStock);
     if (newQty > current) {
@@ -195,7 +186,7 @@ const Cart: React.FC = () => {
   const decrementQuantity = (
     productId: string,
     current: number,
-    maxStock: number
+    maxStock: number,
   ) => {
     if (current > 1) {
       updateQuantity(productId, current - 1, maxStock);
@@ -208,21 +199,18 @@ const Cart: React.FC = () => {
 
     // Optimistic update
     setCart((prevCart) =>
-      prevCart.filter((item) => item.productId._id !== productId)
+      prevCart.filter((item) => item.productId._id !== productId),
     );
 
     if (itemToRemove) {
       setTotal(
         (prevTotal) =>
-          prevTotal - itemToRemove.quantity * itemToRemove.productId.newPrice
+          prevTotal - itemToRemove.quantity * itemToRemove.productId.newPrice,
       );
     }
 
     try {
-      await axios.put("/cart", {
-        productId,
-        action: "rem",
-      });
+      await updateCartItem(productId, "rem");
       showToast("Product removed from cart", "success");
     } catch (error) {
       console.error("Error removing product:", error);
@@ -325,7 +313,7 @@ const Cart: React.FC = () => {
                                 decrementQuantity(
                                   item.productId._id,
                                   item.quantity,
-                                  item.productId.quantity
+                                  item.productId.quantity,
                                 )
                               }
                               className="p-2 rounded-md hover:bg-white hover:shadow-sm text-amber-800 transition-all disabled:opacity-50"
@@ -342,13 +330,13 @@ const Cart: React.FC = () => {
                               onChange={(e) =>
                                 handleInputChange(
                                   item.productId._id,
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               onBlur={() =>
                                 handleQuantityBlur(
                                   item.productId._id,
-                                  item.productId.quantity
+                                  item.productId.quantity,
                                 )
                               }
                               onKeyDown={(e) => {
@@ -368,7 +356,7 @@ const Cart: React.FC = () => {
                                 incrementQuantity(
                                   item.productId._id,
                                   item.quantity,
-                                  item.productId.quantity
+                                  item.productId.quantity,
                                 )
                               }
                               className="p-2 rounded-md hover:bg-white hover:shadow-sm text-amber-800 transition-all disabled:opacity-50"

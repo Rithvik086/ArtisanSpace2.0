@@ -50,17 +50,35 @@ export const getUserOrders = async (req: Request, res: Response) => {
 
 export const placeOrder = async (req: Request, res: Response) => {
   try {
-    // IMPORTANT: Orders should only be placed through payment webhook
-    // This endpoint is deprecated and blocked for security
-    logger.warn(
-      { userId: req.user.id },
-      "Attempt to place order without payment - blocked",
-    );
-    return res.status(403).json({
-      success: false,
-      message:
-        "Orders must be placed through payment gateway. Please complete payment first.",
-    });
+    const paymentMethodRaw = req.body?.paymentMethod;
+    const paymentMethod =
+      typeof paymentMethodRaw === "string"
+        ? paymentMethodRaw.toLowerCase()
+        : "cod";
+
+    // This endpoint is for COD only. Online payment orders are created via webhook.
+    if (paymentMethod !== "cod") {
+      logger.warn(
+        { userId: req.user.id, paymentMethod },
+        "Attempt to place non-COD order on COD endpoint",
+      );
+      return res.status(403).json({
+        success: false,
+        message:
+          "Orders must be placed through payment gateway. Please complete payment first.",
+      });
+    }
+
+    const response = await placeUserOrder(req.user.id);
+
+    if (!response.success) {
+      return res.status(400).json({
+        success: false,
+        message: response.message || "Failed to place order",
+      });
+    }
+
+    return res.status(201).json(response);
   } catch (e) {
     logger.error(
       { error: (e as Error).message, userId: req.user.id },

@@ -38,10 +38,6 @@ export const verifytoken = async (
     };
     req.user = decoded;
     if (await userExists(req.user.id)) {
-      logger.debug(
-        { userId: decoded.id, role: decoded.role },
-        "User authenticated",
-      );
       next();
     } else {
       logger.warn({ userId: decoded.id }, "User not found in database");

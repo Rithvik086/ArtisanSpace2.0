@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import api from "../../lib/axios";
 
 type Inputs = {
@@ -12,6 +12,8 @@ export default function ResetPassword() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const token = searchParams.get("token");
 
   const {
@@ -28,6 +30,12 @@ export default function ResetPassword() {
     if (!token) {
       setMessage("Invalid reset link. No token provided.");
     }
+
+    return () => {
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+    };
   }, [token]);
 
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
@@ -43,7 +51,10 @@ export default function ResetPassword() {
         token,
         newPassword: data.newPassword,
       });
-      setMessage(response.data.message);
+      setMessage(`${response.data.message} Redirecting to login...`);
+      redirectTimeoutRef.current = setTimeout(() => {
+        navigate("/login");
+      }, 1800);
     } catch (error: any) {
       console.error("Reset password failed:", error);
       const message =

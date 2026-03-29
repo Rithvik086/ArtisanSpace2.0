@@ -10,6 +10,7 @@ type Inputs = {
 export default function ForgotPassword() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
+  const [resetLink, setResetLink] = useState("");
 
   const {
     register,
@@ -21,9 +22,13 @@ export default function ForgotPassword() {
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
     setIsSubmitting(true);
     setMessage("");
+    setResetLink("");
     try {
       const response = await api.post("/auth/forgot-password", data);
       setMessage(response.data.message);
+      if (typeof response.data.resetLink === "string") {
+        setResetLink(response.data.resetLink);
+      }
     } catch (error: any) {
       console.error("Forgot password failed:", error);
       const message =
@@ -77,6 +82,16 @@ export default function ForgotPassword() {
           {message && (
             <div className="mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
               {message}
+              {resetLink && (
+                <div className="mt-2 break-all">
+                  <a
+                    href={resetLink}
+                    className="underline font-medium text-green-800"
+                  >
+                    Open reset password link
+                  </a>
+                </div>
+              )}
             </div>
           )}
 

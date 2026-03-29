@@ -18,6 +18,7 @@ import config from "./config/index.js";
 import managerRoutes from "./routes/manager.routes.js";
 import productRoutes from "./routes/product.routes.js";
 import paymentRoutes from "./routes/payment.route.js";
+import { storeGraphQLHandler } from "./graphql/handler.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -98,6 +99,8 @@ app.use(
 
 app.use(cookieParser());
 app.use(express.json());
+
+app.all("/api/v1/graphql", storeGraphQLHandler);
 
 // Request logging middleware
 app.use((req: Request, _res: Response, next: NextFunction) => {
