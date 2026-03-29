@@ -5,9 +5,12 @@ import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import fs from "fs";
 import type { Request, Response, NextFunction } from "express";
+import swaggerJSDoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
 import dbConnect from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import usersRoutes from "./routes/users.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import deliveryRoutes from "./routes/delivery.routes.js";
 import logger from "./utils/logger.js";
@@ -25,6 +28,28 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 dotenv.config();
+
+// Swagger configuration
+const swaggerOptions = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "ArtisanSpace API",
+      version: "1.0.0",
+      description: "API documentation for ArtisanSpace e-commerce platform with role-based access control",
+    },
+    servers: [
+      {
+        url: `http://localhost:${config.PORT}/api/v1`,
+        description: "Development server",
+      },
+    ],
+
+  },
+  apis: ["./src/routes/*.ts"], // Paths to files containing OpenAPI definitions
+};
+
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
 
 // Create logs directory if it doesn't exist
 const logsDir = path.join(__dirname, "../logs");
@@ -97,9 +122,13 @@ apiRouter.use("/admin", adminRoutes);
 apiRouter.use("/delivery", deliveryRoutes);
 apiRouter.use("/manager", managerRoutes);
 apiRouter.use("/payments", paymentRoutes);
+apiRouter.use("/users", usersRoutes);
 apiRouter.use("/", userRoutes);
 
 app.use("/api/v1", apiRouter);
+
+// Swagger UI
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 if (config.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../../frontend/dist")));
