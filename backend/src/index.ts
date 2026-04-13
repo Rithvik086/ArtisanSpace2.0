@@ -18,6 +18,7 @@ import config from "./config/index.js";
 import managerRoutes from "./routes/manager.routes.js";
 import productRoutes from "./routes/product.routes.js";
 import paymentRoutes from "./routes/payment.route.js";
+import b2bRoutes from "./routes/b2b.routes.js";
 import cartRoutes from "./routes/cart.routes.js";
 import orderRoutes from "./routes/order.routes.js";
 import workshopRoutes from "./routes/workshop.routes.js";
@@ -43,13 +44,15 @@ const swaggerOptions = {
     info: {
       title: "ArtisanSpace API",
       version: "1.0.0",
-      description: "API documentation for ArtisanSpace e-commerce platform with role-based access control",
+      description:
+        "API documentation for ArtisanSpace e-commerce platform with role-based access control",
     },
     tags: [
       {
         name: "Artisan",
-        description: "Endpoints specifically for Artisans (e.g., workshops, products, custom requests)",
-      }
+        description:
+          "Endpoints specifically for Artisans (e.g., workshops, products, custom requests)",
+      },
     ],
     servers: [
       {
@@ -57,7 +60,6 @@ const swaggerOptions = {
         description: "Development server",
       },
     ],
-
   },
   apis: ["./src/routes/*.ts"], // Paths to files containing OpenAPI definitions
 };
@@ -137,6 +139,7 @@ apiRouter.use("/admin", adminRoutes);
 apiRouter.use("/delivery", deliveryRoutes);
 apiRouter.use("/manager", managerRoutes);
 apiRouter.use("/payments", paymentRoutes);
+apiRouter.use("/b2b", b2bRoutes);
 apiRouter.use("/users", usersRoutes);
 apiRouter.use("/cart", cartRoutes);
 apiRouter.use("/orders", orderRoutes);

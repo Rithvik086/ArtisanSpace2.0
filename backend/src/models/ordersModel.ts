@@ -14,6 +14,8 @@ const orderSchema = new mongoose.Schema({
   products: [
     {
       productId: {
+        sourceProductId: Types.ObjectId,
+        artisanId: Types.ObjectId,
         name: String,
         category: String,
         material: String,
@@ -72,6 +74,7 @@ const orderSchema = new mongoose.Schema({
 // Create indexes for faster query performance
 orderSchema.index({ userId: 1, isValid: 1 });
 orderSchema.index({ _id: 1, isValid: 1 });
+orderSchema.index({ "products.productId.artisanId": 1, isValid: 1 });
 orderSchema.index({ paymentId: 1 });
 orderSchema.index({ paymentStatus: 1 });
 

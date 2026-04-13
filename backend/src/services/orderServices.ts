@@ -65,6 +65,8 @@ export async function placeUserOrder(userId: string, paymentId?: string) {
       const product = item.productId as any;
       return {
         productId: {
+          sourceProductId: product._id,
+          artisanId: product.userId,
           name: product.name,
           category: product.category,
           material: product.material,
