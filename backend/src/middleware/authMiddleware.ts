@@ -22,7 +22,12 @@ export const verifytoken = async (
   res: Response,
   next: NextFunction,
 ) => {
-  let token = req.cookies.token;
+  const cookieToken = req.cookies?.token;
+  const authHeader = req.headers.authorization;
+  const bearerToken = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice(7).trim()
+    : undefined;
+  const token = cookieToken || bearerToken;
 
   if (!token) {
     logger.debug("Authentication failed: No token provided");
@@ -51,7 +56,9 @@ export const verifytoken = async (
       { error: (err as Error).message },
       "Token verification failed",
     );
-    res.clearCookie("token");
+    if (cookieToken) {
+      res.clearCookie("token");
+    }
     return res.status(401).json({ message: "Invalid token. Please log in." });
   }
 };

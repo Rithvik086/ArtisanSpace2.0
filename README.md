@@ -264,6 +264,7 @@ The backend provides RESTful APIs under `/api/v1/` prefix:
 - **Payments**: `/api/v1/payments/*`
 - **Admin**: `/api/v1/admin/*`
 - **Delivery**: `/api/v1/delivery/*`
+- **B2B Integrations**: `/api/v1/b2b/*` (JWT auth; use token from `/api/v1/auth/login`)
 
 ## 🧪 Testing
 

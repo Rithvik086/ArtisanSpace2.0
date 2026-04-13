@@ -18,7 +18,7 @@ interface Config {
   SKIP_DB?: string | undefined;
   RAZORPAY_API_KEY: string;
   RAZORPAY_SECRET: string;
-  RAZORPAY_WEBHOOK_SECRET: string
+  RAZORPAY_WEBHOOK_SECRET: string;
 }
 
 // Validate and parse environment variables
@@ -76,7 +76,7 @@ function validateConfig(): Config {
     SKIP_DB: process.env.SKIP_DB,
     RAZORPAY_API_KEY: process.env.RAZORPAY_API_KEY!,
     RAZORPAY_SECRET: process.env.RAZORPAY_SECRET!,
-    RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET!
+    RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET!,
   };
 }
 
