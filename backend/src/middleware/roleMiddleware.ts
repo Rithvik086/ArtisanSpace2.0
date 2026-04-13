@@ -3,6 +3,13 @@ import logger from "../utils/logger.js";
 
 const authorizerole = (...allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      logger.warn("Authorization failed: User not authenticated");
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized: Please log in." });
+    }
+
     if (!allowedRoles.includes(req.user.role)) {
       logger.warn(
         { userId: req.user.id, role: req.user.role, allowedRoles },
