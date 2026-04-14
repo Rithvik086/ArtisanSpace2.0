@@ -7,8 +7,11 @@ import {
   handleWorksopAction,
 } from "../controller/workshopController.js";
 import authorizerole from "../middleware/roleMiddleware.js";
+import { verifytoken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+router.use(verifytoken);
 
 /**
  * @swagger

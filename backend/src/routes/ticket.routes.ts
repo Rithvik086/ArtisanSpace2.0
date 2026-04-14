@@ -5,8 +5,11 @@ import {
   submitSuppotTicket,
 } from "../controller/ticketController.js";
 import authorizerole from "../middleware/roleMiddleware.js";
+import { verifytoken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+router.use(verifytoken);
 
 router.get("/", authorizerole("manager", "admin"), getSupportTickets);
 
