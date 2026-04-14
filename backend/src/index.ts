@@ -129,6 +129,9 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 // Create main API router for /api/v1/
 const apiRouter = express.Router();
 
+apiRouter.get("/health", (_req: Request, res: Response) => {
+  res.status(200).send("OK");
+});
 apiRouter.use("/auth", authRoutes);
 apiRouter.use("/products", productRoutes);
 apiRouter.use("/admin", adminRoutes);
