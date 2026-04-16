@@ -29,6 +29,7 @@ import { storeGraphQLHandler } from "./graphql/handler.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import { redisClient } from "./config/redis.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -82,6 +83,17 @@ if (config.SKIP_DB !== "true") {
   logger.info("SKIP_DB=true — skipping database connection for demo mode");
 }
 
+if (!redisClient.isOpen) {
+  try {
+    await redisClient.connect();
+  } catch (err) {
+    logger.error(
+      { error: (err as Error).message },
+      "Failed to connect to Redis server",
+    );
+  }
+}
+
 const PORT = config.PORT;
 const app = express();
 
@@ -129,6 +141,9 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 // Create main API router for /api/v1/
 const apiRouter = express.Router();
 
+apiRouter.get("/health", (_req: Request, res: Response) => {
+  res.status(200).send("OK");
+});
 apiRouter.use("/auth", authRoutes);
 apiRouter.use("/products", productRoutes);
 apiRouter.use("/admin", adminRoutes);

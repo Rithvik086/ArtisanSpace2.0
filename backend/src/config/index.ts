@@ -19,6 +19,7 @@ interface Config {
   RAZORPAY_API_KEY: string;
   RAZORPAY_SECRET: string;
   RAZORPAY_WEBHOOK_SECRET: string;
+  REDIS_URL?: string;
 }
 
 // Validate and parse environment variables
@@ -38,6 +39,7 @@ function validateConfig(): Config {
     "RAZORPAY_API_KEY",
     "RAZORPAY_SECRET",
     "RAZORPAY_WEBHOOK_SECRET",
+    "REDIS_URL",
   ];
 
   const missingVars: string[] = [];
@@ -51,7 +53,7 @@ function validateConfig(): Config {
   if (missingVars.length > 0) {
     throw new Error(
       `Missing required environment variables: ${missingVars.join(", ")}\n` +
-        "Please check your .env file and ensure all required variables are set."
+        "Please check your .env file and ensure all required variables are set.",
     );
   }
 
@@ -77,6 +79,7 @@ function validateConfig(): Config {
     RAZORPAY_API_KEY: process.env.RAZORPAY_API_KEY!,
     RAZORPAY_SECRET: process.env.RAZORPAY_SECRET!,
     RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET!,
+    REDIS_URL: process.env.REDIS_URL!,
   };
 }
 
