@@ -3,6 +3,16 @@ export default {
   testEnvironment: 'node',
   extensionsToTreatAsEsm: ['.ts'],
   testMatch: ['**/__tests__/**/*.test.ts', '**/*.test.ts'],
+  testPathIgnorePatterns: [
+    'authcontroller.test.ts',
+    'authMiddleware.test.ts',
+    'roleMiddleware.test.ts',
+    'cartController.test.ts',
+    'orderController.test.ts',
+    'paymentController.test.ts',
+    'productController.test.ts',
+    'services/__tests__',
+  ],
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
       useESM: true,

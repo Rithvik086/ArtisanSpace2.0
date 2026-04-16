@@ -1,31 +1,23 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Filter, SlidersHorizontal, Check } from "lucide-react";
+import Fuse from "fuse.js";
 import StoreCard from "@/components/customer/StoreCard";
 import {
   addProductToCart,
   getStoreProducts,
-  type PaginationInfo,
   type StoreProduct,
 } from "../../lib/storeGraphql";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useLoading } from "@/components/ui/LoadingProvider";
 
 const Store: React.FC = () => {
-  const [products, setProducts] = useState<StoreProduct[]>([]);
+  const [allProducts, setAllProducts] = useState<StoreProduct[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [appliedSearchTerm, setAppliedSearchTerm] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [pagination, setPagination] = useState<PaginationInfo>({
-    currentPage: 1,
-    totalPages: 1,
-    totalProducts: 0,
-    hasNextPage: false,
-    hasPrevPage: false,
-  });
   const { showToast } = useToast();
   const { showLoading, hideLoading } = useLoading();
 
@@ -52,15 +44,14 @@ const Store: React.FC = () => {
     try {
       showLoading();
       const response = await getStoreProducts({
-        page: currentPage,
-        limit: 12,
+        page: 1,
+        limit: 1000, // Load all products for client-side search
         categories: selectedCategories,
         materials: selectedMaterials,
-        search: appliedSearchTerm || undefined,
       });
 
-      setProducts(response.products);
-      setPagination(response.pagination);
+      setAllProducts(response.products);
+      setCurrentPage(1);
     } catch (error) {
       console.error("Error fetching products:", error);
       showToast("Failed to load products", "error");
@@ -68,8 +59,6 @@ const Store: React.FC = () => {
       hideLoading();
     }
   }, [
-    appliedSearchTerm,
-    currentPage,
     selectedCategories,
     selectedMaterials,
     showToast,
@@ -99,7 +88,7 @@ const Store: React.FC = () => {
     setSelectedCategories((prev) =>
       prev.includes(category)
         ? prev.filter((c) => c !== category)
-        : [...prev, category]
+        : [...prev, category],
     );
     setCurrentPage(1);
   };
@@ -108,16 +97,37 @@ const Store: React.FC = () => {
     setSelectedMaterials((prev) =>
       prev.includes(material)
         ? prev.filter((m) => m !== material)
-        : [...prev, material]
+        : [...prev, material],
     );
     setCurrentPage(1);
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentPage(1);
-    setAppliedSearchTerm(searchTerm.trim());
-  };
+  // Fuzzy search with Fuse.js
+  const { displayProducts, pageCount } = useMemo(() => {
+    let filtered = allProducts;
+
+    // Apply fuzzy search if search term exists
+    if (searchTerm.trim()) {
+      const fuse = new Fuse(allProducts, {
+        keys: ["name", "category", "material", "description"],
+        threshold: 0.3, // Tolerance level (0 = strict, 0.3 = balanced, 0.5+ = very fuzzy)
+        distance: 100, // Max distance between word characters
+        minMatchCharLength: 1, // Minimum match length
+      });
+
+      filtered = fuse.search(searchTerm).map((result) => result.item);
+    }
+
+    // Apply pagination only when not searching (show all search results)
+    const totalCount = filtered.length;
+    const itemsPerPage = searchTerm.trim() ? totalCount : 12; // Show all when searching
+    const pageCount = Math.ceil(totalCount / itemsPerPage);
+    const skip = (currentPage - 1) * itemsPerPage;
+
+    const products = filtered.slice(skip, skip + itemsPerPage);
+
+    return { displayProducts: products, pageCount };
+  }, [allProducts, searchTerm, currentPage]);
 
   // Animation variants
   const containerVariants = {
@@ -175,7 +185,7 @@ const Store: React.FC = () => {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="relative max-w-2xl mx-auto"
           >
-            <form onSubmit={handleSearch} className="relative group">
+            <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <Search className="h-5 w-5 text-stone-400 group-focus-within:text-amber-600 transition-colors" />
               </div>
@@ -183,16 +193,13 @@ const Store: React.FC = () => {
                 type="text"
                 placeholder="Search for jewelry, pottery, woodwork..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1); // Reset to first page when searching
+                }}
                 className="block w-full pl-12 pr-4 py-4 bg-white border-2 border-stone-200 rounded-full text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all shadow-lg hover:shadow-xl"
               />
-              <button
-                type="submit"
-                className="absolute right-2 top-2 bottom-2 bg-amber-900 text-white px-6 rounded-full font-medium hover:bg-amber-800 transition-colors"
-              >
-                Search
-              </button>
-            </form>
+            </div>
           </motion.div>
         </div>
       </section>
@@ -315,7 +322,7 @@ const Store: React.FC = () => {
 
           {/* Product Grid */}
           <div className="flex-1">
-            {products.length === 0 ? (
+            {displayProducts.length === 0 ? (
               <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-stone-300">
                 <div className="bg-stone-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Search className="h-10 w-10 text-stone-400" />
@@ -325,15 +332,14 @@ const Store: React.FC = () => {
                 </h3>
                 <p className="text-stone-500 max-w-md mx-auto mb-8">
                   We couldn't find any matches for
-                  {appliedSearchTerm
-                    ? ` "${appliedSearchTerm}"`
+                  {searchTerm.trim()
+                    ? ` "${searchTerm}"`
                     : " your current filters"}
                   . Try adjusting your filters or search terms.
                 </p>
                 <button
                   onClick={() => {
                     setSearchTerm("");
-                    setAppliedSearchTerm("");
                     setSelectedCategories([]);
                     setSelectedMaterials([]);
                     setCurrentPage(1);
@@ -352,7 +358,7 @@ const Store: React.FC = () => {
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
                 >
                   <AnimatePresence>
-                    {products.map((product) => (
+                    {displayProducts.map((product) => (
                       <motion.div
                         key={product._id}
                         variants={itemVariants}
@@ -367,26 +373,25 @@ const Store: React.FC = () => {
                   </AnimatePresence>
                 </motion.div>
 
-                {/* Pagination */}
-                {pagination.totalPages > 1 && (
+                {/* Pagination - Hide when searching */}
+                {pageCount > 1 && !searchTerm.trim() && (
                   <div className="flex justify-center mt-16">
                     <nav className="flex items-center gap-2 bg-white p-2 rounded-xl shadow-sm border border-stone-100">
-                      {Array.from(
-                        { length: pagination.totalPages },
-                        (_, i) => i + 1
-                      ).map((page) => (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`w-10 h-10 rounded-lg flex items-center justify-center font-medium transition-all ${
-                            page === currentPage
-                              ? "bg-amber-900 text-white shadow-md"
-                              : "text-stone-600 hover:bg-stone-100"
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
+                      {Array.from({ length: pageCount }, (_, i) => i + 1).map(
+                        (page) => (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`w-10 h-10 rounded-lg flex items-center justify-center font-medium transition-all ${
+                              page === currentPage
+                                ? "bg-amber-900 text-white shadow-md"
+                                : "text-stone-600 hover:bg-stone-100"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ),
+                      )}
                     </nav>
                   </div>
                 )}
