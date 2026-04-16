@@ -6,7 +6,6 @@ import StoreCard from "@/components/customer/StoreCard";
 import {
   addProductToCart,
   getStoreProducts,
-  type PaginationInfo,
   type StoreProduct,
 } from "../../lib/storeGraphql";
 import { useToast } from "@/components/ui/ToastProvider";
@@ -19,13 +18,6 @@ const Store: React.FC = () => {
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [pagination, setPagination] = useState<PaginationInfo>({
-    currentPage: 1,
-    totalPages: 1,
-    totalProducts: 0,
-    hasNextPage: false,
-    hasPrevPage: false,
-  });
   const { showToast } = useToast();
   const { showLoading, hideLoading } = useLoading();
 
@@ -96,7 +88,7 @@ const Store: React.FC = () => {
     setSelectedCategories((prev) =>
       prev.includes(category)
         ? prev.filter((c) => c !== category)
-        : [...prev, category]
+        : [...prev, category],
     );
     setCurrentPage(1);
   };
@@ -105,7 +97,7 @@ const Store: React.FC = () => {
     setSelectedMaterials((prev) =>
       prev.includes(material)
         ? prev.filter((m) => m !== material)
-        : [...prev, material]
+        : [...prev, material],
     );
     setCurrentPage(1);
   };
@@ -385,22 +377,21 @@ const Store: React.FC = () => {
                 {pageCount > 1 && !searchTerm.trim() && (
                   <div className="flex justify-center mt-16">
                     <nav className="flex items-center gap-2 bg-white p-2 rounded-xl shadow-sm border border-stone-100">
-                      {Array.from(
-                        { length: pageCount },
-                        (_, i) => i + 1
-                      ).map((page) => (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`w-10 h-10 rounded-lg flex items-center justify-center font-medium transition-all ${
-                            page === currentPage
-                              ? "bg-amber-900 text-white shadow-md"
-                              : "text-stone-600 hover:bg-stone-100"
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
+                      {Array.from({ length: pageCount }, (_, i) => i + 1).map(
+                        (page) => (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`w-10 h-10 rounded-lg flex items-center justify-center font-medium transition-all ${
+                              page === currentPage
+                                ? "bg-amber-900 text-white shadow-md"
+                                : "text-stone-600 hover:bg-stone-100"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ),
+                      )}
                     </nav>
                   </div>
                 )}
