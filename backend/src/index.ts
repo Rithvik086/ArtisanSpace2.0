@@ -29,6 +29,7 @@ import { storeGraphQLHandler } from "./graphql/handler.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import { redisClient } from "./config/redis.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -80,6 +81,17 @@ if (config.SKIP_DB !== "true") {
   await dbConnect.connect();
 } else {
   logger.info("SKIP_DB=true — skipping database connection for demo mode");
+}
+
+if (!redisClient.isOpen) {
+  try {
+    await redisClient.connect();
+  } catch (err) {
+    logger.error(
+      { error: (err as Error).message },
+      "Failed to connect to Redis server",
+    );
+  }
 }
 
 const PORT = config.PORT;
