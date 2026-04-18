@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Configuration
-const BASE_URL = "https://as.lightshadow.tech/api/v1";
+const BASE_URL = "http://localhost:3000/api/v1";
 
 const DEFAULT_SUCCESS_STATUSES = [200, 201, 204];
 const AUTO_PROVISIONED_ROLES = ["customer", "artisan"];
@@ -62,12 +62,6 @@ const ROUTES = [
   {
     method: "GET",
     path: "/products/my",
-    requiresAuth: true,
-    authRole: "customer",
-  },
-  {
-    method: "GET",
-    path: "/products",
     requiresAuth: true,
     authRole: "customer",
   },

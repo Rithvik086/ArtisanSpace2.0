@@ -4,8 +4,25 @@ import {
   addRequest,
   approveRequest,
   deleteRequest,
-  getRequests,
+  getAcceptedRequestsForArtisan,
+  getAvailableRequests,
+  getRequestsByUser,
 } from "../services/customRequestService.js";
+import { Redis } from "../lib/redis.ts";
+
+const getPaginationParams = (req: Request) => {
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.max(1, Math.min(100, Number(req.query.limit) || 25));
+  return { page, limit };
+};
+
+const invalidateCustomRequestCache = async () => {
+  try {
+    await Redis.delByPrefix("custom:requests:");
+  } catch {
+    // Cache invalidation should not block successful write operations.
+  }
+};
 
 export const getCustomRequests = async (req: Request, res: Response) => {
   try {
@@ -20,14 +37,21 @@ export const getCustomRequests = async (req: Request, res: Response) => {
       return;
     }
 
-    const availableRequests = await getRequests(false);
+    const { page, limit } = getPaginationParams(req);
 
-    const acceptedRequests = await getRequests(true, currentArtisanId);
+    const [availableResult, acceptedResult] = await Promise.all([
+      getAvailableRequests({ page, limit }),
+      getAcceptedRequestsForArtisan(currentArtisanId, { page, limit }),
+    ]);
 
     res.status(200).json({
       success: true,
-      availableRequests,
-      acceptedRequests,
+      availableRequests: availableResult.requests,
+      acceptedRequests: acceptedResult.requests,
+      pagination: {
+        availableRequests: availableResult.pagination,
+        acceptedRequests: acceptedResult.pagination,
+      },
     });
   } catch (error) {
     throw new Error("Error processing request: " + (error as Error).message);
@@ -37,14 +61,13 @@ export const getCustomRequests = async (req: Request, res: Response) => {
 export const getUserCustomRequests = async (req: Request, res: Response) => {
   try {
     const userId = req.user.id as string;
-    const requests = await getRequests(null, null); // Get all, then filter by userId
-    const userRequests = requests.filter(
-      (req: any) => req.userId._id.toString() === userId
-    );
+    const { page, limit } = getPaginationParams(req);
+    const result = await getRequestsByUser(userId, { page, limit });
 
     res.status(200).json({
       success: true,
-      requests: userRequests,
+      requests: result.requests,
+      pagination: result.pagination,
     });
   } catch (error) {
     throw new Error(
@@ -148,6 +171,8 @@ export const reqCustomOrder = async (req: Request, res: Response) => {
       budget.trim(),
       requiredBy
     );
+    await invalidateCustomRequestCache();
+
     res.json({
       success: true,
       message: "Custom order submitted successfully!",
@@ -164,6 +189,7 @@ export const approveCustomRequest = async (req: Request, res: Response) => {
   try {
     const approvingartisanid = req.user.id as string;
     await approveRequest(req.body.requestId as string, approvingartisanid);
+    await invalidateCustomRequestCache();
 
     res
       .status(200)
@@ -178,6 +204,8 @@ export const approveCustomRequest = async (req: Request, res: Response) => {
 export const deleteCustomRequest = async (req: Request, res: Response) => {
   try {
     await deleteRequest(req.params.requestId as string);
+    await invalidateCustomRequestCache();
+
     res
       .status(200)
       .json({ success: true, message: "Request approved successfully" });

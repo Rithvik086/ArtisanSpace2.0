@@ -53,6 +53,11 @@ const customRequestSchema = new mongoose.Schema({
   },
 });
 
+// Query-shape indexes for custom requests lists.
+customRequestSchema.index({ isValid: 1, isAccepted: 1, createdAt: -1 });
+customRequestSchema.index({ isValid: 1, artisanId: 1, isAccepted: 1, createdAt: -1 });
+customRequestSchema.index({ isValid: 1, userId: 1, createdAt: -1 });
+
 // Pre-save middleware to update updatedAt on every save
 customRequestSchema.pre("save", function (next) {
   this.updatedAt = new Date().toISOString();

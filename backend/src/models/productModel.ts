@@ -74,6 +74,8 @@ const productSchema = new mongoose.Schema({
 productSchema.index({ _id: 1, isValid: 1 });
 productSchema.index({ status: 1, isValid: 1 });
 productSchema.index({ userId: 1, isValid: 1 });
+productSchema.index({ status: 1, isValid: 1, updatedAt: -1 });
+productSchema.index({ userId: 1, isValid: 1, status: 1, updatedAt: -1 });
 
 // Pre-save middleware to update updatedAt on every save
 productSchema.pre("save", function (next) {
