@@ -5,12 +5,14 @@ interface StatsProps {
   total: number;
   active: number;
   monthValue?: string | number;
+  monthLabel?: string;
 }
 
 export default function StatsOverview({
   total,
   active,
   monthValue = "—",
+  monthLabel = "This Month",
 }: StatsProps) {
   return (
     <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -46,7 +48,7 @@ export default function StatsOverview({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-amber-700 uppercase tracking-wide font-baloo">
-              This Month
+              {monthLabel}
             </p>
             <p className="text-3xl font-bold text-amber-900 mt-2 font-baloo">
               {monthValue}

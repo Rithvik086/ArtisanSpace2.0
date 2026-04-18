@@ -1,2 +1,4 @@
 node_modules/
 .env
+telemetry/
+OPTIMIZATION_ANALYSIS.md 

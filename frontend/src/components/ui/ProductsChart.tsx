@@ -19,6 +19,7 @@ interface ProductsChartProps {
   total: number;
   active: number;
   pending: number;
+  rejected?: number;
 }
 
 interface ChartData {
