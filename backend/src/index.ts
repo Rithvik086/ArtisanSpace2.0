@@ -25,6 +25,7 @@ import workshopRoutes from "./routes/workshop.routes.js";
 import ticketRoutes from "./routes/ticket.routes.js";
 import customRequestRoutes from "./routes/customRequest.routes.js";
 import dataRoutes from "./routes/data.routes.js";
+import artisanRoutes from "./routes/artisan.routes.js";
 import { storeGraphQLHandler } from "./graphql/handler.js";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -158,6 +159,7 @@ apiRouter.use("/workshops", workshopRoutes);
 apiRouter.use("/tickets", ticketRoutes);
 apiRouter.use("/custom-requests", customRequestRoutes);
 apiRouter.use("/data", dataRoutes);
+apiRouter.use("/artisan", artisanRoutes);
 apiRouter.use("/", userRoutes);
 
 app.use("/api/v1", apiRouter);

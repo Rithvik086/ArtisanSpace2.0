@@ -18,18 +18,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 interface SalesData {
-  month: string;
+  label: string;
   sales: number;
 }
-
-const chartData: SalesData[] = [
-  { month: "January", sales: 18600 },
-  { month: "February", sales: 30500 },
-  { month: "March", sales: 23700 },
-  { month: "April", sales: 17300 },
-  { month: "May", sales: 20900 },
-  { month: "June", sales: 21400 },
-];
 
 const chartConfig = {
   sales: {
@@ -38,27 +29,39 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function SalesChart() {
+interface SalesChartProps {
+  data: SalesData[];
+  periodLabel: string;
+  revenueChange?: string;
+}
+
+export function SalesChart({
+  data,
+  periodLabel,
+  revenueChange,
+}: SalesChartProps) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>
           Total Sales
-          <Badge
-            variant="secondary"
-            className="text-green-600 bg-green-500/10 border-none ml-2"
-          >
-            <TrendingUp className="h-4 w-4" />
-            <span>+15.2%</span>
-          </Badge>
+          {revenueChange ? (
+            <Badge
+              variant="secondary"
+              className="text-green-600 bg-green-500/10 border-none ml-2"
+            >
+              <TrendingUp className="h-4 w-4" />
+              <span>{revenueChange}</span>
+            </Badge>
+          ) : null}
         </CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardDescription>{periodLabel}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-64">
           <LineChart
             accessibilityLayer
-            data={chartData}
+            data={data}
             margin={{
               left: 12,
               right: 12,
@@ -66,7 +69,7 @@ export function SalesChart() {
           >
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="month"
+              dataKey="label"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
@@ -74,10 +77,14 @@ export function SalesChart() {
             />
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent 
-                hideLabel 
-                formatter={(value: any) => `₹${Number(value).toLocaleString()}`}
-              />}
+              content={
+                <ChartTooltipContent
+                  hideLabel
+                  formatter={(value: any) =>
+                    `₹${Number(value).toLocaleString()}`
+                  }
+                />
+              }
             />
             <Line
               dataKey="sales"
