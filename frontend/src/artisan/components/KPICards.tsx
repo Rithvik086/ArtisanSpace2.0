@@ -1,10 +1,3 @@
-import {
-  TrendingUp,
-  Package,
-  ShoppingCart,
-  DollarSign,
-  AlertCircle,
-} from "lucide-react";
 import { craftStyles, cn } from "../../styles/theme";
 
 interface KPICardProps {

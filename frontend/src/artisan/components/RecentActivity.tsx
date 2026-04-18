@@ -1,4 +1,3 @@
-import React from "react";
 import { ShoppingCart, TrendingUp } from "lucide-react";
 import { craftStyles, cn } from "../../styles/theme";
 

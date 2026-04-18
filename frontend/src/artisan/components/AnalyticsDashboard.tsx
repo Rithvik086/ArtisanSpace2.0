@@ -12,7 +12,7 @@ import {
 } from "./StatusBreakdown";
 import { RecentOrders, TopProducts } from "./RecentActivity";
 import { RevenueTrend, OrdersTrend } from "./Charts";
-import { DollarSign, ShoppingCart, Package, TrendingUp } from "lucide-react";
+import { IndianRupee, ShoppingCart, Package, TrendingUp } from "lucide-react";
 
 interface ArtisanAnalytics {
   totalRevenue: number;
@@ -151,7 +151,7 @@ export function AnalyticsDashboard({
           {
             label: "Total Revenue",
             value: `₹${analytics.totalRevenue.toFixed(2)}`,
-            icon: <DollarSign className="w-12 h-12" />,
+            icon: <IndianRupee className="w-12 h-12" />,
             subtext: `${analytics.totalOrders} orders overall`,
           },
           {

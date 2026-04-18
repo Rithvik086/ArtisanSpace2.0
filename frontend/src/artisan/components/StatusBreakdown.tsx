@@ -1,5 +1,4 @@
-import React from "react";
-import { Package, Clock, Truck, CheckCircle, XCircle } from "lucide-react";
+import { Clock, Truck, CheckCircle, XCircle } from "lucide-react";
 import { craftStyles, cn } from "../../styles/theme";
 
 interface StatusBreakdownProps {
