@@ -88,9 +88,9 @@ export const getArtisanAnalytics = async (req: Request, res: Response) => {
 
         const cacheKey = `artisan:analytics:${artisanId}:${period}`;
 
-        const cached = await Redis.get(cacheKey);
+        const cached = await Redis.get<any>(cacheKey);
         if (cached) {
-            return res.json(JSON.parse(cached));
+            return res.json(cached);
         }
 
         // Fetch all required data in parallel
@@ -161,7 +161,7 @@ export const getArtisanAnalytics = async (req: Request, res: Response) => {
             .map((order) => ({
                 _id: order._id.toString(),
                 money: order.money,
-                purchasedAt: order.purchasedAt,
+                purchasedAt: new Date(order.purchasedAt).toISOString(),
                 status: order.status,
                 paymentStatus: order.paymentStatus,
                 productCount: order.products.length,
@@ -171,6 +171,7 @@ export const getArtisanAnalytics = async (req: Request, res: Response) => {
         const productSalesMap = new Map<string, { count: number; product: any }>();
         allOrders.forEach((order) => {
             order.products.forEach((item) => {
+                if (!item.productId?.sourceProductId) return;
                 const prodId = item.productId.sourceProductId.toString();
                 const existing = productSalesMap.get(prodId) || {
                     count: 0,
@@ -241,9 +242,9 @@ export const getArtisanOrderTrend = async (req: Request, res: Response) => {
         const { startDate, endDate, label } = getPeriodBounds(period);
 
         const cacheKey = `artisan:trend:${artisanId}:${period}`;
-        const cached = await Redis.get(cacheKey);
+        const cached = await Redis.get<any>(cacheKey);
         if (cached) {
-            return res.json(JSON.parse(cached));
+            return res.json(cached);
         }
 
         const orders = await Order.find({
@@ -261,7 +262,7 @@ export const getArtisanOrderTrend = async (req: Request, res: Response) => {
         orders.forEach((order) => {
             const date = new Date(order.purchasedAt);
             if (date >= startDate && date <= endDate) {
-                const dateStr = date.toISOString().split("T")[0];
+                const dateStr = date.toISOString().split("T")[0]!;
                 const existing = trendMap.get(dateStr) || { revenue: 0, count: 0 };
                 existing.revenue += order.money;
                 existing.count += 1;
@@ -274,7 +275,7 @@ export const getArtisanOrderTrend = async (req: Request, res: Response) => {
         const totalDays = ANALYTICS_PERIODS[period].days;
         for (let i = totalDays - 1; i >= 0; i--) {
             const date = new Date(endDate.getTime() - i * 24 * 60 * 60 * 1000);
-            const dateStr = date.toISOString().split("T")[0];
+            const dateStr = date.toISOString().split("T")[0]!;
             const data = trendMap.get(dateStr);
             trend.push({
                 date: dateStr,
