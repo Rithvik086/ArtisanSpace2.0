@@ -2,15 +2,23 @@ import type { Request, Response } from "express";
 import { getOrders } from "../services/orderServices.js";
 import { getProducts } from "../services/productServices.js";
 import { getUsers } from "../services/userServices.js";
+import { Redis } from "../lib/redis.ts";
+
+const CHART_CACHE_TTL_SECONDS = 60;
 
 export const getOrdersChart = async (req: Request, res: Response) => {
   try {
-    const orders = await getOrders();
-
-    const formatted = orders.map((order) => ({
-      purchasedAt: order.purchasedAt,
-      amount: order.money,
-    }));
+    const formatted = await Redis.getOrSet(
+      "chart:orders",
+      async () => {
+        const orders = await getOrders();
+        return orders.map((order) => ({
+          purchasedAt: order.purchasedAt,
+          amount: order.money,
+        }));
+      },
+      CHART_CACHE_TTL_SECONDS,
+    );
 
     res.json(formatted);
   } catch (error) {
@@ -22,12 +30,17 @@ export const getOrdersChart = async (req: Request, res: Response) => {
 
 export const getProductsChart = async (req: Request, res: Response) => {
   try {
-    const { products } = await getProducts();
-
-    const formatted = products.map((product) => ({
-      createdAt: product._id.getTimestamp(),
-      name: product.name,
-    }));
+    const formatted = await Redis.getOrSet(
+      "chart:products",
+      async () => {
+        const { products } = await getProducts();
+        return products.map((product) => ({
+          createdAt: product._id.getTimestamp(),
+          name: product.name,
+        }));
+      },
+      CHART_CACHE_TTL_SECONDS,
+    );
 
     res.json(formatted);
   } catch (error) {
@@ -39,10 +52,17 @@ export const getProductsChart = async (req: Request, res: Response) => {
 
 export const getCustomerChart = async (req: Request, res: Response) => {
   try {
-    const customers = await getUsers();
-    const formatted = customers.map((c) => ({
-      registeredAt: c._id.getTimestamp(),
-    }));
+    const formatted = await Redis.getOrSet(
+      "chart:customers",
+      async () => {
+        const customers = await getUsers();
+        return customers.map((c) => ({
+          registeredAt: c._id.getTimestamp(),
+        }));
+      },
+      CHART_CACHE_TTL_SECONDS,
+    );
+
     res.json(formatted);
   } catch (error) {
     throw new Error(

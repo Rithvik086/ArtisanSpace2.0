@@ -1,0 +1,1707 @@
+{
+  "metadata": {
+    "collectionTime": "2026-04-18T11:53:56.892Z",
+    "baseUrl": "https://as.lightshadow.tech/api/v1",
+    "totalDuration": "17865.00ms"
+  },
+  "summary": {
+    "totalRoutes": 86,
+    "executedRoutes": 60,
+    "skippedRequests": 26,
+    "successfulRequests": 56,
+    "failedRequests": 4,
+    "successRate": "93.33%"
+  },
+  "responseTimeStats": {
+    "average": "152.15ms",
+    "min": "50.06ms",
+    "max": "3540.83ms"
+  },
+  "dataStats": {
+    "totalDataTransferred": "33.31 KB",
+    "averageResponseSize": "0.56 KB"
+  },
+  "fastestRoutes": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "responseTime": "50.06ms",
+      "statusCode": 200
+    },
+    {
+      "method": "GET",
+      "path": "/data/products_chart",
+      "responseTime": "51.48ms",
+      "statusCode": 401
+    },
+    {
+      "method": "POST",
+      "path": "/auth/logout",
+      "responseTime": "52.1ms",
+      "statusCode": 200
+    },
+    {
+      "method": "GET",
+      "path": "/data/orders_chart",
+      "responseTime": "52.11ms",
+      "statusCode": 401
+    },
+    {
+      "method": "GET",
+      "path": "/auth/verify-email",
+      "responseTime": "52.52ms",
+      "statusCode": 400
+    }
+  ],
+  "slowestRoutes": [
+    {
+      "method": "POST",
+      "path": "/auth/forgot-password",
+      "responseTime": "3540.83ms",
+      "statusCode": 200
+    },
+    {
+      "method": "GET",
+      "path": "/b2b/analytics/sales",
+      "responseTime": "315.33ms",
+      "statusCode": 200
+    },
+    {
+      "method": "GET",
+      "path": "/products/all",
+      "responseTime": "292.92ms",
+      "statusCode": 200
+    },
+    {
+      "method": "GET",
+      "path": "/manager/products",
+      "responseTime": "137.54ms",
+      "statusCode": 403
+    },
+    {
+      "method": "POST",
+      "path": "/payments/create-order",
+      "responseTime": "127.34ms",
+      "statusCode": 400
+    }
+  ],
+  "failedRoutes": [
+    {
+      "method": "POST",
+      "path": "/orders",
+      "statusCode": 500,
+      "error": "HTTP 500 (expected: 201, 400)",
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        201,
+        400
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/data/customer_chart",
+      "statusCode": 401,
+      "error": "HTTP 401 (expected: 200, 201, 204)",
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/data/orders_chart",
+      "statusCode": 401,
+      "error": "HTTP 401 (expected: 200, 201, 204)",
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/data/products_chart",
+      "statusCode": 401,
+      "error": "HTTP 401 (expected: 200, 201, 204)",
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ]
+    }
+  ],
+  "detailedResults": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "url": "https://as.lightshadow.tech/api/v1/health",
+      "statusCode": 200,
+      "responseTime": 50.06,
+      "responseSize": 2,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": false,
+      "authRoleUsed": null,
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:39.172Z",
+      "error": null
+    },
+    {
+      "method": "POST",
+      "path": "/auth/logout",
+      "url": "https://as.lightshadow.tech/api/v1/auth/logout",
+      "statusCode": 200,
+      "responseTime": 52.1,
+      "responseSize": 37,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:39.325Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/auth/me",
+      "url": "https://as.lightshadow.tech/api/v1/auth/me",
+      "statusCode": 200,
+      "responseTime": 85.89,
+      "responseSize": 378,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:39.511Z",
+      "error": null
+    },
+    {
+      "method": "POST",
+      "path": "/auth/update-profile",
+      "url": "https://as.lightshadow.tech/api/v1/auth/update-profile",
+      "statusCode": 200,
+      "responseTime": 106.29,
+      "responseSize": 16,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:39.718Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/products/approved",
+      "url": "https://as.lightshadow.tech/api/v1/products/approved",
+      "statusCode": 200,
+      "responseTime": 116.39,
+      "responseSize": 5696,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": false,
+      "authRoleUsed": null,
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:39.935Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/products/public",
+      "url": "https://as.lightshadow.tech/api/v1/products/public",
+      "statusCode": 200,
+      "responseTime": 95.06,
+      "responseSize": 5696,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": false,
+      "authRoleUsed": null,
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:40.130Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/products/my",
+      "url": "https://as.lightshadow.tech/api/v1/products/my",
+      "statusCode": 200,
+      "responseTime": 111.33,
+      "responseSize": 134,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:40.342Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/products",
+      "url": "https://as.lightshadow.tech/api/v1/products",
+      "statusCode": 200,
+      "responseTime": 88.97,
+      "responseSize": 2361,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:40.532Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/products",
+      "url": "https://as.lightshadow.tech/api/v1/admin/products",
+      "statusCode": 403,
+      "responseTime": 67.01,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:40.699Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/orders",
+      "url": "https://as.lightshadow.tech/api/v1/admin/orders",
+      "statusCode": 403,
+      "responseTime": 67.86,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:40.868Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/sales",
+      "url": "https://as.lightshadow.tech/api/v1/admin/sales",
+      "statusCode": 403,
+      "responseTime": 91.75,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:41.060Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/manager/products",
+      "url": "https://as.lightshadow.tech/api/v1/manager/products",
+      "statusCode": 403,
+      "responseTime": 137.54,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:41.298Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/manager/orders",
+      "url": "https://as.lightshadow.tech/api/v1/manager/orders",
+      "statusCode": 403,
+      "responseTime": 69.67,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:41.468Z",
+      "error": null
+    },
+    {
+      "method": "POST",
+      "path": "/payments/create-order",
+      "url": "https://as.lightshadow.tech/api/v1/payments/create-order",
+      "statusCode": 400,
+      "responseTime": 127.34,
+      "responseSize": 43,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        400
+      ],
+      "timestamp": "2026-04-18T11:53:41.696Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/b2b",
+      "url": "https://as.lightshadow.tech/api/v1/b2b",
+      "statusCode": 200,
+      "responseTime": 78.03,
+      "responseSize": 448,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:41.874Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/b2b/products",
+      "url": "https://as.lightshadow.tech/api/v1/b2b/products",
+      "statusCode": 200,
+      "responseTime": 91.45,
+      "responseSize": 134,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:42.066Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/b2b/orders",
+      "url": "https://as.lightshadow.tech/api/v1/b2b/orders",
+      "statusCode": 200,
+      "responseTime": 117.91,
+      "responseSize": 130,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:42.285Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/b2b/analytics/sales",
+      "url": "https://as.lightshadow.tech/api/v1/b2b/analytics/sales",
+      "statusCode": 200,
+      "responseTime": 315.33,
+      "responseSize": 469,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:42.700Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/users",
+      "url": "https://as.lightshadow.tech/api/v1/users",
+      "statusCode": 403,
+      "responseTime": 66.88,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:42.868Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/cart",
+      "url": "https://as.lightshadow.tech/api/v1/cart",
+      "statusCode": 200,
+      "responseTime": 83.7,
+      "responseSize": 67,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:43.052Z",
+      "error": null
+    },
+    {
+      "method": "POST",
+      "path": "/cart",
+      "url": "https://as.lightshadow.tech/api/v1/cart",
+      "statusCode": 200,
+      "responseTime": 102.45,
+      "responseSize": 49,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:43.255Z",
+      "error": null
+    },
+    {
+      "method": "PUT",
+      "path": "/cart",
+      "url": "https://as.lightshadow.tech/api/v1/cart",
+      "statusCode": 200,
+      "responseTime": 101.29,
+      "responseSize": 49,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:43.457Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/orders/user",
+      "url": "https://as.lightshadow.tech/api/v1/orders/user",
+      "statusCode": 200,
+      "responseTime": 85.58,
+      "responseSize": 28,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:43.643Z",
+      "error": null
+    },
+    {
+      "method": "POST",
+      "path": "/orders",
+      "url": "https://as.lightshadow.tech/api/v1/orders",
+      "statusCode": 500,
+      "responseTime": 99.99,
+      "responseSize": 65,
+      "success": false,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        201,
+        400
+      ],
+      "timestamp": "2026-04-18T11:53:43.843Z",
+      "error": "HTTP 500 (expected: 201, 400)"
+    },
+    {
+      "method": "GET",
+      "path": "/workshops",
+      "url": "https://as.lightshadow.tech/api/v1/workshops",
+      "statusCode": 200,
+      "responseTime": 101.08,
+      "responseSize": 63,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:44.045Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/workshops/accepted",
+      "url": "https://as.lightshadow.tech/api/v1/workshops/accepted",
+      "statusCode": 200,
+      "responseTime": 104.73,
+      "responseSize": 3675,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:44.250Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/tickets",
+      "url": "https://as.lightshadow.tech/api/v1/tickets",
+      "statusCode": 403,
+      "responseTime": 69.44,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:44.420Z",
+      "error": null
+    },
+    {
+      "method": "POST",
+      "path": "/tickets",
+      "url": "https://as.lightshadow.tech/api/v1/tickets",
+      "statusCode": 200,
+      "responseTime": 88.27,
+      "responseSize": 85,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:44.609Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/custom-requests",
+      "url": "https://as.lightshadow.tech/api/v1/custom-requests",
+      "statusCode": 200,
+      "responseTime": 100.31,
+      "responseSize": 61,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:44.808Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/custom-requests/user",
+      "url": "https://as.lightshadow.tech/api/v1/custom-requests/user",
+      "statusCode": 200,
+      "responseTime": 101.92,
+      "responseSize": 30,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:45.011Z",
+      "error": null
+    },
+    {
+      "method": "POST",
+      "path": "/custom-requests",
+      "url": "https://as.lightshadow.tech/api/v1/custom-requests",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:45.111Z",
+      "error": null,
+      "note": "Requires multipart image upload and business fields"
+    },
+    {
+      "method": "GET",
+      "path": "/chart/customer_chart",
+      "url": "https://as.lightshadow.tech/api/v1/chart/customer_chart",
+      "statusCode": 200,
+      "responseTime": 88.34,
+      "responseSize": 617,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:45.300Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/chart/orders_chart",
+      "url": "https://as.lightshadow.tech/api/v1/chart/orders_chart",
+      "statusCode": 200,
+      "responseTime": 118.44,
+      "responseSize": 1583,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:45.519Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/chart/products_chart",
+      "url": "https://as.lightshadow.tech/api/v1/chart/products_chart",
+      "statusCode": 200,
+      "responseTime": 118.64,
+      "responseSize": 667,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:45.738Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/delivery/available",
+      "url": "https://as.lightshadow.tech/api/v1/delivery/available",
+      "statusCode": 403,
+      "responseTime": 68.29,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:45.907Z",
+      "error": null
+    },
+    {
+      "method": "POST",
+      "path": "/delivery/accept",
+      "url": "https://as.lightshadow.tech/api/v1/delivery/accept",
+      "statusCode": 403,
+      "responseTime": 71.38,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        400,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:46.079Z",
+      "error": null
+    },
+    {
+      "method": "POST",
+      "path": "/delivery/complete",
+      "url": "https://as.lightshadow.tech/api/v1/delivery/complete",
+      "statusCode": 403,
+      "responseTime": 69.3,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        400,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:46.248Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/delivery/my-orders",
+      "url": "https://as.lightshadow.tech/api/v1/delivery/my-orders",
+      "statusCode": 403,
+      "responseTime": 69.87,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:46.419Z",
+      "error": null
+    },
+    {
+      "method": "POST",
+      "path": "/auth/check-username",
+      "url": "https://as.lightshadow.tech/api/v1/auth/check-username",
+      "statusCode": 200,
+      "responseTime": 68.72,
+      "responseSize": 55,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": false,
+      "authRoleUsed": null,
+      "expectedStatuses": [
+        200,
+        400
+      ],
+      "timestamp": "2026-04-18T11:53:46.588Z",
+      "error": null
+    },
+    {
+      "method": "POST",
+      "path": "/auth/check-email",
+      "url": "https://as.lightshadow.tech/api/v1/auth/check-email",
+      "statusCode": 200,
+      "responseTime": 69.05,
+      "responseSize": 52,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": false,
+      "authRoleUsed": null,
+      "expectedStatuses": [
+        200,
+        400
+      ],
+      "timestamp": "2026-04-18T11:53:46.757Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/auth/verify-email",
+      "url": "https://as.lightshadow.tech/api/v1/auth/verify-email",
+      "statusCode": 400,
+      "responseTime": 52.52,
+      "responseSize": 64,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": false,
+      "authRoleUsed": null,
+      "expectedStatuses": [
+        200,
+        400
+      ],
+      "timestamp": "2026-04-18T11:53:46.910Z",
+      "error": null
+    },
+    {
+      "method": "POST",
+      "path": "/auth/forgot-password",
+      "url": "https://as.lightshadow.tech/api/v1/auth/forgot-password",
+      "statusCode": 200,
+      "responseTime": 3540.83,
+      "responseSize": 53,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": false,
+      "authRoleUsed": null,
+      "expectedStatuses": [
+        200,
+        400
+      ],
+      "timestamp": "2026-04-18T11:53:50.552Z",
+      "error": null
+    },
+    {
+      "method": "POST",
+      "path": "/auth/reset-password",
+      "url": "https://as.lightshadow.tech/api/v1/auth/reset-password",
+      "statusCode": 400,
+      "responseTime": 72.28,
+      "responseSize": 64,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": false,
+      "authRoleUsed": null,
+      "expectedStatuses": [
+        200,
+        400
+      ],
+      "timestamp": "2026-04-18T11:53:50.725Z",
+      "error": null
+    },
+    {
+      "method": "POST",
+      "path": "/auth/delete-account",
+      "url": "https://as.lightshadow.tech/api/v1/auth/delete-account",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:50.825Z",
+      "error": null,
+      "note": "Destructive account deletion route"
+    },
+    {
+      "method": "DELETE",
+      "path": "/auth/user/:userId",
+      "url": "https://as.lightshadow.tech/api/v1/auth/user/:userId",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:50.926Z",
+      "error": null,
+      "note": "Parameterized destructive route"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/add-user",
+      "url": "https://as.lightshadow.tech/api/v1/auth/add-user",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:51.026Z",
+      "error": null,
+      "note": "Creates privileged users"
+    },
+    {
+      "method": "GET",
+      "path": "/products/all",
+      "url": "https://as.lightshadow.tech/api/v1/products/all",
+      "statusCode": 200,
+      "responseTime": 292.92,
+      "responseSize": 5760,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:51.420Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/products/:id",
+      "url": "https://as.lightshadow.tech/api/v1/products/:id",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:51.520Z",
+      "error": null,
+      "note": "Parameterized route requires real product ID"
+    },
+    {
+      "method": "POST",
+      "path": "/products",
+      "url": "https://as.lightshadow.tech/api/v1/products",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:51.621Z",
+      "error": null,
+      "note": "Requires multipart upload and creates products"
+    },
+    {
+      "method": "POST",
+      "path": "/products/bulk",
+      "url": "https://as.lightshadow.tech/api/v1/products/bulk",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:51.722Z",
+      "error": null,
+      "note": "Bulk creation route skipped by default"
+    },
+    {
+      "method": "PATCH",
+      "path": "/products/:id/image",
+      "url": "https://as.lightshadow.tech/api/v1/products/:id/image",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:51.822Z",
+      "error": null,
+      "note": "Requires multipart upload"
+    },
+    {
+      "method": "PATCH",
+      "path": "/products/:id/rejection-reason",
+      "url": "https://as.lightshadow.tech/api/v1/products/:id/rejection-reason",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:51.923Z",
+      "error": null,
+      "note": "Parameterized moderation mutation"
+    },
+    {
+      "method": "PATCH",
+      "path": "/products/:id/removal-reason",
+      "url": "https://as.lightshadow.tech/api/v1/products/:id/removal-reason",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:52.023Z",
+      "error": null,
+      "note": "Parameterized moderation mutation"
+    },
+    {
+      "method": "PUT",
+      "path": "/products/:id",
+      "url": "https://as.lightshadow.tech/api/v1/products/:id",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:52.124Z",
+      "error": null,
+      "note": "Parameterized product mutation"
+    },
+    {
+      "method": "DELETE",
+      "path": "/products/:id",
+      "url": "https://as.lightshadow.tech/api/v1/products/:id",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:52.225Z",
+      "error": null,
+      "note": "Destructive product deletion route"
+    },
+    {
+      "method": "POST",
+      "path": "/products/moderation",
+      "url": "https://as.lightshadow.tech/api/v1/products/moderation",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:52.325Z",
+      "error": null,
+      "note": "Moderation mutation route"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/dashboard-overview",
+      "url": "https://as.lightshadow.tech/api/v1/admin/dashboard-overview",
+      "statusCode": 403,
+      "responseTime": 83.41,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:52.509Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/revenue-analytics",
+      "url": "https://as.lightshadow.tech/api/v1/admin/revenue-analytics",
+      "statusCode": 403,
+      "responseTime": 120.63,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:52.730Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/revenue-by-category",
+      "url": "https://as.lightshadow.tech/api/v1/admin/revenue-by-category",
+      "statusCode": 403,
+      "responseTime": 104.18,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:52.935Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/geographic-revenue",
+      "url": "https://as.lightshadow.tech/api/v1/admin/geographic-revenue",
+      "statusCode": 403,
+      "responseTime": 89.14,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:53.125Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/top-selling-products",
+      "url": "https://as.lightshadow.tech/api/v1/admin/top-selling-products",
+      "statusCode": 403,
+      "responseTime": 68.39,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:53.293Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/inventory-analytics",
+      "url": "https://as.lightshadow.tech/api/v1/admin/inventory-analytics",
+      "statusCode": 403,
+      "responseTime": 68.88,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:53.463Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users",
+      "url": "https://as.lightshadow.tech/api/v1/admin/users",
+      "statusCode": 403,
+      "responseTime": 69.03,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:53.632Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/manager/sales",
+      "url": "https://as.lightshadow.tech/api/v1/manager/sales",
+      "statusCode": 403,
+      "responseTime": 68.47,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:53.801Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/manager/users",
+      "url": "https://as.lightshadow.tech/api/v1/manager/users",
+      "statusCode": 403,
+      "responseTime": 69.32,
+      "responseSize": 58,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204,
+        403
+      ],
+      "timestamp": "2026-04-18T11:53:53.971Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/b2b/products/:id",
+      "url": "https://as.lightshadow.tech/api/v1/b2b/products/:id",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:54.071Z",
+      "error": null,
+      "note": "Parameterized route requires real product ID"
+    },
+    {
+      "method": "GET",
+      "path": "/b2b/orders/:orderId",
+      "url": "https://as.lightshadow.tech/api/v1/b2b/orders/:orderId",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:54.172Z",
+      "error": null,
+      "note": "Parameterized route requires real order ID"
+    },
+    {
+      "method": "PATCH",
+      "path": "/b2b/orders/:orderId/status",
+      "url": "https://as.lightshadow.tech/api/v1/b2b/orders/:orderId/status",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:54.272Z",
+      "error": null,
+      "note": "State-changing route skipped by default"
+    },
+    {
+      "method": "GET",
+      "path": "/orders/:orderId",
+      "url": "https://as.lightshadow.tech/api/v1/orders/:orderId",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:54.373Z",
+      "error": null,
+      "note": "Parameterized route requires real order ID"
+    },
+    {
+      "method": "PUT",
+      "path": "/orders/:orderId/status",
+      "url": "https://as.lightshadow.tech/api/v1/orders/:orderId/status",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:54.473Z",
+      "error": null,
+      "note": "State-changing route skipped by default"
+    },
+    {
+      "method": "DELETE",
+      "path": "/orders/:orderId",
+      "url": "https://as.lightshadow.tech/api/v1/orders/:orderId",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:54.574Z",
+      "error": null,
+      "note": "Destructive route"
+    },
+    {
+      "method": "GET",
+      "path": "/workshops/user/:userId",
+      "url": "https://as.lightshadow.tech/api/v1/workshops/user/:userId",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:54.674Z",
+      "error": null,
+      "note": "Parameterized route requires user ID"
+    },
+    {
+      "method": "POST",
+      "path": "/workshops",
+      "url": "https://as.lightshadow.tech/api/v1/workshops",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:54.775Z",
+      "error": null,
+      "note": "Creates workshop/booking records"
+    },
+    {
+      "method": "PUT",
+      "path": "/workshops/:action/:workshopId",
+      "url": "https://as.lightshadow.tech/api/v1/workshops/:action/:workshopId",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:54.875Z",
+      "error": null,
+      "note": "Parameterized state-changing route"
+    },
+    {
+      "method": "POST",
+      "path": "/tickets",
+      "url": "https://as.lightshadow.tech/api/v1/tickets",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:54.975Z",
+      "error": null,
+      "note": "Duplicate route signature mapped to delete handler"
+    },
+    {
+      "method": "PUT",
+      "path": "/custom-requests",
+      "url": "https://as.lightshadow.tech/api/v1/custom-requests",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:55.076Z",
+      "error": null,
+      "note": "State-changing route skipped by default"
+    },
+    {
+      "method": "DELETE",
+      "path": "/custom-requests/:requestId",
+      "url": "https://as.lightshadow.tech/api/v1/custom-requests/:requestId",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:55.176Z",
+      "error": null,
+      "note": "Destructive route"
+    },
+    {
+      "method": "GET",
+      "path": "/data/customer_chart",
+      "url": "https://as.lightshadow.tech/api/v1/data/customer_chart",
+      "statusCode": 401,
+      "responseTime": 53.21,
+      "responseSize": 58,
+      "success": false,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:55.330Z",
+      "error": "HTTP 401 (expected: 200, 201, 204)"
+    },
+    {
+      "method": "GET",
+      "path": "/data/orders_chart",
+      "url": "https://as.lightshadow.tech/api/v1/data/orders_chart",
+      "statusCode": 401,
+      "responseTime": 52.11,
+      "responseSize": 58,
+      "success": false,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:55.482Z",
+      "error": "HTTP 401 (expected: 200, 201, 204)"
+    },
+    {
+      "method": "GET",
+      "path": "/data/products_chart",
+      "url": "https://as.lightshadow.tech/api/v1/data/products_chart",
+      "statusCode": 401,
+      "responseTime": 51.48,
+      "responseSize": 58,
+      "success": false,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:55.634Z",
+      "error": "HTTP 401 (expected: 200, 201, 204)"
+    },
+    {
+      "method": "GET",
+      "path": "/settings",
+      "url": "https://as.lightshadow.tech/api/v1/settings",
+      "statusCode": 200,
+      "responseTime": 83.69,
+      "responseSize": 312,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:55.819Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/workshop",
+      "url": "https://as.lightshadow.tech/api/v1/workshop",
+      "statusCode": 200,
+      "responseTime": 115.84,
+      "responseSize": 63,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:56.035Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/workshop/accepted",
+      "url": "https://as.lightshadow.tech/api/v1/workshop/accepted",
+      "statusCode": 200,
+      "responseTime": 118.74,
+      "responseSize": 3675,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:56.254Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/custom-request",
+      "url": "https://as.lightshadow.tech/api/v1/custom-request",
+      "statusCode": 200,
+      "responseTime": 116.11,
+      "responseSize": 61,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "artisan",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:56.471Z",
+      "error": null
+    },
+    {
+      "method": "GET",
+      "path": "/custom-request/user",
+      "url": "https://as.lightshadow.tech/api/v1/custom-request/user",
+      "statusCode": 200,
+      "responseTime": 119.92,
+      "responseSize": 30,
+      "success": true,
+      "skipped": false,
+      "requiresAuth": true,
+      "authRoleUsed": "customer",
+      "expectedStatuses": [
+        200,
+        201,
+        204
+      ],
+      "timestamp": "2026-04-18T11:53:56.691Z",
+      "error": null
+    },
+    {
+      "method": "POST",
+      "path": "/payments/webhooks/razorpay",
+      "url": "https://as.lightshadow.tech/api/v1/payments/webhooks/razorpay",
+      "statusCode": null,
+      "responseTime": 0,
+      "responseSize": 0,
+      "success": true,
+      "skipped": true,
+      "requiresAuth": false,
+      "authRoleUsed": null,
+      "expectedStatuses": [],
+      "timestamp": "2026-04-18T11:53:56.791Z",
+      "error": null,
+      "note": "Webhook endpoint requires gateway signature payload"
+    }
+  ]
+}

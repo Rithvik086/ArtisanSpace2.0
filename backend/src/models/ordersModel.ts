@@ -75,6 +75,9 @@ const orderSchema = new mongoose.Schema({
 orderSchema.index({ userId: 1, isValid: 1 });
 orderSchema.index({ _id: 1, isValid: 1 });
 orderSchema.index({ "products.productId.artisanId": 1, isValid: 1 });
+orderSchema.index({ "products.productId.artisanId": 1, isValid: 1, purchasedAt: -1 });
+orderSchema.index({ "products.productId.artisanId": 1, isValid: 1, status: 1, purchasedAt: -1 });
+orderSchema.index({ "products.productId.artisanId": 1, isValid: 1, paymentStatus: 1, purchasedAt: -1 });
 orderSchema.index({ paymentId: 1 });
 orderSchema.index({ paymentStatus: 1 });
 

@@ -8,7 +8,10 @@ import {
   getB2BSalesAnalytics,
   updateB2BOrderStatus,
 } from "../services/b2bServices.js";
+import { Redis } from "../lib/redis.ts";
 import logger from "../utils/logger.js";
+
+const B2B_SALES_CACHE_TTL_SECONDS = 60;
 
 const productQuerySchema = z.object({
   page: z.coerce.number().int().min(1).optional(),
@@ -259,6 +262,13 @@ export const patchB2BOrderStatus = async (req: Request, res: Response) => {
       orderId,
       parsed.data.status,
     );
+
+    try {
+      await Redis.del(`b2b:sales:${req.user.id}`);
+    } catch {
+      // Cache invalidation should not block status update responses.
+    }
+
     res.status(200).json({
       success: true,
       message: "Order status updated successfully",
@@ -285,7 +295,14 @@ export const patchB2BOrderStatus = async (req: Request, res: Response) => {
 
 export const getB2BSales = async (req: Request, res: Response) => {
   try {
-    const analytics = await getB2BSalesAnalytics(req.user.id);
+    const cacheKey = `b2b:sales:${req.user.id}`;
+
+    const analytics = await Redis.getOrSet(
+      cacheKey,
+      () => getB2BSalesAnalytics(req.user.id),
+      B2B_SALES_CACHE_TTL_SECONDS,
+    );
+
     res.status(200).json({
       success: true,
       ...analytics,

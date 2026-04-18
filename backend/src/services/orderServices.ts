@@ -3,6 +3,18 @@ import Order from "../models/ordersModel.js";
 import { decreaseProductQuantity, productCount } from "./productServices.js";
 import Cart from "../models/cartModel.js";
 import logger from "../utils/logger.js";
+import { Redis } from "../lib/redis.ts";
+
+const invalidateOrderCaches = async () => {
+  try {
+    await Promise.all([
+      Redis.del("chart:orders"),
+      Redis.delByPrefix("b2b:sales:"),
+    ]);
+  } catch {
+    // Cache invalidation is best-effort and must not block order operations.
+  }
+};
 
 export async function placeUserOrder(userId: string, paymentId?: string) {
   const session = await mongoose.startSession();
@@ -113,6 +125,8 @@ export async function placeUserOrder(userId: string, paymentId?: string) {
       "Order created",
     );
 
+    await invalidateOrderCaches();
+
     await session.commitTransaction();
     return {
       success: true,
@@ -190,6 +204,7 @@ export async function changeOrderStatus(
     }
     order.status = status;
     await order.save();
+    await invalidateOrderCaches();
     return { success: true, message: "Order status updated successfully!" };
   } catch (err) {
     throw new Error(
@@ -221,6 +236,9 @@ export async function deleteOrderById(orderId: string) {
     if (!order) {
       throw new Error("Order not found!");
     }
+
+    await invalidateOrderCaches();
+
     return { success: true, message: "Order deleted successfully!" };
   } catch (err) {
     throw new Error("Error in deleting order: " + (err as Error).message);

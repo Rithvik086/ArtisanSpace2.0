@@ -15,7 +15,34 @@ import {
   updateProductRemovalReason,
 } from "../services/productServices.js";
 import cloudinary from "../config/cloudinary.js";
+import { Redis } from "../lib/redis.ts";
 import logger from "../utils/logger.js";
+
+const PUBLIC_PRODUCTS_CACHE_TTL_SECONDS = 90;
+
+const buildPublicProductsCacheKey = (
+  category: string | string[] | null,
+  material: string | string[] | null,
+  search: string | null,
+  page: number,
+  limit: number,
+) =>
+  `products:public:${JSON.stringify({
+    category,
+    material,
+    search,
+    page,
+    limit,
+  })}`;
+
+const invalidateProductCache = async () => {
+  try {
+    await Redis.delByPrefix("products:public:");
+    await Redis.delByPrefix("chart:products");
+  } catch {
+    // Cache invalidation should never block successful write responses.
+  }
+};
 
 export const getProducts = async (req: Request, res: Response) => {
   try {
@@ -43,12 +70,25 @@ export const getProducts = async (req: Request, res: Response) => {
 
     const searchParam = typeof search === "string" ? search.trim() : null;
 
-    const result = await getApprovedProducts(
+    const cacheKey = buildPublicProductsCacheKey(
       categoryParam,
       materialParam,
+      searchParam,
       page,
       limit,
-      searchParam,
+    );
+
+    const result = await Redis.getOrSet(
+      cacheKey,
+      () =>
+        getApprovedProducts(
+          categoryParam,
+          materialParam,
+          page,
+          limit,
+          searchParam,
+        ),
+      PUBLIC_PRODUCTS_CACHE_TTL_SECONDS,
     );
 
     res.status(200).json({
@@ -77,6 +117,7 @@ export const editProduct = async (req: Request, res: Response) => {
     );
 
     if (result.success) {
+      await invalidateProductCache();
       res.status(200).json(result);
     } else {
       res.status(500).json({ success: false });
@@ -91,6 +132,7 @@ export const deleteProduct = async (req: Request, res: Response) => {
     const productId = req.params.id;
     const result = await deleteProductService(productId as string);
     if (result.success) {
+      await invalidateProductCache();
       res.status(200).json({ success: true });
     } else {
       res.status(500).json({ success: false });
@@ -126,6 +168,8 @@ export const addProduct = async (req: Request, res: Response) => {
       quantity,
       description,
     );
+
+    await invalidateProductCache();
 
     res.status(201).json({ message: "Product added successfully" });
   } catch (error) {
@@ -207,6 +251,7 @@ export const productsModeration = async (req: Request, res: Response) => {
     }
 
     if (result && result.success) {
+      await invalidateProductCache();
       return res.status(200).json({ success: true });
     }
 
@@ -302,6 +347,7 @@ export const updateProductImageController = async (
     );
 
     if (updateResult.success) {
+      await invalidateProductCache();
       res.status(200).json({
         success: true,
         message: "Product image updated successfully!",
@@ -344,6 +390,7 @@ export const updateRejectionReasonController = async (
     const updateResult = await updateProductRejectionReason(productId, reason);
 
     if (updateResult.success) {
+      await invalidateProductCache();
       res.status(200).json({
         success: true,
         message: updateResult.message,
@@ -386,6 +433,7 @@ export const updateRemovalReasonController = async (
     const updateResult = await updateProductRemovalReason(productId, reason);
 
     if (updateResult.success) {
+      await invalidateProductCache();
       res.status(200).json({
         success: true,
         message: updateResult.message,
