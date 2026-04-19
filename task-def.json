@@ -1,71 +1,40 @@
 {
+  "family": "ArtisanSpace-task",
+  "executionRoleArn": "arn:aws:iam::811783768122:role/ecsTaskExecutionRole",
+  "networkMode": "awsvpc",
   "containerDefinitions": [
     {
       "name": "app",
-      "image": "811783768122.dkr.ecr.ap-south-2.amazonaws.com/artisanspace:latest",
-      "cpu": 768,
-      "memory": 1536,
-      "memoryReservation": 1280,
+      "image": "REPLACE_IMAGE",
+      "essential": true,
       "portMappings": [
         {
-          "name": "3000",
           "containerPort": 3000,
-          "hostPort": 3000,
-          "protocol": "tcp",
-          "appProtocol": "http"
+          "protocol": "tcp"
         }
       ],
-      "essential": true,
-      "environmentFiles": [],
-      "mountPoints": [],
-      "volumesFrom": [],
-      "ulimits": [],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
           "awslogs-group": "/ecs/ArtisanSpace-task",
-          "awslogs-create-group": "true",
           "awslogs-region": "ap-south-2",
           "awslogs-stream-prefix": "app"
-        },
-        "secretOptions": []
-      },
-      "systemControls": []
+        }
+      }
     },
     {
       "name": "redis",
       "image": "redis:7",
-      "cpu": 256,
-      "memory": 768,
-      "memoryReservation": 512,
+      "essential": false,
       "portMappings": [
         {
-          "name": "6379",
           "containerPort": 6379,
-          "hostPort": 6379,
           "protocol": "tcp"
         }
-      ],
-      "essential": false,
-      "environment": [],
-      "environmentFiles": [],
-      "mountPoints": [],
-      "volumesFrom": [],
-      "systemControls": []
+      ]
     }
   ],
-  "family": "ArtisanSpace-task",
-  "executionRoleArn": "arn:aws:iam::811783768122:role/ecsTaskExecutionRole",
-  "networkMode": "awsvpc",
-  "volumes": [],
-  "placementConstraints": [],
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "1024",
-  "memory": "2048",
-  "runtimePlatform": {
-    "cpuArchitecture": "X86_64",
-    "operatingSystemFamily": "LINUX"
-  },
-  "enableFaultInjection": false,
-  "tags": []
+  "memory": "2048"
 }
