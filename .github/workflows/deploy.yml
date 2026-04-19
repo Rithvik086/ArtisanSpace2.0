@@ -104,6 +104,6 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: artisanspace-service
-          cluster: artisanspace-cluster
+          service: ArtisanSpace-service
+          cluster: ArtisanSpace-cluster
           wait-for-service-stability: true
