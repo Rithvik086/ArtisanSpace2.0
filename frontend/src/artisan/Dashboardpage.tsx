@@ -86,6 +86,63 @@ const PERIOD_OPTIONS = [
   { value: "1y", label: "1Y" },
 ] as const;
 
+const asNumber = (value: unknown, fallback = 0) => {
+  const numericValue = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numericValue) ? numericValue : fallback;
+};
+
+const asString = (value: unknown, fallback = "") =>
+  typeof value === "string" && value.length > 0 ? value : fallback;
+
+const normalizeAnalytics = (payload: any): ArtisanAnalytics => ({
+  totalRevenue: asNumber(payload?.totalRevenue ?? payload?.thisMonthRevenue),
+  totalOrders: asNumber(payload?.totalOrders),
+  periodRevenue: asNumber(payload?.periodRevenue ?? payload?.thisMonthRevenue),
+  periodOrders: asNumber(payload?.periodOrders ?? payload?.thisMonthOrders),
+  periodLabel: asString(payload?.periodLabel, "Selected Period"),
+  productStats: {
+    total: asNumber(payload?.productStats?.total),
+    active: asNumber(payload?.productStats?.active),
+    pending: asNumber(payload?.productStats?.pending),
+    rejected: asNumber(payload?.productStats?.rejected),
+  },
+  orderBreakdown: {
+    pending: asNumber(payload?.orderBreakdown?.pending),
+    shipped: asNumber(payload?.orderBreakdown?.shipped),
+    delivered: asNumber(payload?.orderBreakdown?.delivered),
+    cancelled: asNumber(payload?.orderBreakdown?.cancelled),
+  },
+  customRequests: {
+    total: asNumber(payload?.customRequests?.total),
+    accepted: asNumber(payload?.customRequests?.accepted),
+    pending: asNumber(payload?.customRequests?.pending),
+  },
+  workshops: {
+    total: asNumber(payload?.workshops?.total),
+    accepted: asNumber(payload?.workshops?.accepted),
+    pending: asNumber(payload?.workshops?.pending),
+  },
+  recentOrders: Array.isArray(payload?.recentOrders)
+    ? payload.recentOrders.map((order: any) => ({
+        _id: asString(order?._id, crypto?.randomUUID?.() ?? ""),
+        money: asNumber(order?.money),
+        purchasedAt: asString(order?.purchasedAt, new Date().toISOString()),
+        status: asString(order?.status, "pending"),
+        paymentStatus: asString(order?.paymentStatus, "pending"),
+        productCount: asNumber(order?.productCount),
+      }))
+    : [],
+  topProducts: Array.isArray(payload?.topProducts)
+    ? payload.topProducts.map((product: any) => ({
+        _id: asString(product?._id, crypto?.randomUUID?.() ?? ""),
+        name: asString(product?.name, "Untitled"),
+        quantity: asNumber(product?.quantity),
+        newPrice: asNumber(product?.newPrice),
+        category: asString(product?.category, ""),
+      }))
+    : [],
+});
+
 // We'll load products from the backend (remove previous mock data)
 
 export default function ArtisanDashboard() {
@@ -208,9 +265,15 @@ export default function ArtisanDashboard() {
           }),
         ]);
 
-        setAnalytics(summaryRes.data);
+        setAnalytics(normalizeAnalytics(summaryRes.data));
         setTrendData(
-          Array.isArray(trendRes.data?.trend) ? trendRes.data.trend : [],
+          Array.isArray(trendRes.data?.trend)
+            ? trendRes.data.trend.map((point: any) => ({
+                date: asString(point?.date, new Date().toISOString()),
+                revenue: asNumber(point?.revenue),
+                orders: asNumber(point?.orders),
+              }))
+            : [],
         );
       } catch (e) {
         console.error("Failed to load artisan analytics", e);
