@@ -27,6 +27,11 @@ const paymentColor: Record<string, string> = {
   failed: "text-red-900 font-semibold",
 };
 
+const asNumber = (value: unknown, fallback = 0) => {
+  const numericValue = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numericValue) ? numericValue : fallback;
+};
+
 export function RecentOrders({ orders }: RecentOrdersProps) {
   return (
     <div className={cn(craftStyles.card.warm, "p-6")}>
@@ -78,7 +83,7 @@ export function RecentOrders({ orders }: RecentOrdersProps) {
                     {new Date(order.purchasedAt).toLocaleDateString()}
                   </td>
                   <td className="py-3 px-2 text-right font-semibold text-amber-900">
-                    ₹{order.money.toFixed(2)}
+                    ₹{asNumber(order.money).toFixed(2)}
                   </td>
                   <td className="py-3 px-2 text-center text-amber-900">
                     {order.productCount}

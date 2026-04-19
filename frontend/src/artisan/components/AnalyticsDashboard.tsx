@@ -65,6 +65,13 @@ interface TrendData {
   orders: number;
 }
 
+const asNumber = (value: unknown, fallback = 0) => {
+  const numericValue = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numericValue) ? numericValue : fallback;
+};
+
+const formatMoney = (value: unknown) => `₹${asNumber(value).toFixed(2)}`;
+
 interface AnalyticsDashboardProps {
   analytics: ArtisanAnalytics | null;
   trendData: TrendData[];
@@ -150,27 +157,30 @@ export function AnalyticsDashboard({
         stats={[
           {
             label: "Total Revenue",
-            value: `₹${analytics.totalRevenue.toFixed(2)}`,
+            value: formatMoney(analytics.totalRevenue),
             icon: <IndianRupee className="w-12 h-12" />,
-            subtext: `${analytics.totalOrders} orders overall`,
+            subtext: `${asNumber(analytics.totalOrders)} orders overall`,
           },
           {
             label: analytics.periodLabel,
-            value: `₹${analytics.periodRevenue.toFixed(2)}`,
+            value: formatMoney(analytics.periodRevenue),
             icon: <TrendingUp className="w-12 h-12" />,
-            subtext: `${analytics.periodOrders} orders in range`,
+            subtext: `${asNumber(analytics.periodOrders)} orders in range`,
           },
           {
             label: "Total Orders",
-            value: analytics.totalOrders,
+            value: asNumber(analytics.totalOrders),
             icon: <ShoppingCart className="w-12 h-12" />,
-            subtext: `Avg order: ₹${(analytics.totalRevenue / Math.max(analytics.totalOrders, 1)).toFixed(2)}`,
+            subtext: `Avg order: ₹${(
+              asNumber(analytics.totalRevenue) /
+              Math.max(asNumber(analytics.totalOrders), 1)
+            ).toFixed(2)}`,
           },
           {
             label: "Active Products",
-            value: analytics.productStats.active,
+            value: asNumber(analytics.productStats.active),
             icon: <Package className="w-12 h-12" />,
-            subtext: `${analytics.productStats.total} total`,
+            subtext: `${asNumber(analytics.productStats.total)} total`,
           },
         ]}
       />
