@@ -21,7 +21,16 @@ class RedisClient {
       });
 
       RedisClient.instance.on("error", (err) => {
-        logger.error({ error: err.message }, "Redis client error");
+        logger.error(
+          {
+            error: err instanceof Error ? err.message : String(err),
+            name: err instanceof Error ? err.name : undefined,
+            stack: err instanceof Error ? err.stack : undefined,
+            cause:
+              err instanceof Error && err.cause ? String(err.cause) : undefined,
+          },
+          "Redis client error",
+        );
       });
 
       RedisClient.instance.on("connect", () => {
