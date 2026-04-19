@@ -66,16 +66,44 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build Docker image
+      - name: Build, tag and push image
+        id: build-image
         run: |
-          docker build -t ${{ vars.ECR_REPOSITORY }}:latest .
+          IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:latest
+          docker build -t $IMAGE_URI .
+          docker push $IMAGE_URI
+          echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
 
-      - name: Tag Docker image
-        run: |
-          docker tag ${{ vars.ECR_REPOSITORY }}:latest \
-          ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:latest
+      # 🔥 NEW: Render updated task definition
+      - name: Render ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-def.json
+          container-name: app
+          image: ${{ steps.build-image.outputs.image }}
+          environment-variables: |
+            PORT=${{ secrets.PORT }}
+            CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            MONGO_URI=${{ secrets.MONGO_URI }}
+            MAIL_USER=${{ secrets.MAIL_USER }}
+            MAIL_PASS=${{ secrets.MAIL_PASS }}
+            CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
+            CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
+            CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
+            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+            NODE_ENV=${{ secrets.NODE_ENV }}
+            RAZORPAY_API_KEY=${{ secrets.RAZORPAY_API_KEY }}
+            RAZORPAY_SECRET=${{ secrets.RAZORPAY_SECRET }}
+            RAZORPAY_WEBHOOK_SECRET=${{ secrets.RAZORPAY_WEBHOOK_SECRET }}
+            REDIS_URL=${{ secrets.REDIS_URL }}
 
-      - name: Push to ECR
-        run: |
-          docker push \
-          ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:latest
+      # 🔥 NEW: Deploy to ECS
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ArtisanSpace-service
+          cluster: ArtisanSpace-cluster
+          wait-for-service-stability: true

@@ -1,0 +1,40 @@
+{
+  "family": "ArtisanSpace-task",
+  "executionRoleArn": "arn:aws:iam::811783768122:role/ecsTaskExecutionRole",
+  "networkMode": "awsvpc",
+  "containerDefinitions": [
+    {
+      "name": "app",
+      "image": "REPLACE_IMAGE",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/ArtisanSpace-task",
+          "awslogs-region": "ap-south-2",
+          "awslogs-stream-prefix": "app"
+        }
+      }
+    },
+    {
+      "name": "redis",
+      "image": "redis:7",
+      "essential": false,
+      "portMappings": [
+        {
+          "containerPort": 6379,
+          "protocol": "tcp"
+        }
+      ]
+    }
+  ],
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048"
+}

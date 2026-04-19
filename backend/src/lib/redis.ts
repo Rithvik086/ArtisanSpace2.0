@@ -21,7 +21,26 @@ export const Redis = {
     }
 
     const data = await redisClient.get(key);
-    return data ? (JSON.parse(data) as T) : null;
+    if (!data) {
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(data) as unknown;
+
+      // Backward compatibility for previously double-stringified payloads.
+      if (typeof parsed === "string") {
+        try {
+          return JSON.parse(parsed) as T;
+        } catch {
+          return parsed as T;
+        }
+      }
+
+      return parsed as T;
+    } catch {
+      return data as T;
+    }
   },
 
   async del(key: string): Promise<void> {
