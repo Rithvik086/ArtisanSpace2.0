@@ -49,9 +49,60 @@ const swaggerOptions = {
     },
     tags: [
       {
-        name: "Artisan",
-        description:
-          "Endpoints specifically for Artisans (e.g., workshops, products, custom requests)",
+        name: "Artisan Management",
+        description: "Endpoints for artisan dashboard and analytics",
+      },
+      {
+        name: "Artisan Settings",
+        description: "Endpoints for artisan profile and settings management",
+      },
+      {
+        name: "Artisan Products",
+        description: "Endpoints for artisan product management",
+      },
+      {
+        name: "Customer - Browse Products",
+        description: "Endpoints for customers to browse, search, and view product details",
+      },
+      {
+        name: "Artisan Workshops",
+        description: "Endpoints for workshop creation and management",
+      },
+      {
+        name: "Artisan Custom Requests",
+        description: "Endpoints for handling custom product requests from customers",
+      },
+      {
+        name: "B2B Management",
+        description: "Endpoints for B2B operations and bulk orders",
+      },
+      {
+        name: "Customer Management",
+        description: "Endpoints for customer orders, cart, and activities",
+      },
+      {
+        name: "Customer Settings",
+        description: "Endpoints for customer profile and preferences",
+      },
+      {
+        name: "Customer Cart",
+        description: "Endpoints for shopping cart management - add, remove, update items",
+      },
+      {
+        name: "Customer Orders",
+        description: "Endpoints for customer orders - create, view, track",
+      },
+      {
+        name: "Customer Custom Requests",
+        description: "Endpoints for customers to create and manage custom product requests",
+      },
+      {
+        name: "Manager/Admin Dashboard",
+        description: "Endpoints for manager and admin dashboard",
+      },
+      {
+        name: "Delivery Management",
+        description: "Endpoints for delivery operations",
       },
     ],
     servers: [
