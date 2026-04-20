@@ -36,7 +36,7 @@ const ManagerDashboard: React.FC<{
     "Jan",
     "Feb",
     "Mar",
-    "April",
+    "Apr",
     "May",
     "Jun",
     "Jul",
