@@ -72,6 +72,12 @@ describe("Product Controller - Extended", () => {
             [{ material: "  clay  " }, null, ["clay"], 1, 12, null],
             [{ search: "" }, null, null, 1, 12, ""],
             [{ category: "a,b,c", material: "m1,m2", search: "abc" }, ["a", "b", "c"], ["m1", "m2"], 1, 12, "abc"],
+            [{ category: "alpha,,beta", search: "  " }, ["alpha", "", "beta"], null, 1, 12, ""],
+            [{ material: "wood,,metal", page: "0", limit: "0" }, null, ["wood", "", "metal"], 1, 12, null],
+            [{ category: "furniture", material: "stone", page: "3", limit: "15", search: " table  " }, ["furniture"], ["stone"], 3, 15, "table"],
+            [{ category: ["A", "B", "C"], material: ["X", "Y"] }, ["A", "B", "C"], ["X", "Y"], 1, 12, null],
+            [{ category: ["A", 0, "B"], material: [false, "Y"] }, ["A", "B"], ["Y"], 1, 12, null],
+            [{ page: "5", limit: "2", search: "glass" }, null, null, 5, 2, "glass"],
         ])(
             "passes normalized filters for %#",
             async (query, expCategory, expMaterial, expPage, expLimit, expSearch) => {
@@ -301,6 +307,9 @@ describe("Product Controller - Extended", () => {
             ["disapprove", "disapproveProduct", { success: true }, 200],
             ["remove", "deleteProductService", { success: true }, 200],
             ["approve", "approveProduct", { success: false }, 500],
+            ["APPROVE", "approveProduct", { success: true }, 200],
+            [" DisApprove ", "disapproveProduct", { success: true }, 200],
+            [" remove ", "deleteProductService", { success: false }, 500],
         ])(
             "handles moderation action %s",
             async (action, serviceName, serviceResponse, status) => {
