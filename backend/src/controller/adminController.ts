@@ -168,22 +168,11 @@ export const getRevenueByCategory = async (req: Request, res: Response) => {
         $unwind: "$products"
       },
       {
-        $lookup: {
-          from: "products",
-          localField: "products.productId",
-          foreignField: "_id",
-          as: "productInfo"
-        }
-      },
-      {
-        $unwind: "$productInfo"
-      },
-      {
         $group: {
-          _id: "$productInfo.category",
+          _id: "$products.productId.category",
           revenue: {
             $sum: {
-              $multiply: ["$products.quantity", "$productInfo.newPrice"]
+              $multiply: ["$products.quantity", "$products.productId.newPrice"]
             }
           },
           units: { $sum: "$products.quantity" },
@@ -296,26 +285,16 @@ export const getTopSellingProducts = async (req: Request, res: Response) => {
         $unwind: "$products"
       },
       {
-        $lookup: {
-          from: "products",
-          localField: "products.productId",
-          foreignField: "_id",
-          as: "productInfo"
-        }
-      },
-      {
-        $unwind: "$productInfo"
-      },
-      {
         $group: {
-          _id: "$products.productId",
-          productName: { $first: "$productInfo.name" },
-          category: { $first: "$productInfo.category" },
-          image: { $first: "$productInfo.image" },
+          _id: "$products.productId.sourceProductId",
+          productId: { $first: "$products.productId.sourceProductId" },
+          productName: { $first: "$products.productId.name" },
+          category: { $first: "$products.productId.category" },
+          image: { $first: "$products.productId.image" },
           totalUnits: { $sum: "$products.quantity" },
           totalRevenue: {
             $sum: {
-              $multiply: ["$products.quantity", "$productInfo.newPrice"]
+              $multiply: ["$products.quantity", "$products.productId.newPrice"]
             }
           },
           orderCount: { $addToSet: "$_id" }
@@ -323,7 +302,7 @@ export const getTopSellingProducts = async (req: Request, res: Response) => {
       },
       {
         $project: {
-          productId: "$_id",
+          productId: 1,
           productName: 1,
           category: 1,
           image: 1,
@@ -331,7 +310,7 @@ export const getTopSellingProducts = async (req: Request, res: Response) => {
           totalRevenue: 1,
           orderCount: { $size: "$orderCount" },
           avgOrderValue: {
-            $divide: ["$totalRevenue", "$orderCount"]
+            $divide: ["$totalRevenue", { $size: "$orderCount" }]
           }
         }
       },

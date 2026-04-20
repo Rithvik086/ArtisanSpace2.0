@@ -12,6 +12,7 @@ import {
     deleteUser,
     forgotPassword,
     login,
+    logout,
     me,
     resetPassword,
     signup,
@@ -43,11 +44,27 @@ describe("Auth Controller - Extended", () => {
     describe("signup", () => {
         it.each([
             [{}, 400],
+            [{ username: "  " }, 400],
+            [{ username: "valid_user", email: "a@a.com", password: "pass12345", mobile_no: "1234567890", role: "customer" }, 400],
+            [{ username: "valid_user", name: "John Doe", password: "pass12345", mobile_no: "1234567890", role: "customer" }, 400],
+            [{ username: "valid_user", name: "John Doe", email: "a@a.com", mobile_no: "1234567890", role: "customer" }, 400],
+            [{ username: "valid_user", name: "John Doe", email: "a@a.com", password: "pass12345", role: "customer" }, 400],
+            [{ username: "valid_user", name: "John Doe", email: "a@a.com", password: "pass12345", mobile_no: "1234567890" }, 400],
             [{ username: "x", email: "a@a.com", password: "pass12345", mobile_no: "1234567890", role: "customer", name: "John" }, 400],
+            [{ username: "us", name: "John Doe", email: "a@a.com", password: "pass12345", mobile_no: "1234567890", role: "customer" }, 400],
+            [{ username: "bad name", name: "John Doe", email: "a@a.com", password: "pass12345", mobile_no: "1234567890", role: "customer" }, 400],
+            [{ username: "user-name", name: "John Doe", email: "a@a.com", password: "pass12345", mobile_no: "1234567890", role: "customer" }, 400],
+            [{ username: "valid_user", name: "Jo", email: "a@a.com", password: "pass12345", mobile_no: "1234567890", role: "customer" }, 400],
+            [{ username: "valid_user", name: "John1 Doe", email: "a@a.com", password: "pass12345", mobile_no: "1234567890", role: "customer" }, 400],
             [{ username: "valid_user", email: "bad-email", password: "pass12345", mobile_no: "1234567890", role: "customer", name: "John Doe" }, 400],
+            [{ username: "valid_user", email: "john@", password: "pass12345", mobile_no: "1234567890", role: "customer", name: "John Doe" }, 400],
+            [{ username: "valid_user", email: "john@site", password: "pass12345", mobile_no: "1234567890", role: "customer", name: "John Doe" }, 400],
             [{ username: "valid_user", email: "a@a.com", password: "123", mobile_no: "1234567890", role: "customer", name: "John Doe" }, 400],
+            [{ username: "valid_user", email: "a@a.com", password: "1234567", mobile_no: "1234567890", role: "customer", name: "John Doe" }, 400],
             [{ username: "valid_user", email: "a@a.com", password: "pass12345", mobile_no: "123", role: "customer", name: "John Doe" }, 400],
+            [{ username: "valid_user", email: "a@a.com", password: "pass12345", mobile_no: "123456789", role: "customer", name: "John Doe" }, 400],
             [{ username: "valid_user", email: "a@a.com", password: "pass12345", mobile_no: "1234567890", role: "admin", name: "John Doe" }, 400],
+            [{ username: "valid_user", email: "a@a.com", password: "pass12345", mobile_no: "1234567890", role: "manager", name: "John Doe" }, 400],
         ])("validates payload %#", async (body, status) => {
             const req = { body } as Partial<Request>;
             const res = createRes();
@@ -108,6 +125,14 @@ describe("Auth Controller - Extended", () => {
             [{}, 400],
             [{ username: "u1" }, 400],
             [{ password: "p1" }, 400],
+            [{ username: "", password: "p1" }, 401],
+            [{ username: "u1", password: "" }, 401],
+            [{ username: 101, password: "p1" }, 400],
+            [{ username: "u1", password: 101 }, 400],
+            [{ username: null, password: "p1" }, 400],
+            [{ username: "u1", password: null }, 400],
+            [{ username: ["u1"], password: "p1" }, 400],
+            [{ username: "u1", password: ["p1"] }, 400],
         ])("validates input %#", async (body, status) => {
             const req = { body } as Partial<Request>;
             const res = createRes();
@@ -217,6 +242,11 @@ describe("Auth Controller - Extended", () => {
         it.each([
             [{}, 400],
             [{ email: "bad" }, 400],
+            [{ email: "" }, 400],
+            [{ email: "  " }, 400],
+            [{ email: "no-at-sign.com" }, 400],
+            [{ email: "john@site" }, 400],
+            [{ email: null }, 400],
         ])("validates forgot-password payload %#", async (body, status) => {
             const req = { body } as Partial<Request>;
             const res = createRes();
@@ -255,9 +285,16 @@ describe("Auth Controller - Extended", () => {
             [{}, 400],
             [{ token: "", newPassword: "123456" }, 400],
             [{ token: "abc", newPassword: "123" }, 400],
+            [{ token: "abc", newPassword: "12345" }, 400],
+            [{ token: " ", newPassword: "123456" }, 400],
+            [{ token: null, newPassword: "123456" }, 400],
+            [{ token: "abc", newPassword: null }, 400],
+            [{ token: ["abc"], newPassword: "123456" }, 400],
+            [{ token: "abc", newPassword: ["123456"] }, 400],
         ])("validates payload %#", async (body, status) => {
             const req = { body } as Partial<Request>;
             const res = createRes();
+            (User.findOne as jest.Mock).mockResolvedValue(null);
 
             await resetPassword(req as Request, res as Response);
 
@@ -301,6 +338,12 @@ describe("Auth Controller - Extended", () => {
         it.each([
             [{ name: "x" }, 400],
             [{ name: "John1" }, 400],
+            [{ name: "Jo" }, 400],
+            [{ name: "John_Doe" }, 400],
+            [{ mobile_no: 1234567890 }, 400],
+            [{ mobile_no: "12345" }, 400],
+            [{ address: "not-object" }, 400],
+            [{ address: { city: 12 } }, 400],
         ])("validates profile update %#", async (body, status) => {
             const req = { body, user: { id: "u1", role: "customer", iat: 0, exp: 1 } } as unknown as Request;
             const res = createRes();
@@ -364,12 +407,14 @@ describe("Auth Controller - Extended", () => {
             [{ body: {} }, 400],
             [{ body: { username: "taken" } }, 200],
             [{ body: { username: "free" } }, 200],
+            [{ body: { username: " " } }, 200],
+            [{ body: { username: "taken_user_2" } }, 200],
         ])("checkUsername scenarios %#", async (reqObj, status) => {
             const req = reqObj as Partial<Request>;
             const res = createRes();
             const body = (reqObj as { body?: { username?: string } }).body;
             (userServices.findUserByUserName as jest.Mock).mockResolvedValue(
-                body?.username === "taken" ? { _id: "u1" } : null,
+                body?.username === "taken" || body?.username === "taken_user_2" ? { _id: "u1" } : null,
             );
 
             await checkUsername(req as Request, res as Response);
@@ -381,12 +426,14 @@ describe("Auth Controller - Extended", () => {
             [{ body: {} }, 400],
             [{ body: { email: "a@a.com" } }, 200],
             [{ body: { email: "b@b.com" } }, 200],
+            [{ body: { email: "taken+1@a.com" } }, 200],
+            [{ body: { email: "new+1@a.com" } }, 200],
         ])("checkEmail scenarios %#", async (reqObj, status) => {
             const req = reqObj as Partial<Request>;
             const res = createRes();
             const body = (reqObj as { body?: { email?: string } }).body;
             (userServices.findUserByEmail as jest.Mock).mockResolvedValue(
-                body?.email === "a@a.com" ? { _id: "u1" } : null,
+                body?.email === "a@a.com" || body?.email === "taken+1@a.com" ? { _id: "u1" } : null,
             );
 
             await checkEmail(req as Request, res as Response);
@@ -411,11 +458,16 @@ describe("Auth Controller - Extended", () => {
         it.each([
             [{ params: {} }, 400],
             [{ params: { userId: "u1" }, user: { id: "admin", role: "admin", iat: 0, exp: 1 }, body: { reason: "spam" } }, 200],
+            [{ params: { userId: "u2" }, user: { id: "admin", role: "admin", iat: 0, exp: 1 }, body: {} }, 200],
+            [{ params: { userId: "u3" }, user: { id: "admin", role: "admin", iat: 0, exp: 1 }, body: { reason: "duplicate" } }, 500],
         ])("deleteUser scenarios %#", async (reqObj, status) => {
             const req = reqObj as unknown as Request;
             const res = createRes();
-            (userServices.getUserById as jest.Mock).mockResolvedValue({ _id: "u1", email: "x@y.com", name: "X" });
-            (userServices.removeUser as jest.Mock).mockResolvedValue({ success: true });
+            const userId = (reqObj as { params?: { userId?: string } })?.params?.userId;
+            (userServices.getUserById as jest.Mock).mockResolvedValue(
+                userId === "u2" ? { _id: "u2", name: "No Mail" } : { _id: "u1", email: "x@y.com", name: "X" },
+            );
+            (userServices.removeUser as jest.Mock).mockResolvedValue(userId === "u3" ? { success: false } : { success: true });
             (sendMail as jest.Mock).mockResolvedValue({});
 
             await deleteUser(req, res as Response);
@@ -434,6 +486,63 @@ describe("Auth Controller - Extended", () => {
             await me(req, res as Response);
 
             expect(res.status).toHaveBeenCalledWith(status);
+        });
+
+        it("keeps deletion successful when delete notification email fails", async () => {
+            const req = {
+                params: { userId: "u1" },
+                user: { id: "admin", role: "admin", iat: 0, exp: 1 },
+                body: { reason: "policy" },
+            } as unknown as Request;
+            const res = createRes();
+            const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => undefined);
+            (userServices.getUserById as jest.Mock).mockResolvedValue({ _id: "u1", email: "x@y.com", name: "X" });
+            (userServices.removeUser as jest.Mock).mockResolvedValue({ success: true });
+            (sendMail as jest.Mock).mockRejectedValue(new Error("smtp down"));
+
+            await deleteUser(req, res as Response);
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(consoleSpy).toHaveBeenCalled();
+            consoleSpy.mockRestore();
+        });
+
+        it("maps logout response and clears cookie", () => {
+            const req = {} as Request;
+            const res = createRes();
+
+            logout(req, res as Response);
+
+            expect(res.clearCookie).toHaveBeenCalledWith("token", {
+                httpOnly: true,
+                sameSite: "strict",
+            });
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith({ message: "Logged out successfully" });
+        });
+
+        it("throws from me when user lookup crashes", async () => {
+            const req = { user: { id: "u1", role: "customer", iat: 0, exp: 1 } } as unknown as Request;
+            const res = createRes();
+            (userServices.getUserById as jest.Mock).mockRejectedValue(new Error("db down"));
+
+            await expect(me(req, res as Response)).rejects.toThrow("Error fetching user");
+        });
+
+        it("throws from checkUsername when service crashes", async () => {
+            const req = { body: { username: "abc" } } as Request;
+            const res = createRes();
+            (userServices.findUserByUserName as jest.Mock).mockRejectedValue(new Error("db down"));
+
+            await expect(checkUsername(req, res as Response)).rejects.toThrow("Error checking username");
+        });
+
+        it("throws from checkEmail when service crashes", async () => {
+            const req = { body: { email: "abc@x.com" } } as Request;
+            const res = createRes();
+            (userServices.findUserByEmail as jest.Mock).mockRejectedValue(new Error("db down"));
+
+            await expect(checkEmail(req, res as Response)).rejects.toThrow("Error checking email");
         });
     });
 });
