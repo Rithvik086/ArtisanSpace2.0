@@ -34,17 +34,117 @@ router.use(verifytoken);
 // );
 
 // Artisan+ routes - Must come before /:id to avoid conflicts
+
+/**
+ * @swagger
+ * /products:
+ *   get:
+ *     summary: Browse and search products (Customer/Public)
+ *     tags: [Customer - Browse Products]
+ *     parameters:
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: Filter by product category
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: number
+ *         description: Minimum price filter
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: number
+ *         description: Maximum price filter
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by product name or description
+ *       - in: query
+ *         name: artisanId
+ *         schema:
+ *           type: string
+ *         description: Filter by artisan ID
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: number
+ *           default: 20
+ *         description: Number of products per page
+ *       - in: query
+ *         name: skip
+ *         schema:
+ *           type: number
+ *           default: 0
+ *         description: Number of products to skip
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [newest, popular, lowPrice, highPrice]
+ *         description: Sort by option
+ *     responses:
+ *       200:
+ *         description: List of products with filters applied
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 products:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       productName:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       price:
+ *                         type: number
+ *                       category:
+ *                         type: string
+ *                       image:
+ *                         type: string
+ *                       quantity:
+ *                         type: number
+ *                       artisanId:
+ *                         type: string
+ *                       artisanName:
+ *                         type: string
+ *                       rating:
+ *                         type: number
+ *                       reviews:
+ *                         type: number
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                 total:
+ *                   type: number
+ *                   description: Total number of products matching filters
+ *       400:
+ *         description: Invalid filter parameters
+ *       500:
+ *         description: Internal server error
+ */
+
 /**
  * @swagger
  * /products/my:
  *   get:
- *     summary: Get user's own products (Artisan only)
- *     tags: [Artisan]
+ *     summary: Get artisan's own products
+ *     tags: [Artisan Products]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: List of artisan's own products
+ *         description: List of artisan's products
  *         content:
  *           application/json:
  *             schema:
@@ -52,9 +152,11 @@ router.use(verifytoken);
  *               items:
  *                 type: object
  *                 properties:
- *                   id:
+ *                   _id:
  *                     type: string
- *                   name:
+ *                   productName:
+ *                     type: string
+ *                   description:
  *                     type: string
  *                   price:
  *                     type: number
@@ -66,8 +168,14 @@ router.use(verifytoken);
  *                     type: number
  *                   status:
  *                     type: string
+ *                     enum: [approved, pending, rejected]
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
  *       403:
  *         description: Forbidden - requires artisan role
+ *       500:
+ *         description: Internal server error
  */
 router.get(
   "/my",
@@ -119,6 +227,97 @@ router.get(
  */
 router.get("/all", getAllProducts);
 
+/**
+ * @swagger
+ * /products/{id}:
+ *   get:
+ *     summary: Get product details (Customer view)
+ *     tags: [Customer - Browse Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product ID
+ *     responses:
+ *       200:
+ *         description: Product details with artisan info and reviews
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 product:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     productName:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *                     price:
+ *                       type: number
+ *                     category:
+ *                       type: string
+ *                     material:
+ *                       type: string
+ *                     image:
+ *                       type: string
+ *                       description: Main product image URL
+ *                     images:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       description: Additional product images
+ *                     quantity:
+ *                       type: number
+ *                       description: Available quantity
+ *                     artisan:
+ *                       type: object
+ *                       properties:
+ *                         _id:
+ *                           type: string
+ *                         name:
+ *                           type: string
+ *                         businessName:
+ *                           type: string
+ *                         rating:
+ *                           type: number
+ *                         followers:
+ *                           type: number
+ *                     rating:
+ *                       type: number
+ *                       description: Average product rating (1-5)
+ *                     totalReviews:
+ *                       type: number
+ *                     reviews:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           userId:
+ *                             type: string
+ *                           userName:
+ *                             type: string
+ *                           rating:
+ *                             type: number
+ *                           comment:
+ *                             type: string
+ *                           createdAt:
+ *                             type: string
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *       404:
+ *         description: Product not found
+ *       500:
+ *         description: Internal server error
+ */
+
 router.get(
   "/:id",
   getProductById,
@@ -128,8 +327,8 @@ router.get(
  * @swagger
  * /products:
  *   post:
- *     summary: Create new product (Manager only)
- *     tags: [Product Management]
+ *     summary: Create new product (Artisan/Manager)
+ *     tags: [Artisan Products]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -150,30 +349,47 @@ router.get(
  *                 description: Product name
  *               description:
  *                 type: string
- *                 description: Product description
+ *                 description: Detailed product description
  *               price:
  *                 type: number
- *                 description: Product price
+ *                 description: Product price in USD
  *               type:
  *                 type: string
- *                 description: Product type/category
+ *                 description: Product type/category (e.g., jewelry, textiles, pottery)
  *               material:
  *                 type: string
- *                 description: Product material
+ *                 description: Primary material used
  *               quantity:
  *                 type: number
- *                 description: Available quantity
+ *                 description: Available quantity in stock
  *               image:
  *                 type: string
  *                 format: binary
- *                 description: Product image file
+ *                 description: Product image file (JPG, PNG)
  *     responses:
  *       201:
  *         description: Product created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 product:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     productName:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *                       enum: [approved, pending, rejected]
  *       400:
- *         description: Validation error
+ *         description: Validation error - missing required fields
  *       403:
- *         description: Forbidden - requires manager role
+ *         description: Forbidden - requires artisan or manager role
  */
 router.post(
   "/",
@@ -263,7 +479,7 @@ router.patch(
  * /products/{id}:
  *   put:
  *     summary: Update an existing product (Artisan only)
- *     tags: [Artisan]
+ *     tags: [Artisan Products]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -282,17 +498,46 @@ router.patch(
  *             properties:
  *               productName:
  *                 type: string
+ *                 description: Product name
  *               description:
  *                 type: string
+ *                 description: Product description
  *               price:
  *                 type: number
+ *                 description: Product price
  *               quantity:
  *                 type: number
+ *                 description: Available quantity
+ *               category:
+ *                 type: string
+ *                 description: Product category
+ *               material:
+ *                 type: string
+ *                 description: Product material
  *     responses:
  *       200:
  *         description: Product updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                 productName:
+ *                   type: string
+ *                 price:
+ *                   type: number
+ *                 quantity:
+ *                   type: number
+ *       400:
+ *         description: Invalid input data
  *       403:
- *         description: Forbidden - requires artisan role
+ *         description: Forbidden - requires artisan role or owner
+ *       404:
+ *         description: Product not found
+ *       500:
+ *         description: Internal server error
  */
 router.put("/:id", editProduct);
 
@@ -301,7 +546,7 @@ router.put("/:id", editProduct);
  * /products/{id}:
  *   delete:
  *     summary: Delete a product (Artisan only)
- *     tags: [Artisan]
+ *     tags: [Artisan Products]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -310,12 +555,26 @@ router.put("/:id", editProduct);
  *         required: true
  *         schema:
  *           type: string
- *         description: Product ID
+ *         description: Product ID to delete
  *     responses:
  *       200:
  *         description: Product deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
  *       403:
- *         description: Forbidden - requires artisan role
+ *         description: Forbidden - requires artisan role or owner
+ *       404:
+ *         description: Product not found
+ *       500:
+ *         description: Internal server error
  */
 router.delete(
   "/:id",
