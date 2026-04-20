@@ -25,7 +25,7 @@ const updateProfileSchema = z.object({
     .optional(),
   mobile_no: z
     .string()
-    .min(10, "Mobile number must be at least 10 digits")
+    .min(9, "Mobile number must be at least 10 digits")
     .optional(),
   address: z
     .object({
